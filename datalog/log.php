@@ -38,12 +38,12 @@ while (1) {
 
   if ($c == "\n") {
     // new line
-    $data = parse_line($chars);
+    if ($data = parse_line($chars)) {
 
-    $str = date('d-m-Y h:i:s') . ',' . $data['mv'] . ',' . $data['mid'] . "\n";
-    $filename = $dir . '/' . date('d-m-Y') . '.csv';
-    file_put_contents($filename, $str, FILE_APPEND);
-
+      $str = date('d-m-Y H:i:s') . ',' . $data['mv'] . ',' . $data['mid'] . "\n";
+      $filename = $dir . '/' . date('d-m-Y') . '.csv';
+      file_put_contents($filename, $str, FILE_APPEND);
+    }
     $chars = '';
   } else {
     $chars .= $c;
@@ -62,10 +62,14 @@ while (1) {
 function parse_line($line)
 {
   $parts = explode(',', $line);
+  
+  if (count($parts) == 3) {
+    return array(
+      'mid' => str_replace('R: ', '', $parts[0]),
+      'mv' => str_replace('mv=', '', trim($parts[2])),
+    );
+  }
 
-  return array(
-    'mid' => $parts[0],
-    'mv' => $parts[2],
-  );
+  return false;
 }
 
