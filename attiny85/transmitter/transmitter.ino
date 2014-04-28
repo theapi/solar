@@ -7,8 +7,8 @@
 #define PIN_TX 3
 
 
-byte ledState = LOW;             // ledState used to set the LED
-unsigned long msgId = 0;
+byte ledState = HIGH;             // ledState used to set the LED
+byte msgId = 0;
 
 
 volatile byte wd_check = 0; // A number for the watchdog timerer to check
@@ -55,11 +55,12 @@ void setup()
 {
   pinMode(LED_DEBUG, OUTPUT);     
   pinMode(PIN_TX, OUTPUT); 
-  watchdog_setup();
-  
+ 
   vw_set_ptt_inverted(true); // Required for DR3100
   vw_setup(2000);      // Bits per sec
   vw_set_tx_pin(PIN_TX);
+    
+  watchdog_setup();
 }
 
 void loop()
@@ -73,21 +74,22 @@ void loop()
   }
   digitalWrite(LED_DEBUG, ledState);
   
-  ++msgId;
+  
   char msg[16];
-  sprintf(msg, "%lu,wd=%d,mv=%u", msgId, wd_check, readVcc());
+  sprintf(msg, "%d,wd=%d,mv=%u", msgId, wd_check, readVcc());
   vw_send((uint8_t *)msg, strlen(msg));
   vw_wait_tx(); // Wait until the whole message is gone
   // Cannot use millis() as timer 0 is used by virtualwire on Attiny85
   _delay_ms(1000);
   
   // Detect cpu freeze.
-  // Watchdog checks tha about 4 seconds have run since last check.
+  // Watchdog checks that about 4 seconds have run since last check.
   // So make sure to record every "second" encountered.
   // If the power is unstable then these seconds will not match with 
   // watchdog's timer, and force a reset.
   ++wd_check;
 
+  ++msgId;
 }
 
 void watchdog_setup()
