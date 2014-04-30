@@ -1,5 +1,6 @@
 
 #include <util/delay.h>
+#include <avr/wdt.h>
 #include <VirtualWire.h>
 
 
@@ -9,21 +10,7 @@
 
 byte ledState = HIGH;             // ledState used to set the LED
 byte msgId = 0;
-
-
-volatile byte wd_check = 0; // A number for the watchdog timerer to check
-
-ISR(WDT_vect) 
-{
-  // Check that there have been about 4 seconds, since the last check
-  if (wd_check > 2 && wd_check < 6) {
-    wd_check = 0;
-    // Turn on watchdog again. 
-    // See 8.5.2 "To avoid the Watchdog Reset, WDIE must be set after each interrupt"
-    WDTCR |= (1 << WDIE);
-  }
-  // Failed the test so a reset will occur on the next watchdog timeout.
-}
+byte wd_check = 0;
 
 long readVcc() {
   // Read 1.1V reference against AVcc
@@ -82,21 +69,17 @@ void loop()
   // Cannot use millis() as timer 0 is used by virtualwire on Attiny85
   _delay_ms(1000);
   
-  // Detect cpu freeze.
-  // Watchdog checks that about 4 seconds have run since last check.
-  // So make sure to record every "second" encountered.
-  // If the power is unstable then these seconds will not match with 
-  // watchdog's timer, and force a reset.
-  ++wd_check;
+  // Reset watchdog so he knows all is well.
+  wdt_reset();
 
+  wd_check = 1;
   ++msgId;
 }
 
 void watchdog_setup()
 {
-  // WDIE = watchdog interupt enable
-  // WDE  = turn on watchdog
-  // WDP3 = about 4 seconds
-  WDTCR |= (1 << WDIE) | (1 << WDE) | ( 1<< WDP3);
+  // Reset after 8 seconds, 
+  // unless wdt_reset(); has been successfully called
+  wdt_enable(WDTO_8S);
 }
 
