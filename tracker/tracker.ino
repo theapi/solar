@@ -20,8 +20,8 @@ Need to try in sunlight to get better idea of good resistor value.
 #define PIN_LDR_DOWN  1 // PC1
 #define PIN_LDR_LEFT  2 // PC2
 #define PIN_LDR_RIGHT 3 // PC3
-#define THRESHOLD_LDR_VIRT 20
-#define THRESHOLD_LDR_HORZ 20
+#define THRESHOLD_LDR_VIRT 25
+#define THRESHOLD_LDR_HORZ 25
 
 #define SERVO_PIN_VIRT 8 // PB0
 #define SERVO_PIN_HORZ 9 // PB1
@@ -35,6 +35,9 @@ void setup()
     
     servo_virt.attach(SERVO_PIN_VIRT);
     servo_horz.attach(SERVO_PIN_HORZ);
+    
+    servo_virt.write(90);
+    servo_horz.write(90);
 }
 
 void loop()
@@ -46,25 +49,57 @@ void loop()
 
 void tkr_move()
 {
-    int dist_virt = tkr_dist_virt();
-    int dist_horz = tkr_dist_horz();
+    int diff_virt = tkr_diff_virt();
+    int diff_horz = tkr_diff_horz();
     Serial.println(); 
     
-    if (dist_virt) {
-      // move up or down, within range.
-      byte deg = map(dist_virt, 100, 1023, 0, 170);
+    if (diff_virt) {
+      // move up or down
+      int deg = servo_virt.read();
+      
+      if (diff_virt > 0) {
+        ++deg;
+        if (deg > 160) deg = 160;
+      } else {
+        --deg;
+        if (deg < 40) deg = 40;
+      }
+      
+      Serial.print(diff_virt);
+      Serial.print('-');
+      Serial.println(deg); 
+      
+      // move a degree each loop until target is reached.
+      servo_virt.attach(SERVO_PIN_VIRT);
       servo_virt.write(deg);
+      
     }
 
-    if (dist_horz) {
-      // move left or right, within range.
-      byte deg = map(dist_horz, 0, 1023, 0, 180);
+    if (diff_horz) {
+      // move left or right.
+      int deg = servo_horz.read();
+      
+      if (diff_horz > 0) {
+        ++deg;
+        if (deg > 170) deg = 170;
+      } else {
+        --deg;
+        if (deg < 10) deg = 10;
+      }
+      
+      Serial.print(diff_horz);
+      Serial.print('-');
+      Serial.println(deg); 
+      
+      // move a degree each loop until target is reached.
+      servo_horz.attach(SERVO_PIN_HORZ);
       servo_horz.write(deg);
+      
     }
     
 }
 
-int tkr_dist_virt()
+int tkr_diff_virt()
 {
     int up = analogRead(PIN_LDR_UP);
     int down = analogRead(PIN_LDR_DOWN);
@@ -74,15 +109,15 @@ int tkr_dist_virt()
     Serial.print(down); 
     Serial.print(':');
     
-    int diff = abs(up - down);
-    if (diff > THRESHOLD_LDR_VIRT) {
+    int diff = up - down;
+    if (abs(diff) > THRESHOLD_LDR_VIRT) {
       return diff;
     }
     
     return 0;
 }
 
-int tkr_dist_horz()
+int tkr_diff_horz()
 {
     int left = analogRead(PIN_LDR_LEFT);
     int right = analogRead(PIN_LDR_RIGHT);
@@ -90,10 +125,10 @@ int tkr_dist_horz()
     Serial.print(left); 
     Serial.print(':');
     Serial.print(right); 
-    Serial.print(':');
     
-    int diff = abs(left - right);
-    if (diff > THRESHOLD_LDR_HORZ) {
+    int diff = left - right
+    ;
+    if (abs(diff) > THRESHOLD_LDR_HORZ) {
       return diff;
     }
     
