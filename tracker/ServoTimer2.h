@@ -41,8 +41,8 @@ The pulse width timing is accurate to within 1%
 typedef uint8_t boolean;
 typedef uint8_t byte;
 
-#define MIN_PULSE_WIDTH       750        // the shortest pulse sent to a servo  
-#define MAX_PULSE_WIDTH      2250        // the longest pulse sent to a servo 
+#define MIN_PULSE_WIDTH       600        // the shortest pulse sent to a servo  
+#define MAX_PULSE_WIDTH      2800        // the longest pulse sent to a servo 
 #define DEFAULT_PULSE_WIDTH  1500        // default pulse width when servo is attached
 #define FRAME_SYNC_PERIOD   20000        // total frame duration in microseconds 
 #define NBR_CHANNELS 8                   // the maximum number of channels, don't change this 

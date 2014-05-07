@@ -93,10 +93,10 @@ void tkr_move()
       
       if (diff_horz > 0) {
         pos += 10;
-        if (pos > 2200) pos = 2200;
+        if (pos > 2800) pos = 2800;
       } else {
         pos -= 10;
-        if (pos < 750) pos = 750;
+        if (pos < 600) pos = 600;
       }
       
       Serial.print(diff_horz);
