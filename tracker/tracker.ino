@@ -1,12 +1,12 @@
 /* 
 
 Connect the photoresistor one leg to pin 0, and pin to +5V
-Connect a resistor (experimenting 100ohm to 1k seem good) from pin 0 to GND.
+Connect a resistor from pin 0 to GND.
 Need to try in sunlight to get better idea of good resistor value.
 
 ----------------------------------------------------
 
-           PhotoR     1K
+           PhotoR     10K
  +5    o---/\/\/--.--/\/\/---o GND
                   |
  Pin 0 o-----------
@@ -26,6 +26,11 @@ Need to try in sunlight to get better idea of good resistor value.
 #define SERVO_PIN_VIRT 8 // PB0
 #define SERVO_PIN_HORZ 9 // PB1
 
+// When the last move was attempted.
+unsigned long move_last = 0; 
+// The move delay.
+const long move_interval = 100; 
+
 Servo servo_virt;
 Servo servo_horz;
 
@@ -36,15 +41,17 @@ void setup()
     servo_virt.attach(SERVO_PIN_VIRT);
     servo_horz.attach(SERVO_PIN_HORZ);
     
-    servo_virt.write(90);
+    servo_virt.write(110);
     servo_horz.write(90);
 }
 
 void loop()
 {
-    // Move the panels if needed.
-    tkr_move();
-    delay(100); 
+    unsigned long now = millis();
+    if (now - move_last >= move_interval) {
+        // Move the panels if needed.
+        tkr_move();
+    }
 }
 
 void tkr_move()
