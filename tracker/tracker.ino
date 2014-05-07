@@ -20,6 +20,9 @@ Need to try in sunlight to get better idea of good resistor value.
 //#include <Servo.h> 
 #include "ServoTimer2.h" 
 
+#define LED_DEBUG 13
+#define PIN_TX 7
+
 #define PIN_LDR_UP    0 // PC0
 #define PIN_LDR_DOWN  1 // PC1
 #define PIN_LDR_LEFT  2 // PC2
@@ -35,6 +38,14 @@ unsigned long move_last = 0;
 // The move delay.
 const long move_interval = 100; 
 
+// When the last transmit was attempted.
+unsigned long tx_last = 0; 
+// The transmit interval.
+const long tx_interval = 2000; 
+
+byte ledState = HIGH;
+byte msgId = 0;
+
 ServoTimer2 servo_virt;
 ServoTimer2 servo_horz;
 
@@ -42,6 +53,15 @@ void setup()
 {
     Serial.begin(9600); 
     
+    pinMode(LED_DEBUG, OUTPUT);     
+    pinMode(PIN_TX, OUTPUT); 
+   
+    vw_set_ptt_inverted(true); // Required for DR3100
+    vw_setup(2000);      // Bits per sec
+    vw_set_tx_pin(PIN_TX);
+      
+    watchdog_setup();
+  
     servo_virt.attach(SERVO_PIN_VIRT);
     servo_horz.attach(SERVO_PIN_HORZ);
     
@@ -54,8 +74,30 @@ void loop()
     unsigned long now = millis();
     if (now - move_last >= move_interval) {
         move_last = now;
+        
         // Move the panels if needed.
         tkr_move();
+    }
+    
+    if (now - tx_last >= tx_interval) {
+        tx_last = now;
+        
+        // if the LED is off turn it on and vice-versa:
+        if (ledState == LOW) {
+          ledState = HIGH;
+        } else {
+          ledState = LOW;
+        }
+        digitalWrite(LED_DEBUG, ledState);
+        
+        // Send a transmission
+        char msg[16];
+        sprintf(msg, "%d,wd=1,mv=%u", msgId, readVcc());
+        vw_send((uint8_t *)msg, strlen(msg));
+        //vw_wait_tx(); // Wait until the whole message is gone
+        
+        // Reset watchdog so he knows all is well.
+        wdt_reset();
     }
 }
 
@@ -171,5 +213,12 @@ long readVcc() {
  
   result = 1125300L / result; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
   return result; // Vcc in millivolts
+}
+
+void watchdog_setup()
+{
+  // Reset after 8 seconds, 
+  // unless wdt_reset(); has been successfully called
+  wdt_enable(WDTO_8S);
 }
 
