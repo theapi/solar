@@ -16,12 +16,9 @@ Need to try in sunlight to get better idea of good resistor value.
 
 #include <util/delay.h>
 #include <avr/wdt.h>
-//#include <VirtualWire.h>
-// Investigate replacing Servo with ServoTimer2
-// So that virtual wire can be used.
-// virtualwire & servo both use timer1
-// http://forum.arduino.cc/index.php?PHPSESSID=chto8kajoid84icno5e5sm0jk7&topic=21975.0
-#include <Servo.h> 
+#include <VirtualWire.h>
+//#include <Servo.h> 
+#include "ServoTimer2.h" 
 
 #define PIN_LDR_UP    0 // PC0
 #define PIN_LDR_DOWN  1 // PC1
@@ -38,8 +35,8 @@ unsigned long move_last = 0;
 // The move delay.
 const long move_interval = 100; 
 
-Servo servo_virt;
-Servo servo_horz;
+ServoTimer2 servo_virt;
+ServoTimer2 servo_horz;
 
 void setup()
 {
@@ -48,14 +45,15 @@ void setup()
     servo_virt.attach(SERVO_PIN_VIRT);
     servo_horz.attach(SERVO_PIN_HORZ);
     
-    servo_virt.write(110);
-    servo_horz.write(90);
+    servo_virt.write(1500);
+    servo_horz.write(1500);
 }
 
 void loop()
 {
     unsigned long now = millis();
     if (now - move_last >= move_interval) {
+        move_last = now;
         // Move the panels if needed.
         tkr_move();
     }
@@ -69,45 +67,45 @@ void tkr_move()
     
     if (diff_virt) {
       // move up or down
-      int deg = servo_virt.read();
+      int pos = servo_virt.read();
       
       if (diff_virt > 0) {
-        ++deg;
-        if (deg > 160) deg = 160;
+        pos += 10;
+        if (pos > 1900) pos = 1900;
       } else {
-        --deg;
-        if (deg < 40) deg = 40;
+        pos -= 10;
+        if (pos < 1100) pos = 1100;
       }
       
       Serial.print(diff_virt);
       Serial.print('-');
-      Serial.println(deg); 
+      Serial.println(pos); 
       
       // move a degree each loop until target is reached.
-      servo_virt.attach(SERVO_PIN_VIRT);
-      servo_virt.write(deg);
+      //servo_virt.attach(SERVO_PIN_VIRT);
+      servo_virt.write(pos);
       
     }
 
     if (diff_horz) {
       // move left or right.
-      int deg = servo_horz.read();
+      int pos = servo_horz.read();
       
       if (diff_horz > 0) {
-        ++deg;
-        if (deg > 170) deg = 170;
+        pos += 10;
+        if (pos > 2200) pos = 2200;
       } else {
-        --deg;
-        if (deg < 10) deg = 10;
+        pos -= 10;
+        if (pos < 750) pos = 750;
       }
       
       Serial.print(diff_horz);
       Serial.print('-');
-      Serial.println(deg); 
+      Serial.println(pos); 
       
       // move a degree each loop until target is reached.
-      servo_horz.attach(SERVO_PIN_HORZ);
-      servo_horz.write(deg);
+      //servo_horz.attach(SERVO_PIN_HORZ);
+      servo_horz.write(pos);
       
     }
     
