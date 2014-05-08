@@ -29,14 +29,18 @@ Need to try in sunlight to get better idea of good resistor value.
 #define PIN_LDR_RIGHT 3 // PC3
 #define THRESHOLD_LDR_VIRT 25
 #define THRESHOLD_LDR_HORZ 25
+#define MOVE_INTERVAL_MILLIS 100
 
 #define SERVO_PIN_VIRT 8 // PB0
 #define SERVO_PIN_HORZ 9 // PB1
 
+#define THRESHOLD_DARK 30 // A reading below his is considered dark.
+#define DARK_SLEEP_COUNT (MOVE_INTERVAL_MILLIS * 10 * 60) // 1 minute of dark
+
 // When the last move was attempted.
 unsigned long move_last = 0; 
 // The move delay.
-const long move_interval = 100; 
+const long move_interval = MOVE_INTERVAL_MILLIS; 
 
 // When the last transmit was attempted.
 unsigned long tx_last = 0; 
@@ -45,6 +49,11 @@ const long tx_interval = 2000;
 
 byte ledState = HIGH;
 byte msgId = 0;
+
+// How many readingas are considered dark.
+// If dark for a while, deep sleep can be enabled.
+unsigned long tkr_dark_count = 0;
+
 
 ServoTimer2 servo_virt;
 ServoTimer2 servo_horz;
@@ -92,9 +101,15 @@ void loop()
         
         // Send a transmission
         char msg[16];
-        sprintf(msg, "%d,wd=1,mv=%u", msgId, readVcc());
+        sprintf(msg, "%d,wd=%d,mv=%u", msgId, tkr_dark_count, readVcc());
         vw_send((uint8_t *)msg, strlen(msg));
         //vw_wait_tx(); // Wait until the whole message is gone
+        
+        
+        if (tkr_dark_count > DARK_SLEEP_COUNT) {
+          tkr_dark_count = 0;  
+          //@todo goto sleep(), it's too dark.
+        }
         
         // Reset watchdog so he knows all is well.
         wdt_reset();
@@ -158,6 +173,11 @@ int tkr_diff_virt()
     int up = analogRead(PIN_LDR_UP);
     int down = analogRead(PIN_LDR_DOWN);
     
+    // Count the dark readings.
+    if (up < THRESHOLD_DARK) {
+      ++tkr_dark_count;  
+    }
+    
     Serial.print(up); 
     Serial.print(':');
     Serial.print(down); 
@@ -180,8 +200,7 @@ int tkr_diff_horz()
     Serial.print(':');
     Serial.print(right); 
     
-    int diff = left - right
-    ;
+    int diff = left - right;
     if (abs(diff) > THRESHOLD_LDR_HORZ) {
       return diff;
     }
@@ -221,4 +240,6 @@ void watchdog_setup()
   // unless wdt_reset(); has been successfully called
   wdt_enable(WDTO_8S);
 }
+
+
 
