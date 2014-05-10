@@ -16,7 +16,7 @@ Need to try in sunlight to get better idea of good resistor value.
 
 #include <util/delay.h>
 #include <avr/wdt.h>
-#include <VirtualWire.h>
+//#include <VirtualWire.h>
 //#include <Servo.h> 
 #include "ServoTimer2.h" 
 
@@ -29,10 +29,12 @@ Need to try in sunlight to get better idea of good resistor value.
 #define PIN_LDR_RIGHT 3 // PC3
 #define THRESHOLD_LDR_VIRT 25
 #define THRESHOLD_LDR_HORZ 25
-#define MOVE_INTERVAL_MILLIS 100
+#define MOVE_INTERVAL_MILLIS 60
 
-#define SERVO_PIN_VIRT 8 // PB0
 #define SERVO_PIN_HORZ 9 // PB1
+
+#define SERVO_PIN_VIRT 10 // PB2
+
 
 #define THRESHOLD_DARK 30 // A reading below his is considered dark.
 #define DARK_SLEEP_COUNT (MOVE_INTERVAL_MILLIS * 10 * 60) // 1 minute of dark
@@ -65,17 +67,19 @@ void setup()
     pinMode(LED_DEBUG, OUTPUT);     
     pinMode(PIN_TX, OUTPUT); 
    
-    vw_set_ptt_inverted(true); // Required for DR3100
-    vw_setup(2000);      // Bits per sec
-    vw_set_tx_pin(PIN_TX);
+    //vw_set_ptt_inverted(true); // Required for DR3100
+    //vw_setup(2000);      // Bits per sec
+    //vw_set_tx_pin(PIN_TX);
       
     watchdog_setup();
+  
   
     servo_virt.attach(SERVO_PIN_VIRT);
     servo_horz.attach(SERVO_PIN_HORZ);
     
-    servo_virt.write(1500);
-    servo_horz.write(1500);
+    servo_virt.write(710); // 650min -> 980max
+    servo_horz.write(810); // 420min -> 2000max
+    
 }
 
 void loop()
@@ -86,6 +90,10 @@ void loop()
         
         // Move the panels if needed.
         tkr_move();
+        
+        
+        // Reset watchdog so he knows all is well.
+        wdt_reset();
     }
     
     if (now - tx_last >= tx_interval) {
@@ -97,12 +105,12 @@ void loop()
         } else {
           ledState = LOW;
         }
-        digitalWrite(LED_DEBUG, ledState);
+        //digitalWrite(LED_DEBUG, ledState);
         
         // Send a transmission
         char msg[16];
-        sprintf(msg, "%d,wd=%d,mv=%u", msgId, tkr_dark_count, readVcc());
-        vw_send((uint8_t *)msg, strlen(msg));
+        sprintf(msg, "%d,wd=%lu,mv=%u", msgId, tkr_dark_count, readVcc());
+        //vw_send((uint8_t *)msg, strlen(msg));
         //vw_wait_tx(); // Wait until the whole message is gone
         
         
@@ -111,8 +119,7 @@ void loop()
           //@todo goto sleep(), it's too dark.
         }
         
-        // Reset watchdog so he knows all is well.
-        wdt_reset();
+ 
     }
 }
 
@@ -126,14 +133,16 @@ void tkr_move()
       // move up or down
       int pos = servo_virt.read();
       
+      // 650min -> 980max
       if (diff_virt > 0) {
         pos += 10;
-        if (pos > 1900) pos = 1900;
+        if (pos > 980) pos = 980;
       } else {
         pos -= 10;
-        if (pos < 1100) pos = 1100;
+        if (pos < 650) pos = 650;
       }
       
+      Serial.print("  > ");
       Serial.print(diff_virt);
       Serial.print('-');
       Serial.println(pos); 
@@ -148,16 +157,19 @@ void tkr_move()
       // move left or right.
       int pos = servo_horz.read();
       
+      // 420min -> 2000max
       if (diff_horz > 0) {
         pos += 10;
-        if (pos > 2800) pos = 2800;
+        if (pos > 2000) pos = 2000;
       } else {
         pos -= 10;
-        if (pos < 600) pos = 600;
+        if (pos < 420) pos = 420;
       }
       
+      
+      Serial.print("  > ");
       Serial.print(diff_horz);
-      Serial.print('-');
+      Serial.print("-");
       Serial.println(pos); 
       
       // move a degree each loop until target is reached.
@@ -175,13 +187,15 @@ int tkr_diff_virt()
     
     // Count the dark readings.
     if (up < THRESHOLD_DARK) {
-      ++tkr_dark_count;  
+      //++tkr_dark_count;  
     }
     
+    
     Serial.print(up); 
-    Serial.print(':');
+    Serial.print(":");
     Serial.print(down); 
-    Serial.print(':');
+    Serial.print(":");
+    
     
     int diff = up - down;
     if (abs(diff) > THRESHOLD_LDR_VIRT) {
