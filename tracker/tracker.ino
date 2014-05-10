@@ -17,8 +17,8 @@ Need to try in sunlight to get better idea of good resistor value.
 #include <util/delay.h>
 #include <avr/wdt.h>
 //#include <VirtualWire.h>
-//#include <Servo.h> 
-#include "ServoTimer2.h" 
+#include <Servo.h> 
+//#include "ServoTimer2.h" 
 
 #define LED_DEBUG 13
 #define PIN_TX 7
@@ -27,13 +27,18 @@ Need to try in sunlight to get better idea of good resistor value.
 #define PIN_LDR_DOWN  1 // PC1
 #define PIN_LDR_LEFT  2 // PC2
 #define PIN_LDR_RIGHT 3 // PC3
-#define THRESHOLD_LDR_VIRT 25
-#define THRESHOLD_LDR_HORZ 25
+#define THRESHOLD_LDR_VIRT 40
+#define THRESHOLD_LDR_HORZ 40
 #define MOVE_INTERVAL_MILLIS 60
 
 #define SERVO_PIN_HORZ 9 // PB1
-
 #define SERVO_PIN_VIRT 10 // PB2
+
+#define SERVO_HORZ_MAX 2500
+#define SERVO_HORZ_MIN 700
+
+#define SERVO_VIRT_MAX 1900
+#define SERVO_VIRT_MIN 1200
 
 
 #define THRESHOLD_DARK 30 // A reading below his is considered dark.
@@ -57,8 +62,13 @@ byte msgId = 0;
 unsigned long tkr_dark_count = 0;
 
 
-ServoTimer2 servo_virt;
-ServoTimer2 servo_horz;
+Servo servo_virt;
+Servo servo_horz;
+
+// Store the current servo positions. 
+// Not using sero.read() as that is degrees.
+int servo_virt_pos = 1500;
+int servo_horz_pos = 1700;
 
 void setup()
 {
@@ -77,8 +87,8 @@ void setup()
     servo_virt.attach(SERVO_PIN_VIRT);
     servo_horz.attach(SERVO_PIN_HORZ);
     
-    servo_virt.write(710); // 650min -> 980max
-    servo_horz.write(810); // 420min -> 2000max
+    servo_virt.writeMicroseconds(servo_virt_pos); // 1200 -> 1500 -> 1900
+    servo_horz.writeMicroseconds(servo_horz_pos); // 700  -> 1700 -> 2500
     
 }
 
@@ -108,8 +118,8 @@ void loop()
         //digitalWrite(LED_DEBUG, ledState);
         
         // Send a transmission
-        char msg[16];
-        sprintf(msg, "%d,wd=%lu,mv=%u", msgId, tkr_dark_count, readVcc());
+        //char msg[16];
+        //sprintf(msg, "%d,wd=%lu,mv=%u", msgId, tkr_dark_count, readVcc());
         //vw_send((uint8_t *)msg, strlen(msg));
         //vw_wait_tx(); // Wait until the whole message is gone
         
@@ -127,54 +137,49 @@ void tkr_move()
 {
     int diff_virt = tkr_diff_virt();
     int diff_horz = tkr_diff_horz();
-    Serial.println(); 
+    //Serial.println(); 
     
     if (diff_virt) {
       // move up or down
-      int pos = servo_virt.read();
-      
-      // 650min -> 980max
+
       if (diff_virt > 0) {
-        pos += 10;
-        if (pos > 980) pos = 980;
+        servo_virt_pos += 10;
+        if (servo_virt_pos > SERVO_VIRT_MAX) servo_virt_pos = SERVO_VIRT_MAX;
       } else {
-        pos -= 10;
-        if (pos < 650) pos = 650;
+        servo_virt_pos -= 10;
+        if (servo_virt_pos < SERVO_VIRT_MIN) servo_virt_pos = SERVO_VIRT_MIN;
       }
       
       Serial.print("  > ");
       Serial.print(diff_virt);
       Serial.print('-');
-      Serial.println(pos); 
+      Serial.println(servo_virt_pos); 
       
       // move a degree each loop until target is reached.
       //servo_virt.attach(SERVO_PIN_VIRT);
-      servo_virt.write(pos);
+      servo_virt.writeMicroseconds(servo_virt_pos);
       
     }
 
     if (diff_horz) {
       // move left or right.
-      int pos = servo_horz.read();
       
-      // 420min -> 2000max
       if (diff_horz > 0) {
-        pos += 10;
-        if (pos > 2000) pos = 2000;
+        servo_horz_pos += 10;
+        if (servo_horz_pos > SERVO_HORZ_MAX) servo_horz_pos = SERVO_HORZ_MAX;
       } else {
-        pos -= 10;
-        if (pos < 420) pos = 420;
+        servo_horz_pos -= 10;
+        if (servo_horz_pos < SERVO_HORZ_MIN) servo_horz_pos = SERVO_HORZ_MIN;
       }
-      
       
       Serial.print("  > ");
       Serial.print(diff_horz);
       Serial.print("-");
-      Serial.println(pos); 
+      Serial.println(servo_horz_pos); 
       
       // move a degree each loop until target is reached.
       //servo_horz.attach(SERVO_PIN_HORZ);
-      servo_horz.write(pos);
+      servo_horz.writeMicroseconds(servo_horz_pos);
       
     }
     
@@ -190,12 +195,12 @@ int tkr_diff_virt()
       //++tkr_dark_count;  
     }
     
-    
+    /*
     Serial.print(up); 
     Serial.print(":");
     Serial.print(down); 
     Serial.print(":");
-    
+    */
     
     int diff = up - down;
     if (abs(diff) > THRESHOLD_LDR_VIRT) {
@@ -210,9 +215,11 @@ int tkr_diff_horz()
     int left = analogRead(PIN_LDR_LEFT);
     int right = analogRead(PIN_LDR_RIGHT);
     
+    /*
     Serial.print(left); 
     Serial.print(':');
     Serial.print(right); 
+    */
     
     int diff = left - right;
     if (abs(diff) > THRESHOLD_LDR_HORZ) {
