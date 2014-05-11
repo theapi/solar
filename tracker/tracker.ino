@@ -31,8 +31,8 @@ Need to try in sunlight to get better idea of good resistor value.
 #define THRESHOLD_LDR_HORZ 40
 #define MOVE_INTERVAL_MILLIS 60
 
-#define SERVO_PIN_HORZ 9 // PB1
-#define SERVO_PIN_VIRT 10 // PB2
+#define SERVO_PIN_HORZ 8 // PB1
+#define SERVO_PIN_VIRT 9 // PB0
 
 #define SERVO_HORZ_MAX 2500
 #define SERVO_HORZ_MIN 700
