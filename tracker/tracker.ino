@@ -27,16 +27,15 @@ Need to try in sunlight to get better idea of good resistor value.
 #define PIN_LDR_DOWN  1 // PC1
 #define PIN_LDR_LEFT  2 // PC2
 #define PIN_LDR_RIGHT 3 // PC3
-#define THRESHOLD_LDR_VIRT 40
-#define THRESHOLD_LDR_HORZ 40
+#define THRESHOLD_LDR_VIRT 50
+#define THRESHOLD_LDR_HORZ 50
 #define MOVE_INTERVAL_MILLIS 60
 
+#define SERVO_INCREMENT 5 // How much to move each loop
 #define SERVO_PIN_HORZ 8 // PB1
 #define SERVO_PIN_VIRT 9 // PB0
-
-#define SERVO_HORZ_MAX 2500
+#define SERVO_HORZ_MAX 2800
 #define SERVO_HORZ_MIN 700
-
 #define SERVO_VIRT_MAX 1900
 #define SERVO_VIRT_MIN 1200
 
@@ -83,12 +82,11 @@ void setup()
       
     watchdog_setup();
   
-  
-    servo_virt.attach(SERVO_PIN_VIRT);
-    servo_horz.attach(SERVO_PIN_HORZ);
-    
-    servo_virt.writeMicroseconds(servo_virt_pos); // 1200 -> 1500 -> 1900
-    servo_horz.writeMicroseconds(servo_horz_pos); // 700  -> 1700 -> 2500
+    servo_virt.attach(SERVO_PIN_VIRT, SERVO_VIRT_MIN, SERVO_VIRT_MAX);
+    servo_horz.attach(SERVO_PIN_HORZ, SERVO_HORZ_MIN, SERVO_HORZ_MAX);
+
+    servo_virt.writeMicroseconds(servo_virt_pos);
+    servo_horz.writeMicroseconds(servo_horz_pos);
     
 }
 
@@ -143,14 +141,14 @@ void tkr_move()
       // move up or down
 
       if (diff_virt > 0) {
-        servo_virt_pos += 10;
+        servo_virt_pos += SERVO_INCREMENT;
         if (servo_virt_pos > SERVO_VIRT_MAX) servo_virt_pos = SERVO_VIRT_MAX;
       } else {
-        servo_virt_pos -= 10;
+        servo_virt_pos -= SERVO_INCREMENT;
         if (servo_virt_pos < SERVO_VIRT_MIN) servo_virt_pos = SERVO_VIRT_MIN;
       }
       
-      Serial.print("  > ");
+      Serial.print("V > ");
       Serial.print(diff_virt);
       Serial.print('-');
       Serial.println(servo_virt_pos); 
@@ -165,14 +163,14 @@ void tkr_move()
       // move left or right.
       
       if (diff_horz > 0) {
-        servo_horz_pos += 10;
+        servo_horz_pos += SERVO_INCREMENT;
         if (servo_horz_pos > SERVO_HORZ_MAX) servo_horz_pos = SERVO_HORZ_MAX;
       } else {
-        servo_horz_pos -= 10;
+        servo_horz_pos -= SERVO_INCREMENT;
         if (servo_horz_pos < SERVO_HORZ_MIN) servo_horz_pos = SERVO_HORZ_MIN;
       }
       
-      Serial.print("  > ");
+      Serial.print("  H > ");
       Serial.print(diff_horz);
       Serial.print("-");
       Serial.println(servo_horz_pos); 
