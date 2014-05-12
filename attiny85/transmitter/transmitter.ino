@@ -44,7 +44,7 @@ Attiny85v
 byte msgId = 0;
 int ldr_val = 0;
 
-ISR (PCINT0_vect) 
+ISR (PCINT0_vect)  
 {
   // Wake up
   
@@ -60,21 +60,17 @@ void setup()
   digitalWrite(PIN_WAKEUP_MASTER, LOW);
   
   
-  
-  
-  /*
-  PCMSK |= bit (PCINT4);  // want pin D4 / pin 3
-  GIFR  |= bit (PCIF);    // clear any outstanding interrupts
-  MCUCR |= bit(ISC01) | bit(ISC00); // The rising edge of generates an interrupt request.
-  GIMSK |= bit (PCIE);    // enable pin change interrupts
-  */
+  // pin change interrupt (example for D4)
+  PCMSK  |= bit (PCINT4);  // want pin D4 / pin 3
+  GIFR   |= bit (PCIF);    // clear any outstanding interrupts
+  GIMSK  |= bit (PCIE);    // enable pin change interrupts 
   
  
   vw_set_ptt_inverted(true); // Required for DR3100
   vw_setup(2000);      // Bits per sec
   vw_set_tx_pin(PIN_TX);
     
-  watchdog_setup();
+  //watchdog_setup();
   
 }
 
@@ -95,7 +91,7 @@ void loop()
   digitalWrite(LED_DEBUG, LOW);
   
   // Reset watchdog so he knows all is well.
-  wdt_reset();
+  //wdt_reset();
 
   // @todo Only signal master wake condition if not in SPI mode.
   if (ldr_val < THRESHOLD_DARK) {
@@ -138,6 +134,8 @@ void goToSleep()
   sleep_cpu();                             
   sleep_disable();   
   power_all_enable();    // power everything back on
+  
+  ADCSRA = (1 << ADEN); // ADC back on
 } 
 
 
