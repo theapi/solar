@@ -31,17 +31,20 @@ Attiny85v
 #include <VirtualWire.h>
 
 
-#define LED_DEBUG 4 // NB: this is the same pin as the master wake up, so for debugging only!
-#define PIN_TX 3
-#define PIN_WAKEUP_SELF 2   // pin 2 / PCINT2 / INT0 / external interupt pin.
-#define PIN_WAKEUP_MASTER 4 // Connected to the atmega328 external interupt pin.
+#define LED_DEBUG 0 
+#define PIN_TX 3 // PB3
 
-#define THRESHOLD_DARK 50 // A reading below his is considered dark.
+#define PIN_WAKEUP_MASTER 2 // PB2 (SCK) Connected to the atmega328 external interupt pin & SCK.
+
+#define PIN_WAKEUP_SELF 4   // PB4 / pin 3 / same as PIN_LDR
+#define PIN_LDR 2           // PB4 / pin 3 / A2 - NB: ANALOG pin 2 not digital pin 2
+
+#define THRESHOLD_DARK 500 // A reading below this is considered dark.
 
 byte msgId = 0;
 int ldr_val = 0;
 
-ISR (INT0_vect) 
+ISR (PCINT0_vect) 
 {
   // Wake up
   
@@ -54,49 +57,47 @@ void setup()
   pinMode(PIN_WAKEUP_SELF, INPUT);
   pinMode(PIN_WAKEUP_MASTER, OUTPUT); 
   
-  digitalWrite(PIN_WAKEUP_SELF, HIGH);  // internal pull-up
+  digitalWrite(PIN_WAKEUP_MASTER, LOW);
   
-  // External interrupt
-  MCUCR |= bit(ISC01) | bit(ISC00); // The rising edge of INT0 generates an interrupt request.
-  GIFR  |= bit(INTF0);   // clear any outstanding interrupts
-  GIMSK |= bit(INTO);    // enable external interrupts 
+  
+  
+  
+  /*
+  PCMSK |= bit (PCINT4);  // want pin D4 / pin 3
+  GIFR  |= bit (PCIF);    // clear any outstanding interrupts
+  MCUCR |= bit(ISC01) | bit(ISC00); // The rising edge of generates an interrupt request.
+  GIMSK |= bit (PCIE);    // enable pin change interrupts
+  */
+  
  
   vw_set_ptt_inverted(true); // Required for DR3100
   vw_setup(2000);      // Bits per sec
   vw_set_tx_pin(PIN_TX);
     
   watchdog_setup();
+  
 }
 
 void loop()
 {
   
-  ldr_val = analogRead(PIN_WAKEUP_SELF);
+  int ldr_val = analogRead(PIN_LDR);
 
   digitalWrite(LED_DEBUG, HIGH);
+  
   
   long vcc = readVcc();
 
   char msg[16];
-  sprintf(msg, "%d,wd=%d,mv=%u", msgId, ldr_val, vcc);
+  sprintf(msg, "%d,%d,%u", msgId, ldr_val, vcc);
   vw_send((uint8_t *)msg, strlen(msg));
   vw_wait_tx(); // Wait until the whole message is gone
   digitalWrite(LED_DEBUG, LOW);
   
-  if (vcc >= 3300) {
-    // Tell the Atmega328p that it should be awake now.
-    digitalWrite(PIN_WAKEUP_MASTER, HIGH);
-  }
-  
-  
-  // Cannot use millis() as timer 0 is used by virtualwire on Attiny85
-  _delay_ms(1000);
-  
   // Reset watchdog so he knows all is well.
   wdt_reset();
 
-  ++msgId;
-  
+  // @todo Only signal master wake condition if not in SPI mode.
   if (ldr_val < THRESHOLD_DARK) {
     // Too dark
     // Let atmega328p know it should be asleep
@@ -104,8 +105,20 @@ void loop()
     
     // Sleep untill enough light
     goToSleep();
+  } else if (vcc >= 3300) {
+    // Tell the Atmega328p that it should be awake now.
+    digitalWrite(PIN_WAKEUP_MASTER, HIGH);
   }
+  
+  
+  // Cannot use millis() as timer 0 is used by virtualwire on Attiny85
+  _delay_ms(1000);
+
+  ++msgId;
+  
+
 }
+
 
 void watchdog_setup()
 {
@@ -116,6 +129,8 @@ void watchdog_setup()
 
 void goToSleep()
 {
+  digitalWrite(PIN_WAKEUP_MASTER, LOW); // sleep master
+  
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   ADCSRA = 0;            // turn off ADC
   power_all_disable ();  // power off ADC, Timer 0 and 1, serial interface
@@ -124,6 +139,7 @@ void goToSleep()
   sleep_disable();   
   power_all_enable();    // power everything back on
 } 
+
 
 /**
  * Read the interanl voltage.
