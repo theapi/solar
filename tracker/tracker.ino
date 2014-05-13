@@ -16,7 +16,7 @@ Need to try in sunlight to get better idea of good resistor value.
 
 #include <util/delay.h>
 #include <avr/wdt.h>
-
+#include <Wire.h>
 #include <Servo.h> 
  
 
@@ -39,9 +39,7 @@ Need to try in sunlight to get better idea of good resistor value.
 #define SERVO_VIRT_MAX 1900
 #define SERVO_VIRT_MIN 1200
 
-
-#define THRESHOLD_DARK 30 // A reading below his is considered dark.
-#define DARK_SLEEP_COUNT (MOVE_INTERVAL_MILLIS * 10 * 60) // 1 minute of dark
+#define I2C_SLAVE_ADDR 100
 
 // When the last move was attempted.
 unsigned long move_last = 0; 
@@ -55,10 +53,6 @@ const long tx_interval = 2000;
 
 byte ledState = HIGH;
 byte msgId = 0;
-
-// How many readingas are considered dark.
-// If dark for a while, deep sleep can be enabled.
-unsigned long tkr_dark_count = 0;
 
 
 Servo servo_virt;
@@ -83,6 +77,9 @@ void setup()
 
     servo_virt.writeMicroseconds(servo_virt_pos);
     servo_horz.writeMicroseconds(servo_horz_pos);
+    
+    // Join the i2c bus as master
+    Wire.begin();
     
 }
 
