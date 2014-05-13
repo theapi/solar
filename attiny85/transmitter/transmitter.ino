@@ -44,7 +44,7 @@ Attiny85v
 #define PIN_WAKEUP_SELF 4   // PB4 / pin 3 / same as PIN_LDR
 #define PIN_LDR 2           // PB4 / pin 3 / A2 - NB: ANALOG pin 2 not digital pin 2
 
-#define THRESHOLD_DARK 500 // A reading below this is considered dark.
+#define THRESHOLD_DARK 600 // A reading below this is considered dark.
 
 #define I2C_SLAVE_ADDR 100
 
