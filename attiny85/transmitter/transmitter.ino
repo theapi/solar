@@ -23,6 +23,9 @@ Attiny85v
 //                  +----+
 // see http://www.gammon.com.au/forum/?id=11488&reply=9#reply9
 
+// i2c http://playground.arduino.cc/Code/USIi2c 
+// library from http://playground.arduino.cc/uploads/Code/TinyWireS.zip
+
  
 #include <util/delay.h>
 #include <avr/wdt.h>      // Watchdog
@@ -30,6 +33,8 @@ Attiny85v
 #include <avr/power.h>    // Power management
 #include <VirtualWire.h>
 
+#include <TinyWireS.h>
+#include <usiTwiSlave.h>
 
 #define LED_DEBUG 0 
 #define PIN_TX 3 // PB3
@@ -40,6 +45,8 @@ Attiny85v
 #define PIN_LDR 2           // PB4 / pin 3 / A2 - NB: ANALOG pin 2 not digital pin 2
 
 #define THRESHOLD_DARK 500 // A reading below this is considered dark.
+
+#define I2C_SLAVE_ADDR 100
 
 byte msgId = 0;
 int ldr_val = 0;
@@ -58,7 +65,8 @@ void setup()
   pinMode(PIN_WAKEUP_MASTER, OUTPUT); 
   
   digitalWrite(PIN_WAKEUP_MASTER, LOW);
-  
+
+  //TinyWireS.begin(I2C_SLAVE_ADDR);
   
   // pin change interrupt (example for D4)
   PCMSK  |= bit (PCINT4);  // want pin D4 / pin 3
