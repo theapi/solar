@@ -55,6 +55,20 @@ Servo servo_horz;
 // Store the current servo positions. 
 int servo_horz_pos = 1700;
 
+// Extend the print class for use with i2c as a serial print.
+class tI2Cserial : public Print
+{
+  public:
+    virtual size_t write (const byte c)  { 
+      Wire.beginTransmission(I2C_SLAVE_ADDR);
+      Wire.write(c);
+      Wire.endTransmission();
+    }
+};
+
+// an instance of the I2Cserial object
+tI2Cserial I2Cserial;
+
 void setup()
 {
     watchdog_setup();
@@ -79,12 +93,11 @@ void loop()
     if (now - move_last >= move_interval) {
         move_last = now;
         
-        // Move the panels if needed.
-        tkr_move();
-        
-        
         // Reset watchdog so he knows all is well.
         wdt_reset();
+        
+        // Move the panels if needed.
+        tkr_move();
     }
     
     if (now - tx_last >= tx_interval) {
@@ -96,13 +109,13 @@ void loop()
         } else {
           ledState = LOW;
         }
-        //digitalWrite(LED_DEBUG, ledState);
+        digitalWrite(LED_DEBUG, ledState);
         
-        // Send a transmission
-        //char msg[16];
-        //sprintf(msg, "%d,wd=%lu,mv=%u", msgId, tkr_dark_count, readVcc());
-        //vw_send((uint8_t *)msg, strlen(msg));
-        //vw_wait_tx(); // Wait until the whole message is gone
+        // Send an i2C message.
+        I2Cserial.print(msgId);
+        I2Cserial.print(",");
+        I2Cserial.print(servo_horz_pos);
+        I2Cserial.println();
         
     }
 }
@@ -110,7 +123,6 @@ void loop()
 void tkr_move()
 {
     int diff_horz = tkr_diff_horz();
-    //Serial.println(); 
 
     if (diff_horz) {
       // move left or right.
