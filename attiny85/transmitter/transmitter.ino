@@ -4,7 +4,7 @@
 Attiny85v
 - If not enough light SLEEP.
 - Turns on by high on pin interrupt. 
-  The pin is attached to the voltage divider that measures the resistance of the “up” LDR. 
+  The pin is attached to the voltage divider that measures the resistance of the LDR. 
   When dark, the voltage is less than the voltage required to register as HIGH.
 - Measures the battery voltage. 
 - Every minute (may need to reduce this) sends data over RF 
@@ -28,7 +28,7 @@ Attiny85v
 
  
 #include <util/delay.h>
-#include <avr/wdt.h>      // Watchdog
+//#include <avr/wdt.h>      // Watchdog
 #include <avr/sleep.h>    // Sleep Modes
 #include <avr/power.h>    // Power management
 #include <VirtualWire.h>
@@ -39,12 +39,12 @@ Attiny85v
 #define LED_DEBUG 0 
 #define PIN_TX 3 // PB3
 
-#define PIN_WAKEUP_MASTER 2 // PB2 (SCK) Connected to the atmega328 external interupt pin & SCK.
+#define PIN_WAKEUP_MASTER 1 // PB1 Connected to the atmega328 external interupt pin.
 
-#define PIN_WAKEUP_SELF 4   // PB4 / pin 3 / same as PIN_LDR
-#define PIN_LDR 2           // PB4 / pin 3 / A2 - NB: ANALOG pin 2 not digital pin 2
+#define PIN_WAKEUP_SELF 4   // PB4 / pin 3 / LDR attached
+//#define PIN_LDR 2           // PB4 / pin 3 / A2 - NB: ANALOG pin 2 not digital pin 2
 
-#define THRESHOLD_DARK 600 // A reading below this is considered dark.
+//#define THRESHOLD_DARK 200 // A reading below this is considered dark.
 
 #define I2C_SLAVE_ADDR 100
 
@@ -63,21 +63,22 @@ void setup()
   pinMode(PIN_TX, OUTPUT); 
   pinMode(PIN_WAKEUP_SELF, INPUT);
   pinMode(PIN_WAKEUP_MASTER, OUTPUT); 
+
   
   digitalWrite(PIN_WAKEUP_MASTER, LOW);
 
   //TinyWireS.begin(I2C_SLAVE_ADDR);
-  
+
   // pin change interrupt (example for D4)
   PCMSK  |= bit (PCINT4);  // want pin D4 / pin 3
   GIFR   |= bit (PCIF);    // clear any outstanding interrupts
-  GIMSK  |= bit (PCIE);    // enable pin change interrupts 
-  
+  GIMSK  |= bit (PCIE);    // enable pin change interrupts  
  
   vw_set_ptt_inverted(true); // Required for DR3100
   vw_setup(2000);      // Bits per sec
   vw_set_tx_pin(PIN_TX);
     
+  sei();
   //watchdog_setup();
   
 }
@@ -85,7 +86,7 @@ void setup()
 void loop()
 {
   
-  int ldr_val = analogRead(PIN_LDR);
+  int ldr_val = digitalRead(PIN_WAKEUP_SELF);
 
   digitalWrite(LED_DEBUG, HIGH);
   
@@ -102,8 +103,8 @@ void loop()
   //wdt_reset();
 
   // @todo Only signal master wake condition if not in SPI mode.
-  if (ldr_val < THRESHOLD_DARK) {
-    // Too dark
+  if (!ldr_val) {
+    // Too dark (LDR is reading low)
     // Let atmega328p know it should be asleep
     digitalWrite(PIN_WAKEUP_MASTER, LOW);
     
@@ -128,27 +129,34 @@ void watchdog_setup()
 {
   // Reset after 8 seconds, 
   // unless wdt_reset(); has been successfully called
-  wdt_enable(WDTO_8S);
+  //wdt_enable(WDTO_8S);
 }
+
+
 
 void goToSleep()
 {
   digitalWrite(PIN_WAKEUP_MASTER, LOW); // sleep master
   
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  cli();
   ADCSRA = 0;            // turn off ADC
-  power_all_disable ();  // power off ADC, Timer 0 and 1, serial interface
+  power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
   sleep_enable();
+  sleep_bod_disable();
+  sei();
   sleep_cpu();                             
-  sleep_disable();   
+  sleep_disable();  
+  MCUSR = 0; // clear the reset register 
   power_all_enable();    // power everything back on
   
   ADCSRA = (1 << ADEN); // ADC back on
+  
 } 
 
 
 /**
- * Read the interanl voltage.
+ * Read the internal voltage.
  */
 long readVcc() 
 {
