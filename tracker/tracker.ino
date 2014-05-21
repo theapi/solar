@@ -14,14 +14,60 @@ Need to try in sunlight to get better idea of good resistor value.
 ----------------------------------------------------
 */
 
+
+/*
+Hacked virtualwire to use 8 bit timer2
+from line 510...
+
+#else // ARDUINO - hacked to timer2 http://forum.arduino.cc/index.php/topic,100371.0.html
+    // figure out prescaler value and counter match value
+    prescaler = vw_timer_calc(speed, (uint8_t)-1, &nticks);
+    if (!prescaler)
+    {
+        return; // fault
+    }
+
+    TCCR2A = 0;
+    TCCR2A = _BV(WGM21); // Turn on CTC mode / Output Compare pins disconnected
+
+    // convert prescaler index to TCCRnB prescaler bits CS00, CS01, CS02
+    TCCR2B = 0;
+    TCCR2B = prescaler; // set CS00, CS01, CS02 (other bits not needed)
+
+    // Number of ticks to count before firing interrupt
+    OCR2A = uint8_t(nticks);
+
+    // Set mask to fire interrupt when OCF0A bit is set in TIFR0
+    TIMSK2 |= _BV(OCIE2A);
+    // Enable interrupt
+#ifdef TIMSK1
+    // atmega168
+    //TIMSK1 |= _BV(OCIE1A);
+#else
+    // others
+    //TIMSK |= _BV(OCIE1A);
+#endif // TIMSK1
+
+
+
+from line 777...
+
+	#else // Assume Arduino Uno (328p or similar) hack to timer2
+		#define VW_TIMER_VECTOR TIMER2_COMPA_vect
+
+
+*/
+
+#define VW_TIMER_VECTOR TIMER2_COMPA_vect
+
 #include <util/delay.h>
 #include <avr/wdt.h>
-#include <Wire.h>
+#include <VirtualWire.h> // hacked version for timer2!!
 #include <Servo.h> 
  
 
 #define LED_DEBUG 13
-#define PIN_TX 7
+#define PIN_TX 12
 
 #define PIN_LDR_LEFT  2 // PC2
 #define PIN_LDR_RIGHT 3 // PC3
@@ -29,12 +75,11 @@ Need to try in sunlight to get better idea of good resistor value.
 #define MOVE_INTERVAL_MILLIS 60
 
 #define SERVO_INCREMENT 5 // How much to move each loop
-#define SERVO_PIN_HORZ 8 // PB1
+#define SERVO_PIN_HORZ 9 // PB1
 #define SERVO_HORZ_MAX 2800
 #define SERVO_HORZ_MIN 700
+#define SERVO_PIN_HORZ_POWER 8 // PB0
 
-
-#define I2C_SLAVE_ADDR 100
 
 // When the last move was attempted.
 unsigned long move_last = 0; 
@@ -55,19 +100,6 @@ Servo servo_horz;
 // Store the current servo positions. 
 int servo_horz_pos = 1700;
 
-// Extend the print class for use with i2c as a serial print.
-class tI2Cserial : public Print
-{
-  public:
-    virtual size_t write (const byte c)  { 
-      Wire.beginTransmission(I2C_SLAVE_ADDR);
-      Wire.write(c);
-      Wire.endTransmission();
-    }
-};
-
-// an instance of the I2Cserial object
-tI2Cserial I2Cserial;
 
 void setup()
 {
@@ -77,13 +109,20 @@ void setup()
     
     pinMode(LED_DEBUG, OUTPUT);     
     pinMode(PIN_TX, OUTPUT); 
+    
+    pinMode(SERVO_PIN_HORZ_POWER, OUTPUT); 
+    digitalWrite(SERVO_PIN_HORZ_POWER, LOW); // low = 0n (PNP)
+    
+    
+    //vw_set_ptt_inverted(true); // Required for DR3100
+    vw_setup(2000);      // Bits per sec
+    vw_set_tx_pin(PIN_TX);
 
     servo_horz.attach(SERVO_PIN_HORZ, SERVO_HORZ_MIN, SERVO_HORZ_MAX);
 
     servo_horz.writeMicroseconds(servo_horz_pos);
     
-    // Join the i2c bus as master
-    Wire.begin();
+
     
 }
 
@@ -111,12 +150,12 @@ void loop()
         }
         digitalWrite(LED_DEBUG, ledState);
         
-        // Send an i2C message.
-        I2Cserial.print(msgId);
-        I2Cserial.print(",");
-        I2Cserial.print(servo_horz_pos);
-        I2Cserial.println();
-        
+        // Send a transmission
+        char msg[16];
+        sprintf(msg, "%d,wd=%d,mv=%u", msgId, ledState, readVcc());
+        vw_send((uint8_t *)msg, strlen(msg));
+        vw_wait_tx(); // Wait until the whole message is gone
+        ++msgId;
     }
 }
 
@@ -152,11 +191,11 @@ int tkr_diff_horz()
     int left = analogRead(PIN_LDR_LEFT);
     int right = analogRead(PIN_LDR_RIGHT);
     
-    /*
+    
     Serial.print(left); 
     Serial.print(':');
-    Serial.print(right); 
-    */
+    Serial.println(right); 
+    
     
     int diff = left - right;
     if (abs(diff) > THRESHOLD_LDR_HORZ) {
@@ -178,5 +217,33 @@ void watchdog_setup()
   wdt_enable(WDTO_8S);
 }
 
-
+/**
+ * Read the internal voltage.
+ */
+long readVcc() 
+{
+  // Read 1.1V reference against AVcc
+  // set the reference to Vcc and the measurement to the internal 1.1V reference
+  #if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+    ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  #elif defined (__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+    ADMUX = _BV(MUX5) | _BV(MUX0);
+  #elif defined (__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
+    ADMUX = _BV(MUX3) | _BV(MUX2);
+  #else
+    ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  #endif  
+ 
+  _delay_ms(2); // Wait for Vref to settle
+  ADCSRA |= _BV(ADSC); // Start conversion
+  while (bit_is_set(ADCSRA,ADSC)); // measuring
+ 
+  uint8_t low  = ADCL; // must read ADCL first - it then locks ADCH  
+  uint8_t high = ADCH; // unlocks both
+ 
+  long result = (high<<8) | low;
+ 
+  result = 1125300L / result; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
+  return result; // Vcc in millivolts
+}
 
