@@ -23,8 +23,6 @@ Attiny85v
 //                  +----+
 // see http://www.gammon.com.au/forum/?id=11488&reply=9#reply9
 
-// i2c http://playground.arduino.cc/Code/USIi2c 
-// library from http://playground.arduino.cc/uploads/Code/TinyWireS.zip
 
  
 #include <util/delay.h>
@@ -33,20 +31,17 @@ Attiny85v
 #include <avr/power.h>    // Power management
 #include <VirtualWire.h>
 
-#include <TinyWireS.h>
-#include <usiTwiSlave.h>
 
 #define LED_DEBUG 0 
 #define PIN_TX 3 // PB3
 
-#define PIN_WAKEUP_MASTER 1 // PB1 Connected to the atmega328 external interupt pin.
+#define PIN_MISO 1 // PB1  (DO)  -> atmega MISO & external interupt
+#define PIN_MOSI 0 // PB0  (DI)  -> atmega MOSI
+#define PIN_SCL  2 // PB2 (USCK) -> atmega SCL 
 
-#define PIN_WAKEUP_SELF 4   // PB4 / pin 3 / LDR attached
-//#define PIN_LDR 2           // PB4 / pin 3 / A2 - NB: ANALOG pin 2 not digital pin 2
+#define PIN_WAKEUP_SELF 4   // PB4 / pin 3 / LDR attached - HIGH = wakeup
 
-//#define THRESHOLD_DARK 200 // A reading below this is considered dark.
 
-#define I2C_SLAVE_ADDR 100
 
 byte msgId = 0;
 int ldr_val = 0;
@@ -59,15 +54,17 @@ ISR (PCINT0_vect)
 
 void setup() 
 {
+  ADCSRA = 0; // turn off ADC
+  
   pinMode(LED_DEBUG, OUTPUT);     
   pinMode(PIN_TX, OUTPUT); 
   pinMode(PIN_WAKEUP_SELF, INPUT);
-  pinMode(PIN_WAKEUP_MASTER, OUTPUT); 
+  pinMode(PIN_MISO, OUTPUT); 
 
-  
-  digitalWrite(PIN_WAKEUP_MASTER, LOW);
+  // Low on MISO tells atmega to sleep
+  digitalWrite(PIN_MISO, LOW);
 
-  //TinyWireS.begin(I2C_SLAVE_ADDR);
+ 
 
   // pin change interrupt (example for D4)
   PCMSK  |= bit (PCINT4);  // want pin D4 / pin 3
@@ -106,13 +103,13 @@ void loop()
   if (!ldr_val) {
     // Too dark (LDR is reading low)
     // Let atmega328p know it should be asleep
-    digitalWrite(PIN_WAKEUP_MASTER, LOW);
+    digitalWrite(PIN_MISO, LOW);
     
     // Sleep untill enough light
     goToSleep();
   } else if (vcc >= 3300) {
     // Tell the Atmega328p that it should be awake now.
-    digitalWrite(PIN_WAKEUP_MASTER, HIGH);
+    digitalWrite(PIN_MISO, HIGH);
   }
   
   
@@ -140,7 +137,7 @@ void goToSleep()
   
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   cli();
-  ADCSRA = 0;            // turn off ADC
+  
   power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
   sleep_enable();
   sleep_bod_disable();
@@ -150,7 +147,7 @@ void goToSleep()
   MCUSR = 0; // clear the reset register 
   power_all_enable();    // power everything back on
   
-  ADCSRA = (1 << ADEN); // ADC back on
+  //ADCSRA = (1 << ADEN); // ADC back on
   
 } 
 
