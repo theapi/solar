@@ -62,6 +62,8 @@ from line 777...
 
 #include <util/delay.h>
 #include <avr/wdt.h>
+#include <avr/sleep.h>    // Sleep Modes
+#include <avr/power.h>    // Power management
 #include <VirtualWire.h> // hacked version for timer2!!
 #include <Servo.h> 
  
@@ -216,6 +218,34 @@ void watchdog_setup()
   // unless wdt_reset(); has been successfully called
   wdt_enable(WDTO_8S);
 }
+
+void goToSleep()
+{
+ 
+   // disable ADC
+  ADCSRA = 0;  
+  
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
+  //cli();
+  
+  power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
+  sleep_enable();
+  // turn off brown-out enable in software
+  MCUCR = bit (BODS) | bit (BODSE);  // turn on brown-out enable select
+  MCUCR = bit (BODS);        // this must be done within 4 clock cycles of above
+  sleep_cpu ();              // sleep within 3 clock cycles of above
+  //sleep_enable();
+
+  //sei();
+  //sleep_cpu();                             
+  sleep_disable();  
+  MCUSR = 0; // clear the reset register 
+  power_all_enable();    // power everything back on
+  
+  ADCSRA = (1 << ADEN); // ADC back on
+  
+} 
 
 /**
  * Read the internal voltage.
