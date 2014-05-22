@@ -70,6 +70,7 @@ from line 777...
 
 #define LED_DEBUG 13
 #define PIN_TX 12
+#define PIN_PERIF_POWER 7 // PD7
 
 #define PIN_LDR_LEFT  2 // PC2
 #define PIN_LDR_RIGHT 3 // PC3
@@ -82,6 +83,7 @@ from line 777...
 #define SERVO_HORZ_MIN 700
 #define SERVO_PIN_HORZ_POWER 8 // PB0
 
+#define DARK_THRESHOLD 500 // too dark below this
 
 // When the last move was attempted.
 unsigned long move_last = 0; 
@@ -93,6 +95,8 @@ unsigned long tx_last = 0;
 // The transmit interval.
 const long tx_interval = 2000; 
 
+int light_level = 0; // latest light reading from the LDR
+
 byte ledState = HIGH;
 byte msgId = 0;
 
@@ -102,6 +106,13 @@ Servo servo_horz;
 // Store the current servo positions. 
 int servo_horz_pos = 1700;
 
+/**
+ * ISR for INT0
+ */
+void wakeUp() 
+{
+  // Just wake up
+}
 
 void setup()
 {
@@ -112,6 +123,9 @@ void setup()
     pinMode(LED_DEBUG, OUTPUT);     
     pinMode(PIN_TX, OUTPUT); 
     
+    pinMode(PIN_PERIF_POWER);
+    digitalWrite(PIN_PERIF_POWER, HIGH); // high = 0n (NPN)
+    
     pinMode(SERVO_PIN_HORZ_POWER, OUTPUT); 
     digitalWrite(SERVO_PIN_HORZ_POWER, LOW); // low = 0n (PNP)
     
@@ -121,11 +135,8 @@ void setup()
     vw_set_tx_pin(PIN_TX);
 
     servo_horz.attach(SERVO_PIN_HORZ, SERVO_HORZ_MIN, SERVO_HORZ_MAX);
-
     servo_horz.writeMicroseconds(servo_horz_pos);
-    
 
-    
 }
 
 void loop()
@@ -139,6 +150,12 @@ void loop()
         
         // Move the panels if needed.
         tkr_move();
+        
+        if (light_level < DARK_THRESHOLD) {
+          //goToSleep();
+          //TODO connect PIN_LDR_LEFT to INT0
+        }
+        
     }
     
     if (now - tx_last >= tx_interval) {
@@ -193,6 +210,7 @@ int tkr_diff_horz()
     int left = analogRead(PIN_LDR_LEFT);
     int right = analogRead(PIN_LDR_RIGHT);
     
+    light_level = left;
     
     Serial.print(left); 
     Serial.print(':');
@@ -217,34 +235,50 @@ void watchdog_setup()
   // Reset after 8 seconds, 
   // unless wdt_reset(); has been successfully called
   wdt_enable(WDTO_8S);
+  wdt_reset();
 }
 
 void goToSleep()
 {
- 
-   // disable ADC
+  // Power down the periferals
+  digitalWrite(PIN_PERIF_POWER, LOW);
+  
+  cli();
+  
+  // Turn off watchdog
+  wdt_disable();
+  
+  // disable ADC
   ADCSRA = 0;  
   
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
-  //cli();
-  
+  // Attach the external interupt to the LDR.
+  attachInterrupt(0, wakeUp, HIGH);
+
   power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
   sleep_enable();
+  sei();
+  
   // turn off brown-out enable in software
   MCUCR = bit (BODS) | bit (BODSE);  // turn on brown-out enable select
   MCUCR = bit (BODS);        // this must be done within 4 clock cycles of above
-  sleep_cpu ();              // sleep within 3 clock cycles of above
-  //sleep_enable();
+  sleep_cpu();              // sleep within 3 clock cycles of above
 
-  //sei();
-  //sleep_cpu();                             
+                              
   sleep_disable();  
-  MCUSR = 0; // clear the reset register 
+  //MCUSR = 0; // clear the reset register 
+  
+  watchdog_setup(); // watchdog back on
+  
+  detachInterrupt(0); // No wakeup interupt while awake
+  
   power_all_enable();    // power everything back on
   
   ADCSRA = (1 << ADEN); // ADC back on
   
+  // Power up the periferals
+  digitalWrite(PIN_PERIF_POWER, HIGH); // high = 0n (NPN)
 } 
 
 /**
