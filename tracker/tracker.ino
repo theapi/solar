@@ -69,7 +69,7 @@ from line 777...
  
 
 #define LED_DEBUG 13
-#define PIN_TX 12
+#define PIN_TX 6          // PD6
 #define PIN_PERIF_POWER 7 // PD7
 
 #define PIN_LDR_LEFT  2 // PC2
@@ -84,6 +84,9 @@ from line 777...
 #define SERVO_PIN_HORZ_POWER 8 // PB0
 
 #define DARK_THRESHOLD 500 // too dark below this
+
+#define SLEEP_FLAG_DARK 0  // Gone to sleep because it is dark
+#define SLEEP_FLAG_IDLE 1  // Gone to sleep because nothing to do
 
 // When the last move was attempted.
 unsigned long move_last = 0; 
@@ -100,6 +103,7 @@ int light_level = 0; // latest light reading from the LDR
 byte ledState = HIGH;
 byte msgId = 0;
 
+byte sleep_flag;
 
 Servo servo_horz;
 
@@ -123,8 +127,8 @@ void setup()
     pinMode(LED_DEBUG, OUTPUT);     
     pinMode(PIN_TX, OUTPUT); 
     
-    pinMode(PIN_PERIF_POWER);
-    digitalWrite(PIN_PERIF_POWER, HIGH); // high = 0n (NPN)
+    pinMode(PIN_PERIF_POWER, OUTPUT);
+    digitalWrite(PIN_PERIF_POWER, LOW); // low = 0n (PNP)
     
     pinMode(SERVO_PIN_HORZ_POWER, OUTPUT); 
     digitalWrite(SERVO_PIN_HORZ_POWER, LOW); // low = 0n (PNP)
@@ -152,12 +156,13 @@ void loop()
         tkr_move();
         
         if (light_level < DARK_THRESHOLD) {
-          //goToSleep();
+          //goToSleep(SLEEP_FLAG_DARK);
           //TODO connect PIN_LDR_LEFT to INT0
         }
         
     }
     
+    // Transmit after interval
     if (now - tx_last >= tx_interval) {
         tx_last = now;
         
@@ -175,6 +180,9 @@ void loop()
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
         ++msgId;
+        
+        // Watchdog will wake us up in 8 seconds time.
+        goToSleep(SLEEP_FLAG_IDLE);
     }
 }
 
@@ -225,10 +233,11 @@ int tkr_diff_horz()
     return 0;
 }
 
-
+/**
+ * Watchdog for while awake to ensure things are ticking over.
+ */
 void watchdog_setup()
 {
-  
   // Clear any previous watchdog interupt
   MCUSR = 0;
   
@@ -238,23 +247,27 @@ void watchdog_setup()
   wdt_reset();
 }
 
-void goToSleep()
+void goToSleep(byte flag)
 {
+  sleep_flag = flag;
+  
   // Power down the periferals
-  digitalWrite(PIN_PERIF_POWER, LOW);
+  digitalWrite(PIN_PERIF_POWER, HIGH);
   
   cli();
   
-  // Turn off watchdog
-  wdt_disable();
   
   // disable ADC
   ADCSRA = 0;  
   
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
-  // Attach the external interupt to the LDR.
-  attachInterrupt(0, wakeUp, HIGH);
+  if (sleep_flag == SLEEP_FLAG_DARK) {
+    // Turn off watchdog
+    wdt_disable();
+    // Attach the external interupt to the LDR.
+    attachInterrupt(0, wakeUp, HIGH);
+  }
 
   power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
   sleep_enable();
@@ -267,18 +280,20 @@ void goToSleep()
 
                               
   sleep_disable();  
-  //MCUSR = 0; // clear the reset register 
+  MCUSR = 0; // clear the reset register 
   
-  watchdog_setup(); // watchdog back on
-  
-  detachInterrupt(0); // No wakeup interupt while awake
+
+  if (sleep_flag == SLEEP_FLAG_DARK) {
+    detachInterrupt(0); // No wakeup interupt while awake
+    watchdog_setup(); // watchdog back on
+  }
   
   power_all_enable();    // power everything back on
   
   ADCSRA = (1 << ADEN); // ADC back on
   
   // Power up the periferals
-  digitalWrite(PIN_PERIF_POWER, HIGH); // high = 0n (NPN)
+  digitalWrite(PIN_PERIF_POWER, LOW); // (PNP)
 } 
 
 /**
