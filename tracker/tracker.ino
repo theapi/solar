@@ -72,8 +72,8 @@ from line 777...
 #define PIN_TX 6          // PD6
 #define PIN_PERIF_POWER 7 // PD7
 
-#define PIN_LDR_LEFT  2 // PC2
-#define PIN_LDR_RIGHT 3 // PC3
+#define PIN_LDR_LEFT  0 // PC0
+#define PIN_LDR_RIGHT 1 // PC1
 #define THRESHOLD_LDR_HORZ 50
 #define MOVE_INTERVAL_MILLIS 60
 
@@ -176,13 +176,13 @@ void loop()
         
         // Send a transmission
         char msg[16];
-        sprintf(msg, "%d,wd=%d,mv=%u", msgId, ledState, readVcc());
+        sprintf(msg, "%d,wd=%u,mv=%lu", msgId, light_level, readVcc());
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
         ++msgId;
         
         // Watchdog will wake us up in 8 seconds time.
-        goToSleep(SLEEP_FLAG_IDLE);
+        //goToSleep(SLEEP_FLAG_IDLE);
     }
 }
 
