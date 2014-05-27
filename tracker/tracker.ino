@@ -88,6 +88,8 @@ from line 777...
 #define SLEEP_FLAG_DARK 0  // Gone to sleep because it is dark
 #define SLEEP_FLAG_IDLE 1  // Gone to sleep because nothing to do
 
+#define AWAKE_TX_MAX 3 // How many transmissions before sleeping
+
 // When the last move was attempted.
 unsigned long move_last = 0; 
 // The move delay.
@@ -104,6 +106,7 @@ byte ledState = HIGH;
 byte msgId = 0;
 
 byte sleep_flag;
+byte awake_tx_count = 0;
 
 Servo servo_horz;
 
@@ -116,6 +119,11 @@ int servo_horz_pos = 1700;
 void wakeUp() 
 {
   // Just wake up
+}
+
+ISR(WDT_vect)
+{
+  // Wake up by watchdog
 }
 
 void setup()
@@ -132,6 +140,8 @@ void setup()
     
     pinMode(SERVO_PIN_HORZ_POWER, OUTPUT); 
     digitalWrite(SERVO_PIN_HORZ_POWER, LOW); // low = 0n (PNP)
+    
+    digitalWrite(LED_DEBUG, HIGH);
     
     
     //vw_set_ptt_inverted(true); // Required for DR3100
@@ -165,15 +175,7 @@ void loop()
     // Transmit after interval
     if (now - tx_last >= tx_interval) {
         tx_last = now;
-        
-        // if the LED is off turn it on and vice-versa:
-        if (ledState == LOW) {
-          ledState = HIGH;
-        } else {
-          ledState = LOW;
-        }
-        digitalWrite(LED_DEBUG, ledState);
-        
+                
         // Send a transmission
         char msg[16];
         sprintf(msg, "%d,wd=%u,mv=%lu", msgId, light_level, readVcc());
@@ -181,8 +183,24 @@ void loop()
         vw_wait_tx(); // Wait until the whole message is gone
         ++msgId;
         
-        // Watchdog will wake us up in 8 seconds time.
-        //goToSleep(SLEEP_FLAG_IDLE);
+        ++awake_tx_count;
+        if (awake_tx_count > AWAKE_TX_MAX) {
+          awake_tx_count = 0;
+          
+          // Turn off the servo
+          servoOff();
+          
+          digitalWrite(LED_DEBUG, LOW);
+          
+          // Watchdog will wake us up in 8 seconds time.
+          goToSleep(SLEEP_FLAG_IDLE);
+          
+          digitalWrite(LED_DEBUG, HIGH);
+          
+          // Turn on the servo (todo: leave servo off for much longer)
+          servoOn();
+        }
+        
     }
 }
 
@@ -234,6 +252,22 @@ int tkr_diff_horz()
 }
 
 /**
+ *  Power up the servo
+ */
+void servoOn()
+{
+  digitalWrite(SERVO_PIN_HORZ_POWER, LOW); // low = 0n (PNP)
+}
+
+/**
+ *  Power down the servo
+ */
+void servoOff()
+{
+  digitalWrite(SERVO_PIN_HORZ_POWER, HIGH); // low = 0n (PNP)
+}
+
+/**
  * Watchdog for while awake to ensure things are ticking over.
  */
 void watchdog_setup()
@@ -243,7 +277,19 @@ void watchdog_setup()
   
   // Reset after 8 seconds, 
   // unless wdt_reset(); has been successfully called
-  wdt_enable(WDTO_8S);
+  
+  /* In order to change WDE or the prescaler, we need to
+   * set WDCE (This will allow updates for 4 clock cycles).
+   */
+  WDTCSR |= (1<<WDCE) | (1<<WDE);
+
+  /* set new watchdog timeout prescaler value */
+  WDTCSR = 1<<WDP0 | 1<<WDP3; /* 8.0 seconds */
+  
+  /* Enable the WD interrupt (note no reset). */
+  WDTCSR |= _BV(WDIE);
+  
+  //wdt_enable(WDTO_8S);
   wdt_reset();
 }
 
@@ -253,6 +299,7 @@ void goToSleep(byte flag)
   
   // Power down the periferals
   digitalWrite(PIN_PERIF_POWER, HIGH);
+  
   
   cli();
   
@@ -294,6 +341,7 @@ void goToSleep(byte flag)
   
   // Power up the periferals
   digitalWrite(PIN_PERIF_POWER, LOW); // (PNP)
+  
 } 
 
 /**
