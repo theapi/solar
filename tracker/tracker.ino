@@ -71,6 +71,7 @@ from line 777...
 #define LED_DEBUG 13
 #define PIN_TX 6          // PD6
 #define PIN_PERIF_POWER 7 // PD7
+#define PIN_WAKEUP 2 // INT0
 
 #define PIN_LDR_LEFT  0 // PC0
 #define PIN_LDR_RIGHT 1 // PC1
@@ -82,8 +83,6 @@ from line 777...
 #define SERVO_HORZ_MAX 2800
 #define SERVO_HORZ_MIN 700
 #define SERVO_PIN_HORZ_POWER 8 // PB0
-
-#define DARK_THRESHOLD 500 // too dark below this
 
 #define SLEEP_FLAG_DARK 0  // Gone to sleep because it is dark
 #define SLEEP_FLAG_IDLE 1  // Gone to sleep because nothing to do
@@ -100,13 +99,13 @@ unsigned long tx_last = 0;
 // The transmit interval.
 const long tx_interval = 2000; 
 
-int light_level = 0; // latest light reading from the LDR
-
 byte ledState = HIGH;
 byte msgId = 0;
 
 byte sleep_flag;
 byte awake_tx_count = 0;
+
+int light_level = 0;
 
 Servo servo_horz;
 
@@ -119,6 +118,7 @@ int servo_horz_pos = 1700;
 void wakeUp() 
 {
   // Just wake up
+  detachInterrupt(0); // No wakeup interupt while awake
 }
 
 ISR(WDT_vect)
@@ -131,8 +131,9 @@ void setup()
     watchdog_setup();
     
     Serial.begin(9600); 
+    pinMode(LED_DEBUG, OUTPUT); 
     
-    pinMode(LED_DEBUG, OUTPUT);     
+    pinMode(PIN_WAKEUP, INPUT);
     pinMode(PIN_TX, OUTPUT); 
     pinMode(SERVO_PIN_HORZ_POWER, OUTPUT);
     
@@ -163,9 +164,10 @@ void loop()
         // Move the panels if needed.
         tkr_move();
         
-        if (light_level < DARK_THRESHOLD) {
-          //goToSleep(SLEEP_FLAG_DARK);
-          //TODO connect PIN_LDR_LEFT to INT0
+        // INT0 pin LOW = sleep
+        if (!digitalRead(PIN_WAKEUP)) {
+          goToSleep(SLEEP_FLAG_DARK);
+          //TODO connect LDR to INT0
         }
         
     }
@@ -331,7 +333,6 @@ void goToSleep(byte flag)
   
 
   if (sleep_flag == SLEEP_FLAG_DARK) {
-    detachInterrupt(0); // No wakeup interupt while awake
     watchdog_setup(); // watchdog back on
   }
   
