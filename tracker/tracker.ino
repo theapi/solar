@@ -73,10 +73,10 @@ from line 777...
 #define PIN_PERIF_POWER 7 // PD7
 #define PIN_WAKEUP 2 // INT0
 
-#define PIN_LDR_LEFT  0 // PC0
-#define PIN_LDR_RIGHT 1 // PC1
-#define THRESHOLD_LDR_HORZ 50
-#define MOVE_INTERVAL_MILLIS 60
+#define PIN_LDR_LEFT  1 // PC0
+#define PIN_LDR_RIGHT 0 // PC1
+#define THRESHOLD_LDR_HORZ 5
+#define MOVE_INTERVAL_MILLIS 30
 
 #define SERVO_INCREMENT 5 // How much to move each loop
 #define SERVO_PIN_HORZ 9 // PB1
@@ -148,6 +148,7 @@ void setup()
     vw_setup(2000);      // Bits per sec
     vw_set_tx_pin(PIN_TX);
 
+    servo_horz.attach(SERVO_PIN_HORZ, SERVO_HORZ_MIN, SERVO_HORZ_MAX);
     servoOn();
     servo_horz.writeMicroseconds(servo_horz_pos);
 
@@ -167,7 +168,7 @@ void loop()
         
         // INT0 pin LOW = sleep
         if (!digitalRead(PIN_WAKEUP)) {
-          goToSleep(SLEEP_FLAG_DARK);
+          //goToSleep(SLEEP_FLAG_DARK);
           //TODO connect LDR to INT0
         }
         
@@ -177,12 +178,15 @@ void loop()
     if (now - tx_last >= tx_interval) {
         tx_last = now;
                 
+        byte wake_up = digitalRead(PIN_WAKEUP);
+                
         // Send a transmission
         // int = 5 bytes in transmision string
         // long int = 10 bytes in transmision string
         // byte = 3 bytes in transmision string
         char msg[25]; // string to send
-        sprintf(msg, "%d,%u,%u,%lu", msgId, ldr_val_left, ldr_val_right, readVcc());
+        sprintf(msg, "S,%d,%d,%u,%u,%lu", msgId, wake_up, ldr_val_left, ldr_val_right, readVcc());
+        Serial.println(msg); 
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
         ++msgId;
@@ -190,19 +194,8 @@ void loop()
         ++awake_tx_count;
         if (awake_tx_count > AWAKE_TX_MAX) {
           awake_tx_count = 0;
-          
-          // Turn off the servo
-          servoOff();
-          
-          digitalWrite(LED_DEBUG, LOW);
-          
           // Watchdog will wake us up in 8 seconds time.
           goToSleep(SLEEP_FLAG_IDLE);
-          
-          digitalWrite(LED_DEBUG, HIGH);
-          
-          // Turn on the servo (todo: leave servo off for much longer)
-          servoOn();
         }
         
     }
@@ -223,10 +216,12 @@ void tkr_move()
         if (servo_horz_pos < SERVO_HORZ_MIN) servo_horz_pos = SERVO_HORZ_MIN;
       }
       
+      /*
       Serial.print("  H > ");
       Serial.print(diff_horz);
       Serial.print("-");
       Serial.println(servo_horz_pos); 
+      */
       
       // move a bit each loop until target is reached.
       servo_horz.writeMicroseconds(servo_horz_pos);
@@ -240,11 +235,11 @@ int tkr_diff_horz()
     ldr_val_left = analogRead(PIN_LDR_LEFT);
     ldr_val_right = analogRead(PIN_LDR_RIGHT);
 
-    
+    /*
     Serial.print(ldr_val_left); 
     Serial.print(':');
     Serial.println(ldr_val_right); 
-    
+    */
     
     int diff = ldr_val_left - ldr_val_right;
     if (abs(diff) > THRESHOLD_LDR_HORZ) {
@@ -259,7 +254,7 @@ int tkr_diff_horz()
  */
 void servoOn()
 {
-  servo_horz.attach(SERVO_PIN_HORZ, SERVO_HORZ_MIN, SERVO_HORZ_MAX);
+  //servo_horz.attach(SERVO_PIN_HORZ, SERVO_HORZ_MIN, SERVO_HORZ_MAX);
   digitalWrite(SERVO_PIN_HORZ_POWER, LOW); // low = 0n (PNP)
 }
 
@@ -268,7 +263,7 @@ void servoOn()
  */
 void servoOff()
 {
-  servo_horz.detach();
+  //servo_horz.detach();
   digitalWrite(SERVO_PIN_HORZ_POWER, HIGH); // low = 0n (PNP)
 }
 
@@ -301,6 +296,11 @@ void watchdog_setup()
 void goToSleep(byte flag)
 {
   sleep_flag = flag;
+  
+  digitalWrite(LED_DEBUG, LOW);
+  
+  // Turn off the servo
+  servoOff();
   
   // Power down the periferals
   digitalWrite(PIN_PERIF_POWER, HIGH);
@@ -343,8 +343,13 @@ void goToSleep(byte flag)
   
   ADCSRA = (1 << ADEN); // ADC back on
   
+  digitalWrite(LED_DEBUG, HIGH);
+  
   // Power up the periferals
   digitalWrite(PIN_PERIF_POWER, LOW); // (PNP)
+  
+  // Turn on the servo (todo: leave servo off for much longer)
+  servoOn();
   
 } 
 
