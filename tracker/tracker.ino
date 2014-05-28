@@ -134,12 +134,10 @@ void setup()
     
     pinMode(LED_DEBUG, OUTPUT);     
     pinMode(PIN_TX, OUTPUT); 
+    pinMode(SERVO_PIN_HORZ_POWER, OUTPUT);
     
     pinMode(PIN_PERIF_POWER, OUTPUT);
     digitalWrite(PIN_PERIF_POWER, LOW); // low = 0n (PNP)
-    
-    pinMode(SERVO_PIN_HORZ_POWER, OUTPUT); 
-    digitalWrite(SERVO_PIN_HORZ_POWER, LOW); // low = 0n (PNP)
     
     digitalWrite(LED_DEBUG, HIGH);
     
@@ -148,7 +146,7 @@ void setup()
     vw_setup(2000);      // Bits per sec
     vw_set_tx_pin(PIN_TX);
 
-    servo_horz.attach(SERVO_PIN_HORZ, SERVO_HORZ_MIN, SERVO_HORZ_MAX);
+    servoOn();
     servo_horz.writeMicroseconds(servo_horz_pos);
 
 }
@@ -256,6 +254,7 @@ int tkr_diff_horz()
  */
 void servoOn()
 {
+  servo_horz.attach(SERVO_PIN_HORZ, SERVO_HORZ_MIN, SERVO_HORZ_MAX);
   digitalWrite(SERVO_PIN_HORZ_POWER, LOW); // low = 0n (PNP)
 }
 
@@ -264,6 +263,7 @@ void servoOn()
  */
 void servoOff()
 {
+  servo_horz.detach();
   digitalWrite(SERVO_PIN_HORZ_POWER, HIGH); // low = 0n (PNP)
 }
 
