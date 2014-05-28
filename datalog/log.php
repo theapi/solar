@@ -38,39 +38,14 @@ while (1) {
 
   if ($c == "\n") {
     // new line
-    if ($data = parse_line($chars)) {
+    $line = str_replace('R: ', '', $chars);
+    $str = date('Y-m-d H:i:s') . ',' . $line . "\n";
+    $filename = $dir . '/' . date('Y-m-d') . '.csv';
+    file_put_contents($filename, $str, FILE_APPEND);
 
-      $str = date('d-m-Y H:i:s') . ',' . $data['ldr'] . ',' . $data['mv'] . ',' . $data['mid'] . "\n";
-      $filename = $dir . '/' . date('Y-m-d') . '.csv';
-      file_put_contents($filename, $str, FILE_APPEND);
-    }
     $chars = '';
   } else {
     $chars .= $c;
   }
 
 }
-
-/**
- * Parse the line from the transmitter
- * "msgId,ldr_val,vcc"
- *
- * @param string $line
- *
- * @return array
- */
-function parse_line($line)
-{
-  $parts = explode(',', $line);
-  
-  if (count($parts) == 3) {
-    return array(
-      'mid' => str_replace('R: ', '', $parts[0]),
-      'ldr' => trim($parts[1]),
-      'mv' => trim($parts[2]),
-    );
-  }
-
-  return false;
-}
-

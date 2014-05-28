@@ -105,7 +105,8 @@ byte msgId = 0;
 byte sleep_flag;
 byte awake_tx_count = 0;
 
-int light_level = 0;
+int ldr_val_left;
+int ldr_val_right;
 
 Servo servo_horz;
 
@@ -177,8 +178,11 @@ void loop()
         tx_last = now;
                 
         // Send a transmission
-        char msg[16];
-        sprintf(msg, "%d,wd=%u,mv=%lu", msgId, light_level, readVcc());
+        // int = 5 bytes in transmision string
+        // long int = 10 bytes in transmision string
+        // byte = 3 bytes in transmision string
+        char msg[25]; // string to send
+        sprintf(msg, "%d,%u,%u,%lu", msgId, ldr_val_left, ldr_val_right, readVcc());
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
         ++msgId;
@@ -233,17 +237,16 @@ void tkr_move()
 
 int tkr_diff_horz()
 {
-    int left = analogRead(PIN_LDR_LEFT);
-    int right = analogRead(PIN_LDR_RIGHT);
+    ldr_val_left = analogRead(PIN_LDR_LEFT);
+    ldr_val_right = analogRead(PIN_LDR_RIGHT);
+
     
-    light_level = left;
-    
-    Serial.print(left); 
+    Serial.print(ldr_val_left); 
     Serial.print(':');
-    Serial.println(right); 
+    Serial.println(ldr_val_right); 
     
     
-    int diff = left - right;
+    int diff = ldr_val_left - ldr_val_right;
     if (abs(diff) > THRESHOLD_LDR_HORZ) {
       return diff;
     }
