@@ -38,7 +38,7 @@ while (1) {
 
   if ($c == "\n") {
     // new line
-    if (strpos('R: S,') === 0) {
+    if (strpos('R: S,', $chars) === 0) {
         $line = str_replace('R: S,', '', $chars);
         $str = date('Y-m-d H:i:s') . ',' . $line . "\n";
         $filename = $dir . '/' . date('Y-m-d') . '.csv';
