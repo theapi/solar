@@ -38,11 +38,12 @@ while (1) {
 
   if ($c == "\n") {
     // new line
-    $line = str_replace('R: ', '', $chars);
-    $str = date('Y-m-d H:i:s') . ',' . $line . "\n";
-    $filename = $dir . '/' . date('Y-m-d') . '.csv';
-    file_put_contents($filename, $str, FILE_APPEND);
-
+    if (strpos('R: S,') === 0) {
+        $line = str_replace('R: S,', '', $chars);
+        $str = date('Y-m-d H:i:s') . ',' . $line . "\n";
+        $filename = $dir . '/' . date('Y-m-d') . '.csv';
+        file_put_contents($filename, $str, FILE_APPEND);
+    }
     $chars = '';
   } else {
     $chars .= $c;
