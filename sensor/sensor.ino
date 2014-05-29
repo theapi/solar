@@ -72,7 +72,8 @@ void loop()
     if (now - tx_last >= tx_interval) {
         tx_last = now;
                 
-        ldr = analogRead(PIN_LDR);
+        //ldr = analogRead(PIN_LDR);
+        ldr = 1023; //tmp
         byte wake_up = digitalRead(PIN_WAKEUP);
                 
         // Send a transmission
@@ -80,7 +81,7 @@ void loop()
         // long int = 10 bytes in transmision string
         // byte = 3 bytes in transmision string
         char msg[25]; // string to send
-        sprintf(msg, "S,%d,%d,%u,%u,%lu", msgId, wake_up, ldr, readVcc());
+        sprintf(msg, "S,%d,%d,%u,%lu", msgId, wake_up, ldr, readVcc());
         Serial.println(msg); 
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
