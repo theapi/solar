@@ -17,17 +17,20 @@
 
 #define DARK_THRESHOLD 500 // sleep when darker than this
 
+#define WD_DO_STUFF 8 // How many watchdog interupts before doing real work.
 
 // The analoge value of the ldr
 int ldr;
 byte sleep_flag;
 byte msgId;
 byte awake_tx_count;
+
 // When the last transmit was attempted.
 unsigned long tx_last = 0; 
 // The transmit interval.
-const long tx_interval = 2000; 
+const long tx_interval = 1000; 
 
+volatile byte wd_isr = WD_DO_STUFF;
 
 /**
  * ISR for INT0
@@ -41,6 +44,13 @@ void wakeUp()
 ISR(WDT_vect)
 {
   // Wake up by watchdog
+  if (wd_isr == 0) {
+      wd_isr = WD_DO_STUFF;
+  } else {
+      --wd_isr; 
+      // Go back to sleep.
+      goToSleep(SLEEP_FLAG_IDLE);
+  }
 }
 
 void setup()
@@ -140,11 +150,11 @@ void goToSleep(byte flag)
   // Power down the periferals
   digitalWrite(PIN_PERIF_POWER, HIGH);
   
-  
   cli();
   
   // disable ADC
-  ADCSRA = 0;  
+  byte old_ADCSRA = ADCSRA;
+  ADCSRA = 0;
   
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
@@ -175,7 +185,8 @@ void goToSleep(byte flag)
   
   power_all_enable();    // power everything back on
   
-  ADCSRA = (1 << ADEN); // ADC back on
+  // put ADC back
+  ADCSRA = old_ADCSRA;
   
   digitalWrite(LED_DEBUG, HIGH);
   
