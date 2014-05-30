@@ -67,6 +67,9 @@ void setup()
 
 void loop()
 {
+    // Reset watchdog so he knows all is well.
+    wdt_reset();
+        
     unsigned long now = millis();   
     // Transmit after interval
     if (now - tx_last >= tx_interval) {
