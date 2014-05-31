@@ -7,15 +7,13 @@
 #define LED_DEBUG 13
 #define PIN_TX 6          // PD6
 #define PIN_PERIF_POWER 7 // PD7
-#define PIN_WAKEUP 2      // INT0
-#define PIN_LDR  0        // PC0
+#define PIN_SOLAR 5 // PC5
 
 #define SLEEP_FLAG_STAYAWAKE 0  // Dont sleep
 #define SLEEP_FLAG_IDLE 1       // Gone to sleep because nothing to do
 #define SLEEP_FLAG_DARK 2       // Gone to sleep because it is dark
 #define AWAKE_TX_MAX 3 // How many transmissions before sleeping
 
-#define DARK_THRESHOLD 500 // sleep when darker than this
 
 #define WD_DO_STUFF 8 // How many watchdog interupts before doing real work.
 
@@ -60,7 +58,6 @@ void setup()
     Serial.begin(9600); 
     pinMode(LED_DEBUG, OUTPUT); 
     
-    pinMode(PIN_WAKEUP, INPUT);
     pinMode(PIN_TX, OUTPUT); 
 
     
@@ -85,16 +82,15 @@ void loop()
     if (now - tx_last >= tx_interval) {
         tx_last = now;
                 
-        //ldr = analogRead(PIN_LDR);
-        ldr = 1023; //tmp
-        byte wake_up = digitalRead(PIN_WAKEUP);
+        int solar_read = analogRead(PIN_SOLAR);
+ 
                 
         // Send a transmission
         // int = 5 bytes in transmision string
         // long int = 10 bytes in transmision string
         // byte = 3 bytes in transmision string
         char msg[25]; // string to send
-        sprintf(msg, "S,%d,%d,%u,%lu", msgId, wake_up, ldr, readVcc());
+        sprintf(msg, "S,%d,%u,%lu", msgId, solar_read, readVcc());
         Serial.println(msg); 
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
@@ -105,13 +101,7 @@ void loop()
             awake_tx_count = 0;
             // Watchdog will wake us up in 8 seconds time.
             goToSleep(SLEEP_FLAG_IDLE);
-        } else if (sleep_flag != SLEEP_FLAG_STAYAWAKE && ldr < DARK_THRESHOLD) {
-            // NB wake up requires an external interupt from the ldr 
-            // so about 600. 
-            // The DARK_THRESHOLD may be less than this so things can run into dusk.
-            goToSleep(SLEEP_FLAG_DARK);
-        }
-        
+        }        
     }
 }
 
@@ -160,9 +150,9 @@ void goToSleep(byte flag)
 
   if (sleep_flag == SLEEP_FLAG_DARK) {
     // Turn off watchdog
-    wdt_disable();
+    //wdt_disable();
     // Attach the external interupt to the LDR.
-    attachInterrupt(0, wakeUp, HIGH);
+    //attachInterrupt(0, wakeUp, HIGH);
   }
 
   power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
