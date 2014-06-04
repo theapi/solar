@@ -120,7 +120,7 @@ void loop()
         if (awake_tx_count > AWAKE_TX_MAX) {
             awake_tx_count = 0;
             // Watchdog will wake us up in 8 seconds time.
-            //goToSleep(SLEEP_FLAG_IDLE);
+            goToSleep(SLEEP_FLAG_IDLE);
         }        
     }
 }
