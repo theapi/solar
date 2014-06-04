@@ -3,18 +3,18 @@
 #include <avr/sleep.h>    // Sleep Modes
 #include <avr/power.h>    // Power management
 #include <VirtualWire.h>
+#include <math.h>
 
 #define LED_DEBUG 13
 
 #define PIN_TX 7         // PD7
 #define PIN_TX_POWER 8   // PD8
 
-#define PIN_LM35 6       // PD6
-#define PIN_LM35_POWER 5 // PD5
 
-#define PIN_SENSOR_POWER 9       // PB1 (used for both sensors)
+#define PIN_SENSOR_POWER 9       // PB1 (used for all sensors)
 #define PIN_SENSOR_THERMISTOR A0 // PC0
 #define PIN_SENSOR_SOIL A1       // PC1
+#define PIN_SENSOR_LM35 A2       // PC1
 
 #define PIN_SOLAR A5 // PC5
 
@@ -70,7 +70,6 @@ void setup()
     
     pinMode(PIN_TX, OUTPUT); 
     pinMode(PIN_TX_POWER, OUTPUT);
-    pinMode(PIN_LM35_POWER, OUTPUT);
     pinMode(PIN_SENSOR_POWER, OUTPUT);
 
     digitalWrite(LED_DEBUG, HIGH);
@@ -91,16 +90,17 @@ void loop()
     if (now - tx_last >= tx_interval) {
         tx_last = now;
 
-        int solar_read = analogRead(PIN_SOLAR);
-        
-        digitalWrite(PIN_LM35_POWER, HIGH);
-        int lm35_read = analogRead(PIN_LM35);
-        digitalWrite(PIN_LM35_POWER, LOW);
-        
         digitalWrite(PIN_SENSOR_POWER, HIGH);
-        int thermistor_read = analogRead(PIN_SENSOR_THERMISTOR);
+        int solar_read = analogRead(PIN_SOLAR);
+        //int thermistor_read = analogRead(PIN_SENSOR_THERMISTOR);
+        int temperature_external = Thermistor(analogRead(PIN_SENSOR_THERMISTOR));
         int soil_read = analogRead(PIN_SENSOR_SOIL);
+        int lm35_read = analogRead(PIN_SENSOR_LM35);
+        int temperature_internal = (5 * lm35_read * 100)/1024;
         digitalWrite(PIN_SENSOR_POWER, LOW);
+                
+                
+        
                 
         // Send a transmission
         digitalWrite(PIN_TX_POWER, HIGH);
@@ -108,7 +108,7 @@ void loop()
         // long int = 10 bytes in transmision string
         // byte = 3 bytes in transmision string
         char msg[35]; // string to send
-        sprintf(msg, "S,%d,%u,%u,%u,%u,%lu", msgId, solar_read, lm35_read, thermistor_read, soil_read, readVcc());
+        sprintf(msg, "S,%d,%u,%u,%u,%u,%lu", msgId, solar_read, temperature_internal, temperature_external, soil_read, readVcc());
         Serial.println(msg); 
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
@@ -120,9 +120,22 @@ void loop()
         if (awake_tx_count > AWAKE_TX_MAX) {
             awake_tx_count = 0;
             // Watchdog will wake us up in 8 seconds time.
-            goToSleep(SLEEP_FLAG_IDLE);
+            //goToSleep(SLEEP_FLAG_IDLE);
         }        
     }
+}
+
+/**
+ * @see http://playground.arduino.cc/ComponentLib/Thermistor2
+ */
+double Thermistor(int RawADC) {
+ double Temp;
+ Temp = log(10000.0*((1024.0/RawADC-1))); 
+  //         =log(10000.0/(1024.0/RawADC-1)) // for pull-up configuration
+ Temp = 1 / (0.001129148 + (0.000234125 + (0.0000000876741 * Temp * Temp ))* Temp );
+ Temp = Temp - 273.15;            // Convert Kelvin to Celcius
+ //Temp = (Temp * 9.0)/ 5.0 + 32.0; // Convert Celcius to Fahrenheit
+ return Temp;
 }
 
 /**
