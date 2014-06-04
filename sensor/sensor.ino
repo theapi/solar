@@ -5,9 +5,19 @@
 #include <VirtualWire.h>
 
 #define LED_DEBUG 13
-#define PIN_TX 6          // PD6
-#define PIN_PERIF_POWER 7 // PD7
-#define PIN_SOLAR 5 // PC5
+
+#define PIN_TX 7         // PD7
+#define PIN_TX_POWER 8   // PD8
+
+#define PIN_LM35 6       // PD6
+#define PIN_LM35_POWER 5 // PD5
+
+#define PIN_SENSOR_POWER 9       // PB1 (used for both sensors)
+#define PIN_SENSOR_THERMISTOR A0 // PC0
+#define PIN_SENSOR_SOIL A1       // PC1
+
+#define PIN_SOLAR A5 // PC5
+
 
 #define SLEEP_FLAG_STAYAWAKE 0  // Dont sleep
 #define SLEEP_FLAG_IDLE 1       // Gone to sleep because nothing to do
@@ -59,11 +69,10 @@ void setup()
     pinMode(LED_DEBUG, OUTPUT); 
     
     pinMode(PIN_TX, OUTPUT); 
+    pinMode(PIN_TX_POWER, OUTPUT);
+    pinMode(PIN_LM35_POWER, OUTPUT);
+    pinMode(PIN_SENSOR_POWER, OUTPUT);
 
-    
-    pinMode(PIN_PERIF_POWER, OUTPUT);
-    digitalWrite(PIN_PERIF_POWER, LOW); // low = 0n (PNP)
-    
     digitalWrite(LED_DEBUG, HIGH);
     
     // VirtualWire
@@ -81,21 +90,32 @@ void loop()
     // Transmit after interval
     if (now - tx_last >= tx_interval) {
         tx_last = now;
-                
+
         int solar_read = analogRead(PIN_SOLAR);
- 
+        
+        digitalWrite(PIN_LM35_POWER, HIGH);
+        int lm35_read = analogRead(PIN_LM35);
+        digitalWrite(PIN_LM35_POWER, LOW);
+        
+        digitalWrite(PIN_SENSOR_POWER, HIGH);
+        int thermistor_read = analogRead(PIN_SENSOR_THERMISTOR);
+        int soil_read = analogRead(PIN_SENSOR_SOIL);
+        digitalWrite(PIN_SENSOR_POWER, LOW);
                 
         // Send a transmission
+        digitalWrite(PIN_TX_POWER, HIGH);
         // int = 5 bytes in transmision string
         // long int = 10 bytes in transmision string
         // byte = 3 bytes in transmision string
-        char msg[25]; // string to send
-        sprintf(msg, "S,%d,%u,%lu", msgId, solar_read, readVcc());
+        char msg[35]; // string to send
+        sprintf(msg, "S,%d,%u,%u,%u,%u,%lu", msgId, solar_read, lm35_read, thermistor_read, soil_read, readVcc());
         Serial.println(msg); 
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
-        ++msgId;
+        digitalWrite(PIN_TX_POWER, LOW);
         
+        
+        ++msgId;
         ++awake_tx_count;
         if (awake_tx_count > AWAKE_TX_MAX) {
             awake_tx_count = 0;
@@ -137,8 +157,6 @@ void goToSleep(byte flag)
   
   digitalWrite(LED_DEBUG, LOW);
   
-  // Power down the periferals
-  digitalWrite(PIN_PERIF_POWER, HIGH);
   
   cli();
   
@@ -179,9 +197,6 @@ void goToSleep(byte flag)
   ADCSRA = old_ADCSRA;
   
   digitalWrite(LED_DEBUG, HIGH);
-  
-  // Power up the periferals
-  digitalWrite(PIN_PERIF_POWER, LOW); // (PNP)
   
 } 
 
