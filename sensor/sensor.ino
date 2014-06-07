@@ -65,8 +65,8 @@ void setup()
 {
     watchdog_setup();
     
-    Serial.begin(9600); 
-    pinMode(LED_DEBUG, OUTPUT); 
+    //Serial.begin(9600); 
+    //pinMode(LED_DEBUG, OUTPUT); 
     
     pinMode(PIN_TX, OUTPUT); 
     pinMode(PIN_TX_POWER, OUTPUT);
@@ -91,16 +91,16 @@ void loop()
         tx_last = now;
 
         digitalWrite(PIN_SENSOR_POWER, HIGH);
+        long vcc = readVcc();
         int solar_read = analogRead(PIN_SOLAR);
-        //int thermistor_read = analogRead(PIN_SENSOR_THERMISTOR);
-        int temperature_external = Thermistor(analogRead(PIN_SENSOR_THERMISTOR));
+        int thermistor_read = analogRead(PIN_SENSOR_THERMISTOR);
         int soil_read = analogRead(PIN_SENSOR_SOIL);
         int lm35_read = analogRead(PIN_SENSOR_LM35);
-        int temperature_internal = (5 * lm35_read * 100)/1024;
         digitalWrite(PIN_SENSOR_POWER, LOW);
-                
-                
-        
+
+        int temperature_external = Thermistor(thermistor_read);
+        int temperature_internal = (5.0 * lm35_read * 100.0)/1024.0;
+        int solr_mv = vcc / 1024.0 * solar_read * 2;
                 
         // Send a transmission
         digitalWrite(PIN_TX_POWER, HIGH);
@@ -108,8 +108,8 @@ void loop()
         // long int = 10 bytes in transmision string
         // byte = 3 bytes in transmision string
         char msg[35]; // string to send
-        sprintf(msg, "S,%d,%u,%u,%u,%u,%lu", msgId, solar_read, temperature_internal, temperature_external, soil_read, readVcc());
-        Serial.println(msg); 
+        sprintf(msg, "S,%d,%i,%i,%i,%i,%lu", msgId, solr_mv, temperature_internal, temperature_external, soil_read, vcc);
+        //Serial.println(msg); 
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
         digitalWrite(PIN_TX_POWER, LOW);
@@ -128,14 +128,16 @@ void loop()
 /**
  * @see http://playground.arduino.cc/ComponentLib/Thermistor2
  */
-double Thermistor(int RawADC) {
+int Thermistor(int RawADC) {   
  double Temp;
  Temp = log(10000.0*((1024.0/RawADC-1))); 
   //         =log(10000.0/(1024.0/RawADC-1)) // for pull-up configuration
  Temp = 1 / (0.001129148 + (0.000234125 + (0.0000000876741 * Temp * Temp ))* Temp );
- Temp = Temp - 273.15;            // Convert Kelvin to Celcius
+ //Temp = Temp - 273.15;            // Convert Kelvin to Celcius
  //Temp = (Temp * 9.0)/ 5.0 + 32.0; // Convert Celcius to Fahrenheit
- return Temp;
+ 
+ int celcius = Temp - 273; 
+ return celcius;
 }
 
 /**
@@ -168,7 +170,7 @@ void goToSleep(byte flag)
 {
   sleep_flag = flag;
   
-  digitalWrite(LED_DEBUG, LOW);
+  //digitalWrite(LED_DEBUG, LOW);
   
   
   cli();
@@ -209,7 +211,7 @@ void goToSleep(byte flag)
   // put ADC back
   ADCSRA = old_ADCSRA;
   
-  digitalWrite(LED_DEBUG, HIGH);
+  //digitalWrite(LED_DEBUG, HIGH);
   
 } 
 
