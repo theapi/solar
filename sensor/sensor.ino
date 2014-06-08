@@ -98,17 +98,24 @@ void loop()
         int lm35_read = analogRead(PIN_SENSOR_LM35);
         digitalWrite(PIN_SENSOR_POWER, LOW);
 
-        int temperature_external = Thermistor(thermistor_read);
-        int temperature_internal = (5.0 * lm35_read * 100.0)/1024.0;
+        double temperature_external = Thermistor(thermistor_read);
+        double temperature_internal = (5.0 * lm35_read * 100.0)/1024.0;
         int solr_mv = vcc / 1024.0 * solar_read * 2;
-                
+        
+        char temp_internal[6];
+        dtostrf(temperature_internal, 1, 2, temp_internal);
+
+        char temp_external[6];
+        dtostrf(temperature_external, 1, 2, temp_external);
+  
         // Send a transmission
         digitalWrite(PIN_TX_POWER, HIGH);
         // int = 5 bytes in transmision string
         // long int = 10 bytes in transmision string
         // byte = 3 bytes in transmision string
-        char msg[35]; // string to send
-        sprintf(msg, "S,%d,%i,%i,%i,%i,%lu", msgId, solr_mv, temperature_internal, temperature_external, soil_read, vcc);
+        // temperature string 6 bytes (or is it 5 because the null terminator gets removed?)
+        char msg[40]; // string to send
+        sprintf(msg, "S,%d,%s,%s,%i,%i,%lu", msgId, temp_internal, temp_external, soil_read, solr_mv, vcc);
         //Serial.println(msg); 
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
@@ -128,16 +135,15 @@ void loop()
 /**
  * @see http://playground.arduino.cc/ComponentLib/Thermistor2
  */
-int Thermistor(int RawADC) {   
+double Thermistor(int RawADC) {   
  double Temp;
  Temp = log(10000.0*((1024.0/RawADC-1))); 
   //         =log(10000.0/(1024.0/RawADC-1)) // for pull-up configuration
  Temp = 1 / (0.001129148 + (0.000234125 + (0.0000000876741 * Temp * Temp ))* Temp );
- //Temp = Temp - 273.15;            // Convert Kelvin to Celcius
+ Temp = Temp - 273.15;            // Convert Kelvin to Celcius
  //Temp = (Temp * 9.0)/ 5.0 + 32.0; // Convert Celcius to Fahrenheit
  
- int celcius = Temp - 273; 
- return celcius;
+ return Temp;
 }
 
 /**
