@@ -99,7 +99,7 @@ void loop()
         digitalWrite(PIN_SENSOR_POWER, LOW);
 
         double temperature_external = Thermistor(thermistor_read);
-        double temperature_internal = (5.0 * lm35_read * 100.0)/1024.0;
+        double temperature_internal = (vcc/1000 * lm35_read * 100.0)/1024.0;
         int solr_mv = vcc / 1024.0 * solar_read * 2;
         
         char temp_internal[6];
