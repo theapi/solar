@@ -65,7 +65,7 @@ void setup()
 {
     watchdog_setup();
     
-    //Serial.begin(9600); 
+    Serial.begin(9600); 
     //pinMode(LED_DEBUG, OUTPUT); 
     
     pinMode(PIN_TX, OUTPUT); 
@@ -116,7 +116,7 @@ void loop()
         // temperature string 6 bytes (or is it 5 because the null terminator gets removed?)
         char msg[40]; // string to send
         sprintf(msg, "S,%d,%s,%s,%i,%i,%lu", msgId, temp_internal, temp_external, soil_read, solr_mv, vcc);
-        //Serial.println(msg); 
+        Serial.println(msg); 
         vw_send((uint8_t *)msg, strlen(msg));
         vw_wait_tx(); // Wait until the whole message is gone
         digitalWrite(PIN_TX_POWER, LOW);
