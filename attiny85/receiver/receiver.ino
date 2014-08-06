@@ -43,23 +43,30 @@ void loop()
     int val = 0;
     byte comma = 0;
     for (i = 0; i < buflen; i++) {
+      
+      
+      
       if (buf[i] == 44) {      
         // CSV - S,88,20.17,21.91,871,5595,5436
         // comma 5 = solar panel reading
         // comma 6 = battery reading
         
+        
         if (comma == 5) {
           // Print the solar reading
-          mySerial.print(" Solar ("); 
+          mySerial.print(" Solar("); 
           mySerial.print(val, DEC); 
           mySerial.print(")"); 
         }
+        
         
         ++comma;
         val = 0;
       }
       
+      
       mySerial.write(char(buf[i]));
+      
       
       if (comma == 5 || comma == 6) {
         byte c = buf[i];
@@ -74,15 +81,19 @@ void loop()
             } else {
                 val = c - 0x30;
             }
+            //mySerial.print(val, DEC); 
         }
       }
       
+      
     }
     
+    
     // Print the battery reading
-    mySerial.print(" Battery ("); 
+    mySerial.print(" Bat("); 
     mySerial.print(val, DEC); 
     mySerial.print(")");
+    
     
     mySerial.println(); 
     
