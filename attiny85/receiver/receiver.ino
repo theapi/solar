@@ -16,10 +16,16 @@ SoftwareSerial mySerial(SERIAL_RX_PIN, SERIAL_TX_PIN); // RX, TX
 
 const byte debug_led = 0;
 
+byte pwm_val = 30;
+
+
 void setup()
 {
 
   pinMode(debug_led, OUTPUT);    
+  
+  pinMode(1, OUTPUT); // PWM on timer1
+  initPWM();
 
   // set the data rate for the SoftwareSerial port
   mySerial.begin(9600);
@@ -33,6 +39,7 @@ void setup()
 
 void loop()
 {
+  
   uint8_t buf[VW_MAX_MESSAGE_LEN];
   uint8_t buflen = VW_MAX_MESSAGE_LEN;
   
@@ -51,14 +58,15 @@ void loop()
         // comma 5 = solar panel reading
         // comma 6 = battery reading
         
-        
         if (comma == 5) {
+          pwm_val = map(val, 0, 10000, 0, 255);
+          setPwm(pwm_val);
+          
           // Print the solar reading
-          mySerial.print(" Solar("); 
-          mySerial.print(val, DEC); 
-          mySerial.print(")"); 
+          //mySerial.print(" pwm("); 
+          //mySerial.print(pwm_val, DEC); 
+          //mySerial.print(")"); 
         }
-        
         
         ++comma;
         val = 0;
@@ -90,9 +98,9 @@ void loop()
     
     
     // Print the battery reading
-    mySerial.print(" Bat("); 
-    mySerial.print(val, DEC); 
-    mySerial.print(")");
+    //mySerial.print(" Bat("); 
+    //mySerial.print(val, DEC); 
+    //mySerial.print(")");
     
     
     mySerial.println(); 
@@ -101,3 +109,18 @@ void loop()
 
   digitalWrite(debug_led, LOW);
 }
+
+void setPwm(byte val)
+{
+  // Set the compare value
+  OCR1A = val;
+}
+
+void initPWM()
+{
+  // Fast PWM on timer 2 
+  // PB1 ONLY (non inverting)
+  TCCR1 = (1 << PWM1A) | (1 << COM1A1) | (0 << COM1A0) | (1 << CTC1) | (1 << CS10);
+  setPwm(pwm_val);
+}
+
