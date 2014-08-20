@@ -1,3 +1,15 @@
+/*
+ATTINY85
+
+ATMEL ATTINY 25/45/85 / ARDUINO
+                              +-\/-+
+     RESET - Ain0 (D 5) PB5  1|    |8  Vcc
+ Serial TX - Ain3 (D 3) PB3  2|    |7  PB2 (D 2) Ain1 - VirtualWire RX
+ Serial RX - Ain2 (D 4) PB4  3|    |6  PB1 (D 1) pwm1 - Volmeter
+                        GND  4|    |5  PB0 (D 0) pwm0 - RF Receiver power
+                              +----+
+ see http://www.gammon.com.au/forum/?id=11488&reply=9#reply9
+*/
 
 #include <util/delay.h>
 #include <avr/wdt.h>
@@ -11,22 +23,46 @@
 
 #define VW_MAX_MESSAGE_LEN 40 // Same as solar/sensor
 #define VW_RX_PIN 2
+#define RF_POWER_PIN 0 // Toggle power to RF receiver
+
+#define WD_DO_STUFF 8 // How many watchdog interupts before doing real work.
+
 
 SoftwareSerial mySerial(SERIAL_RX_PIN, SERIAL_TX_PIN); // RX, TX
 
-const byte debug_led = 0;
 
-byte pwm_val = 30;
+byte pwm_val = 127; // Temporary half value
+volatile byte wd_isr = WD_DO_STUFF;
 
+byte count = 10;
+
+ISR(WDT_vect)
+{
+  // Wake up by watchdog
+  if (wd_isr == 0) {
+      wd_isr = WD_DO_STUFF;
+  } else {
+      --wd_isr; 
+      // Go back to sleep.
+      goToSleep();
+  }
+}
 
 void setup()
 {
-
-  pinMode(debug_led, OUTPUT);    
+  // disable ADC
+  ADCSRA = 0;
+  
+  // disable analog comparitor
+  ACSR = (1 << ACD) | (0 << ACIE);
+  
+  watchdog_setup();
+  pinMode(RF_POWER_PIN, OUTPUT);  
+  digitalWrite(RF_POWER_PIN, HIGH);  
   
   pinMode(1, OUTPUT); // PWM on timer1
   initPWM();
-
+  
   // set the data rate for the SoftwareSerial port
   mySerial.begin(9600);
   mySerial.println("Setup");
@@ -39,11 +75,18 @@ void setup()
 
 void loop()
 {
+  --count;
+  if (count == 0) {
+    count = 10;
+    goToSleep(); 
+  }
+  
+  // Reset watchdog so he knows all is well.
+  wdt_reset();
   
   uint8_t buf[VW_MAX_MESSAGE_LEN];
   uint8_t buflen = VW_MAX_MESSAGE_LEN;
   
-  digitalWrite(debug_led, HIGH);
   
   if (vw_get_message(buf, &buflen)) { // Non-blocking
     int i;
@@ -107,7 +150,8 @@ void loop()
     
   }
 
-  digitalWrite(debug_led, LOW);
+  
+  _delay_ms(500); // VERY TEMP
 }
 
 void setPwm(byte val)
@@ -118,9 +162,67 @@ void setPwm(byte val)
 
 void initPWM()
 {
-  // Fast PWM on timer 2 
+  // Fast PWM on timer 1 
   // PB1 ONLY (non inverting)
   TCCR1 = (1 << PWM1A) | (1 << COM1A1) | (0 << COM1A0) | (1 << CTC1) | (1 << CS10);
   setPwm(pwm_val);
 }
 
+/**
+ * Watchdog for while awake to ensure things are ticking over.
+ */
+void watchdog_setup()
+{
+  // Clear any previous watchdog interupt
+  MCUSR = 0;
+
+  
+  wdt_enable(WDTO_8S);
+  wdt_reset();
+}
+
+void goToSleep()
+{
+
+  // Turn off the RF receiver
+  digitalWrite(RF_POWER_PIN, LOW);
+  
+  
+  cli();
+  
+  // disable ADC
+  //ADCSRA = 0;
+  
+  set_sleep_mode(SLEEP_MODE_IDLE);
+
+
+  //power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
+  
+  
+  // Power-down unused stuff - keep timer1 running for the pwm
+  // off - timer0, USI, ADC
+  PRR = (0 << PRTIM0) | (1 << PRTIM0) | (1 << PRUSI) | (1 << PRADC); 
+  
+  sleep_enable();
+  sei();
+  
+  // turn off brown-out enable in software
+  //MCUCR = (1 << BODS) | (1 << BODSE); // turn on brown-out enable select
+  //MCUCR = (1 << BODS) | (0 << BODSE); // this must be done within 4 clock cycles of above
+  //MCUCR = bit (BODS) | bit (BODSE);  // turn on brown-out enable select
+  //MCUCR = bit (BODS);        // this must be done within 4 clock cycles of above
+  sleep_cpu();              // sleep within 3 clock cycles of above
+
+                              
+  sleep_disable();  
+  MCUSR = 0; // clear the reset register 
+  
+  
+  //power_all_enable();    // power everything back on
+  // Turn timer0 back on
+  PRR = (0 << PRTIM0) | (0 << PRTIM0) | (1 << PRUSI) | (1 << PRADC);
+
+  // turn on the RF receiver
+  digitalWrite(RF_POWER_PIN, HIGH);
+  
+} 
