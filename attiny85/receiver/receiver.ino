@@ -25,7 +25,7 @@ ATMEL ATTINY 25/45/85 / ARDUINO
 #define VW_RX_PIN 2
 #define RF_POWER_PIN 0 // Toggle power to RF receiver
 
-#define WD_DO_STUFF 8 // How many watchdog interupts before doing real work.
+#define WD_DO_STUFF 1 // How many watchdog interupts before doing real work.
 
 
 SoftwareSerial mySerial(SERIAL_RX_PIN, SERIAL_TX_PIN); // RX, TX
@@ -176,8 +176,21 @@ void watchdog_setup()
   // Clear any previous watchdog interupt
   MCUSR = 0;
 
+  // WD interrupt after 8 seconds, 
+  // unless wdt_reset(); has been successfully called
   
-  wdt_enable(WDTO_8S);
+  /* In order to change WDE or the prescaler, we need to
+   * set WDCE (This will allow updates for 4 clock cycles).
+   */
+  WDTCR |= (1<<WDCE) | (1<<WDE);
+
+  /* set new watchdog timeout prescaler value */
+  WDTCR = 1<<WDP0 | 1<<WDP3; // 8.0 seconds 
+  
+  /* Enable the WD interrupt (note no reset). */
+  WDTCR |= _BV(WDIE);
+  
+  //wdt_enable(WDTO_8S);
   wdt_reset();
 }
 
