@@ -203,18 +203,15 @@ void goToSleep()
   
   cli();
   
-  // disable ADC
-  //ADCSRA = 0;
+  // ensure ADC is off
+  ADCSRA = 0;
   
   set_sleep_mode(SLEEP_MODE_IDLE);
 
-
-  //power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
-  
   
   // Power-down unused stuff - keep timer1 running for the pwm
   // off - timer0, USI, ADC
-  PRR = (0 << PRTIM0) | (1 << PRTIM0) | (1 << PRUSI) | (1 << PRADC); 
+  PRR = (0 << PRTIM1) | (1 << PRTIM0) | (1 << PRUSI) | (1 << PRADC); 
   
   sleep_enable();
   sei();
@@ -230,10 +227,8 @@ void goToSleep()
   sleep_disable();  
   MCUSR = 0; // clear the reset register 
   
-  
-  //power_all_enable();    // power everything back on
   // Turn timer0 back on
-  PRR = (0 << PRTIM0) | (0 << PRTIM0) | (1 << PRUSI) | (1 << PRADC);
+  PRR = (0 << PRTIM1) | (0 << PRTIM0) | (1 << PRUSI) | (1 << PRADC);
 
   // turn on the RF receiver
   digitalWrite(RF_POWER_PIN, HIGH);
