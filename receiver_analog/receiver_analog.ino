@@ -144,6 +144,9 @@ void loop()
     // Turn off message indicator
     analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
     
+    // Wait for the serial data to be sent
+    Serial.flush();
+    
     // Sleep 'till the next message is due
     goToSleep(); 
   }
