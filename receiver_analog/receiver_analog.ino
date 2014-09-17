@@ -8,11 +8,16 @@
 #include <avr/power.h>    // Power management
 #include <VirtualWire.h>
 
+// inslude the SPI library:
+#include <SPI.h>
+
 #define DEBUG_LED_PIN 5 // PD5 (11) - Red led button
 #define DEBUG_LED_PWM_AWAKE 127 // pwm value to show contoller is awake
 #define DEBUG_LED_PWM_MSG 255 // pwm value to show message received
 
-#define PWM_PIN 9 // TMP until dedicated chip arrives
+//#define PWM_PIN 9 // TMP until dedicated chip arrives
+#define POT_CHIP_SELECT 10
+#define POT_ADDRESS 0
 
 #define VW_MAX_MESSAGE_LEN 40 // Same as solar/sensor
 #define VW_RX_PIN 7 // PD7 (13)
@@ -23,7 +28,7 @@
 
 
 
-byte solar_val = 127; // Temporary half value
+byte solar_val = 64; // Temporary half value
 volatile byte wd_isr = WD_DO_STUFF;
 
 
@@ -56,8 +61,13 @@ void setup()
   pinMode(RF_POWER_PIN, OUTPUT);  
   digitalWrite(RF_POWER_PIN, HIGH);  
   
-  pinMode(PWM_PIN, OUTPUT);  // TMP until dedicated chip arrives
-  analogWrite(PWM_PIN, solar_val);
+  // set the slaveSelectPin as an output:
+  pinMode (POT_CHIP_SELECT, OUTPUT);
+  // initialize SPI:
+  SPI.begin();
+  
+  //pinMode(PWM_PIN, OUTPUT);  // TMP until dedicated chip arrives
+  //analogWrite(PWM_PIN, solar_val);
 
   Serial.begin(9600);
   Serial.println("Setup");
@@ -65,6 +75,8 @@ void setup()
   vw_set_rx_pin(VW_RX_PIN);
   vw_setup(2000);	 // Bits per sec
   vw_rx_start();       // Start the receiver running
+  
+  digitalPotWrite(POT_ADDRESS, 128);
 }
 
 
@@ -92,7 +104,7 @@ void loop()
         // comma 6 = battery reading
         
         if (comma == 5) {
-          solar_val = map(val, 0, 10000, 0, 255);
+          solar_val = map(val, 0, 10000, 0, 128);
           
           
           // Print the solar reading
@@ -139,7 +151,9 @@ void loop()
     Serial.println(); 
     
     // Ofcourse this is rather pointless a sleep will kill the pwm (replacing with digital pot)
-    analogWrite(PWM_PIN, solar_val);
+    //analogWrite(PWM_PIN, solar_val);
+    
+    digitalPotWrite(POT_ADDRESS, solar_val);
     
     // Turn off message indicator
     analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
@@ -153,6 +167,15 @@ void loop()
 
 }
 
+void digitalPotWrite(int address, int value) {
+  // take the SS pin low to select the chip:
+  digitalWrite(POT_CHIP_SELECT, LOW);
+  //  send in the address and value via SPI:
+  SPI.transfer(address);
+  SPI.transfer(value);
+  // take the SS pin high to de-select the chip:
+  digitalWrite(POT_CHIP_SELECT, HIGH); 
+}
 
 /**
  * Watchdog for while awake to ensure things are ticking over.
