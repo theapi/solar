@@ -27,7 +27,7 @@
 
 
 
-
+int parsed_val = 0;
 byte solar_val = 64; // Temporary half value
 volatile byte wd_isr = WD_DO_STUFF;
 
@@ -104,6 +104,7 @@ void loop()
         // comma 6 = battery reading
         
         if (comma == 5) {
+          parsed_val = val;
           solar_val = map(val, 0, 10000, 0, 128);
           
           
@@ -152,6 +153,10 @@ void loop()
     
     // Ofcourse this is rather pointless a sleep will kill the pwm (replacing with digital pot)
     //analogWrite(PWM_PIN, solar_val);
+    
+    Serial.print(parsed_val);
+    Serial.print(" -> ");
+    Serial.println(solar_val); 
     
     digitalPotWrite(POT_ADDRESS, solar_val);
     
