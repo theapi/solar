@@ -73,7 +73,7 @@ void setup()
   //SPI.begin();
   
   pinMode(PWM_PIN, OUTPUT);  
-  analogWrite(PWM_PIN, 255);
+  analogWrite(PWM_PIN, 250);
 
   Serial.begin(9600);
   Serial.println("Setup");
@@ -289,6 +289,7 @@ void goToSleep(byte mode)
   
   power_timer0_enable();
   power_timer1_enable();
+  power_timer2_enable();
   power_usart0_enable();
 
   // turn on the RF receiver
