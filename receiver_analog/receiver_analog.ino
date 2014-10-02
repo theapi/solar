@@ -2,6 +2,7 @@
  Receive the sensor's transmission, then display it on the analogue meter.
  */
 
+#include <Wire.h>
 #include <util/delay.h>
 #include <avr/wdt.h>
 #include <avr/sleep.h>    // Sleep Modes
@@ -19,6 +20,12 @@
 //#define POT_CHIP_SELECT 10
 //#define POT_ADDRESS 0
 
+// For Adafruit MCP4725A1 the address is 0x62 (default) or 0x63 (ADDR pin tied to VCC)
+// For MCP4725A0 the address is 0x60 or 0x61
+// For MCP4725A2 the address is 0x64 or 0x65
+#define DAC_ADDRESS      (0x62)
+#define DAC_CMD_WRITEDAC (0x40)  // Writes data to the DAC
+
 #define VW_MAX_MESSAGE_LEN 40 // Same as solar/sensor
 #define VW_RX_PIN 7 // PD7 (13)
 #define RF_POWER_PIN 8 // PB0 (14) Toggle power to RF receiver
@@ -28,7 +35,7 @@
 
 byte sleep_mode = SLEEP_MODE_PWR_SAVE;
 int parsed_val = 0;
-byte solar_val = 64; // Temporary half value
+int solar_val = 4000; // 12bit DAC
 volatile byte wd_isr = WD_DO_STUFF;
 
 
@@ -72,8 +79,9 @@ void setup()
   // initialize SPI:
   //SPI.begin();
   
-  pinMode(PWM_PIN, OUTPUT);  
-  analogWrite(PWM_PIN, 250);
+  //pinMode(PWM_PIN, OUTPUT);  
+  //analogWrite(PWM_PIN, 250);
+  setVoltage(solar_val);
 
   Serial.begin(9600);
   Serial.println("Setup");
@@ -110,7 +118,7 @@ void loop()
         
         if (comma == 5) {
           parsed_val = val;
-          solar_val = map(val, 0, 10000, 0, 255);
+          solar_val = map(val, 0, 10000, 0, 4095); // 0xFFF 12 bit DAC
           
           
           // Print the solar reading
@@ -161,7 +169,8 @@ void loop()
     Serial.println(solar_val); 
     
     //digitalPotWrite(POT_ADDRESS, solar_val);
-    analogWrite(PWM_PIN, solar_val);
+    //analogWrite(PWM_PIN, solar_val);
+    setVoltage(solar_val);
     
     // Turn off message indicator
     analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
@@ -299,3 +308,12 @@ void goToSleep(byte mode)
   analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
   
 } 
+
+void setVoltage(int output)
+{
+  Wire.beginTransmission(DAC_ADDRESS);
+  Wire.write(DAC_CMD_WRITEDAC);
+  Wire.write(output / 16);                   // Upper data bits          (D11.D10.D9.D8.D7.D6.D5.D4)
+  Wire.write((output % 16) << 4);            // Lower data bits          (D3.D2.D1.D0.x.x.x.x)
+  Wire.endTransmission();
+}
