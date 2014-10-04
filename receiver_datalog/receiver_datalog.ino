@@ -5,15 +5,17 @@
  
 #include <avr/wdt.h>
 #include <VirtualWire.h>
+#include <math.h>
 
 #define DEBUG_PIN 13
+#define BREATH_PIN 3
 
 // Pin 11 is the default receiver pin.
 // @see http://www.airspayce.com/mikem/arduino/VirtualWire_8h.html#ae62b601260ae59e7e83c1e63ae0c064b
 #define VW_RX_PIN 7
 #define VW_MAX_MESSAGE_LEN 40 // Same as solar/sensor
 
-int heartbeat_interval = 6 * 1000; // How often to send the heartbeat.
+int heartbeat_interval = 8 * 1000; // How often to send the heartbeat.
 unsigned long heartbeat_last;
 
 void setup() 
@@ -44,6 +46,8 @@ void loop()
   // Pat the dog
   wdt_reset();
   
+  breath();
+  
   uint8_t buf[VW_MAX_MESSAGE_LEN];
   uint8_t buflen = VW_MAX_MESSAGE_LEN;
   
@@ -67,5 +71,16 @@ void loop()
       digitalWrite(DEBUG_PIN, LOW);
   }
 
+}
+
+/**
+ * Indicate gently that everything is ok.
+ */
+void breath()
+{
+  // http://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
+  
+  float val = (exp(sin(millis()/4000.0*PI)) - 0.36787944)*108.0;
+  analogWrite(BREATH_PIN, constrain(val, 5, 200));
 }
 
