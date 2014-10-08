@@ -35,7 +35,7 @@
 
 byte sleep_mode = SLEEP_MODE_PWR_SAVE;
 int parsed_val = 0;
-int solar_val = 4000; // 12bit DAC
+int solar_val = 3685; // 12bit DAC (max 4095 = 0xFFF)
 volatile byte wd_isr = WD_DO_STUFF;
 
 
@@ -61,12 +61,11 @@ void setup()
   ACSR = (1 << ACD) | (0 << ACIE);
   
   power_spi_disable();
-  power_twi_disable();
   
   watchdog_setup();
   
   // Try a lower frequency pwm to prevent the buzzzzz from the analogue voltmeter.
-  setPwmFrequency(256);
+  //setPwmFrequency(256);
   
   pinMode(DEBUG_LED_PIN, OUTPUT);  
   analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
@@ -273,18 +272,9 @@ void goToSleep(byte mode)
   // ensure ADC is off
   ADCSRA = 0;
   
-  if (mode == SLEEP_MODE_PWR_DOWN) {
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    power_all_disable();
-  } else {
-    // Keep pwm on
-    set_sleep_mode(SLEEP_MODE_PWR_SAVE);
-    power_timer0_disable();
-    power_timer1_disable();
-    power_usart0_disable();
-    // leaving timer2 on for the pwm
-  }
-  
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  power_all_disable();
+
   sleep_enable();
   sei();
   
@@ -296,10 +286,12 @@ void goToSleep(byte mode)
   sleep_disable();  
   MCUSR = 0; // clear the reset register 
   
+  
   power_timer0_enable();
   power_timer1_enable();
-  power_timer2_enable();
+  //power_timer2_enable();
   power_usart0_enable();
+  power_twi_enable();
 
   // turn on the RF receiver
   digitalWrite(RF_POWER_PIN, HIGH);
