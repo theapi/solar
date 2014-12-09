@@ -11,3 +11,6 @@ Install arduino:
 Give the pi user permission to use the serial connection:
 ```sudo usermod -a -G dialout pi```
 
+Optionally install nfs for sharing the data log
+```sudo apt-get install nfs-kernel-server```
+
