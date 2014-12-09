@@ -17,10 +17,10 @@ From http://www.linuxuser.co.uk/tutorials/building-a-network-of-raspberry-pis
 ```sudo apt-get install nfs-kernel-server```
 
 Make a shared directory
-```sudo mkdir /public```
+```sudo mkdir /srv/public```
 
 Edit /etc/exports
-```/public *(rw,async,no_subtree_check)```
+```/srv/public *(rw,async,no_subtree_check)```
 
 Ensure rpcbind starts on restart
 ```sudo update-rc.d rpcbind enable```
@@ -28,5 +28,5 @@ Ensure rpcbind starts on restart
 Connect to the share with
 ```
 sudo mkdir /mnt/solar
-sudo mount <SERVER_IP>:/public /mnt/solar
+sudo mount <SERVER_IP>:/srv/public /mnt/solar
 ```
