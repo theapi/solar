@@ -8,17 +8,26 @@
 #include <avr/sleep.h>    // Sleep Modes
 #include <avr/power.h>    // Power management
 #include <VirtualWire.h>
+#include <SPI.h>
+#include "nRF24L01.h"
+#include "RF24.h"
+#include <Nrf24Payload.h>
 
-// inslude the SPI library:
-//#include <SPI.h>
+#define DEVICE_ID 'E'
+ 
+//#define RX_ADDRESS "AAAAA"
+//#define RX_ADDRESS "BBBBB"
+//#define RX_ADDRESS "CCCCC"
+//#define RX_ADDRESS "DDDDD"
+#define RX_ADDRESS "EEEEE"
+
+
+#define BASE_ADDRESS "1BASE"
 
 #define DEBUG_LED_PIN 5 // PD5 (11) - Red led button
 #define DEBUG_LED_PWM_AWAKE 127 // pwm value to show contoller is awake
 #define DEBUG_LED_PWM_MSG 255 // pwm value to show message received
 
-#define PWM_PIN 11 // timer 2
-//#define POT_CHIP_SELECT 10
-//#define POT_ADDRESS 0
 
 // For Adafruit MCP4725A1 the address is 0x62 (default) or 0x63 (ADDR pin tied to VCC)
 // For MCP4725A0 the address is 0x60 or 0x61
@@ -30,14 +39,20 @@
 #define VW_RX_PIN 7 // PD7 (13)
 #define RF_POWER_PIN 8 // PB0 (14) Toggle power to RF receiver
 
+#define PIN_CE  9
+#define PIN_CSN 10
+
 #define WD_DO_STUFF 8 // How many watchdog interupts before doing real work (same a sensor).
 
 
-byte sleep_mode = SLEEP_MODE_PWR_SAVE;
-int parsed_val = 0;
 int solar_val = 3685; // 12bit DAC (max 4095 = 0xFFF)
 volatile byte wd_isr = WD_DO_STUFF;
 
+// The address that this node listens on
+byte address[6] = RX_ADDRESS;
+byte address_base[6] = BASE_ADDRESS;
+
+RF24 radio(PIN_CE, PIN_CSN);
 
 ISR(WDT_vect)
 {
@@ -48,24 +63,31 @@ ISR(WDT_vect)
   } else {
       --wd_isr; 
       // Go back to sleep.
-      goToSleep(sleep_mode);
+      goToSleep();
   }
 }
 
 void setup()
 {
+  Serial.begin(9600);
+  
   // disable ADC
   ADCSRA = 0;
   
   // disable analog comparitor
   ACSR = (1 << ACD) | (0 << ACIE);
   
-  power_spi_disable();
   
   watchdog_setup();
   
-  // Try a lower frequency pwm to prevent the buzzzzz from the analogue voltmeter.
-  //setPwmFrequency(256);
+  // Setup and configure nrf24 radio
+  radio.begin(); // Start up the radio
+  radio.setPayloadSize(Nrf24Payload_SIZE);               
+  radio.setAutoAck(1); // Ensure autoACK is enabled
+  radio.setRetries(3,15); //  delay between retries & number of retries
+
+  // Pipe for talking to the base
+  radio.openWritingPipe(address_base);
   
   pinMode(DEBUG_LED_PIN, OUTPUT);  
   analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
@@ -73,22 +95,18 @@ void setup()
   pinMode(RF_POWER_PIN, OUTPUT);  
   digitalWrite(RF_POWER_PIN, HIGH);  
   
-  // set the slaveSelectPin as an output:
-  //pinMode (POT_CHIP_SELECT, OUTPUT);
-  // initialize SPI:
-  //SPI.begin();
-  
-  //pinMode(PWM_PIN, OUTPUT);  
-  //analogWrite(PWM_PIN, 250);
+
   setVoltage(solar_val);
 
-  Serial.begin(9600);
-  Serial.println("Setup");
 
   vw_set_rx_pin(VW_RX_PIN);
   vw_setup(2000);	 // Bits per sec
   vw_rx_start();       // Start the receiver running
   
+  
+  Serial.println("Setup");
+  Serial.print("Size of payload = ");
+  Serial.println(radio.getPayloadSize());
 }
 
 
@@ -104,6 +122,7 @@ void loop()
     // Indicate a message received
     analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_MSG);
     
+/*
   
     int i;
     int val = 0;
@@ -166,24 +185,44 @@ void loop()
     Serial.print(parsed_val);
     Serial.print(" -> ");
     Serial.println(solar_val); 
-    
-    //digitalPotWrite(POT_ADDRESS, solar_val);
-    //analogWrite(PWM_PIN, solar_val);
+*/
+ 
+
+
+    // Parse the received message into a nrf24 payload
+    Nrf24Payload payload = parse433Message(buf);
+    // Forward the message through the nrf24 radio
+    uint8_t tx[Nrf24Payload_SIZE];
+    payload.serialize(tx);
+    radio.write( &tx, Nrf24Payload_SIZE);
+
+    // Set the needle on the analor meter
+    solar_val = map(payload.getD(), 0, 10000, 0, 4095); // 0xFFF 12 bit DAC
     setVoltage(solar_val);
     
+    // Output for the bluetooth module
+    for (int i = 0; i < buflen; i++) {
+      Serial.write(char(buf[i]));
+    }
+    // Wait for the serial data to be sent
+    Serial.flush();
+
     // Turn off message indicator
     analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
     
-    // Wait for the serial data to be sent
-    Serial.flush();
-    
+
     // Sleep 'till the next message is due
+    goToSleep(); 
+    
+    /*
     if (solar_val > 0) {
       goToSleep(SLEEP_MODE_PWR_SAVE); 
     } else {
       // no need for pwm so full sleep
       goToSleep(SLEEP_MODE_PWR_DOWN); 
     }
+    */
+    
   }
 
 }
@@ -195,6 +234,7 @@ void loop()
  * @see http://playground.arduino.cc/Main/TimerPWMCheatsheet
  * @see http://www.letsmakerobots.com/content/changing-pwm-frequencies-arduino-controllers
  */
+ /*
 void setPwmFrequency(int divisor) 
 {
   // NB: Half these frequencies as using internal 8mhz clock.
@@ -219,6 +259,7 @@ void setPwmFrequency(int divisor)
   }
   TCCR2B = TCCR2B & 0b11111000 | mode;
 }
+*/
 
 /*
 void digitalPotWrite(int address, int value) {
@@ -257,9 +298,11 @@ void watchdog_setup()
   wdt_reset();
 }
 
-void goToSleep(byte mode)
+void goToSleep()
 {
-  sleep_mode = mode;
+  
+  // Turn on the nrf24 radio
+  radio.powerDown();
   
   // Turn off the RF receiver
   digitalWrite(RF_POWER_PIN, LOW);
@@ -286,12 +329,18 @@ void goToSleep(byte mode)
   sleep_disable();  
   MCUSR = 0; // clear the reset register 
   
-  
+  /*
   power_timer0_enable();
   power_timer1_enable();
   //power_timer2_enable();
   power_usart0_enable();
   power_twi_enable();
+  */
+  power_all_disable();
+  
+  // Turn on the nrf24 radio
+  radio.powerUp();
+  
 
   // turn on the RF receiver
   digitalWrite(RF_POWER_PIN, HIGH);
@@ -309,3 +358,62 @@ void setVoltage(int output)
   Wire.write((output % 16) << 4);            // Lower data bits          (D3.D2.D1.D0.x.x.x.x)
   Wire.endTransmission();
 }
+
+Nrf24Payload parse433Message(uint8_t buf[VW_MAX_MESSAGE_LEN])
+{
+  // Convert the uint8_t buffer into a char buffer for strtok to use.
+  char buffer[VW_MAX_MESSAGE_LEN];
+  for (byte j=0; j<VW_MAX_MESSAGE_LEN; j++) {
+    buffer[j] = buf[j];
+  }
+  
+  Nrf24Payload payload = Nrf24Payload();
+  
+  payload.setDeviceId(DEVICE_ID);
+  
+  // Expects a csv string
+  // eg; S,88,20.17,21.91,871,5595,5436
+  // from: sprintf(msg, "S,%d,%s,%s,%i,%i,%lu", msgId, temp_internal, temp_external, soil_read, solr_mv, vcc);
+  // NB rounding the temperature floats to ints since they're not that accurate anyway.
+  
+  int i = 0;
+  char *token;
+  token = strtok(buffer, ",");
+  while (token != NULL) {
+    printf("%i: %s\n", i, token);
+    switch (i) {
+      case 0:
+        payload.setType('S');
+        break;
+      case 1:
+        // message id
+        payload.setId(atoi(token));
+        break;
+      case 2:
+        // temp_internal
+        payload.setA(atoi(token));
+        break;
+      case 3:
+        // temp_external
+        payload.setB(atoi(token));
+        break;
+      case 4:
+        // soil_read
+        payload.setC(atoi(token));
+        break;
+      case 5:
+        // solr_mv
+        payload.setD(atoi(token));
+        break;
+      case 6:
+        // vcc
+        payload.setVcc(atoi(token));
+        break;
+    }
+    i++;
+    token = strtok(NULL, ",");
+  }
+  
+  return payload;
+}
+
