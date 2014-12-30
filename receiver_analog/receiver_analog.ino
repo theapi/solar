@@ -336,7 +336,7 @@ void goToSleep()
   power_usart0_enable();
   power_twi_enable();
   */
-  power_all_disable();
+  power_all_enable();
   
   // Turn on the nrf24 radio
   radio.powerUp();
