@@ -15,7 +15,7 @@
 #define VW_RX_PIN 7
 #define VW_MAX_MESSAGE_LEN 40 // Same as solar/sensor
 
-int heartbeat_interval = 8 * 1000; // How often to send the heartbeat.
+int heartbeat_interval = 32 * 1000; // How often to send the heartbeat.
 unsigned long heartbeat_last;
 
 void setup() 
@@ -26,18 +26,15 @@ void setup()
   
   pinMode(DEBUG_PIN, OUTPUT);
   
-  // initialize serial communication
-  Serial.begin(9600);
-  Serial.println("setup");
 
-
-  
   vw_set_rx_pin(VW_RX_PIN);
   vw_setup(2000);      // Bits per sec
   vw_rx_start();       // Start the receiver PLL running
   
 
-  Serial.println("lets go..");
+  // initialize serial communication
+  Serial.begin(9600);
+  Serial.println("setup");
 }
 
 void loop()
