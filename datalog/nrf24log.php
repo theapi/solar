@@ -31,7 +31,8 @@ $fp = $client->start($server, $port);
 
 while(!feof($fp)) {
   $line = $client->read();
-  if (!empty($line) && $line[0] == ':') {
+  // Starts with ':' and is the 'E' nrf24 radio device.
+  if (!empty($line) && $line[0] == ':' && $line[2] == 'E') {
     echo "> $line";
 
     // :,E,S,158,5384,6,8,807,5552
