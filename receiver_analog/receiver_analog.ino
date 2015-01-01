@@ -52,6 +52,7 @@ volatile byte wd_isr = WD_DO_STUFF;
 byte address[6] = RX_ADDRESS;
 byte address_base[6] = BASE_ADDRESS;
 
+
 RF24 radio(PIN_CE, PIN_CSN);
 
 ISR(WDT_vect)
@@ -121,72 +122,6 @@ void loop()
   
     // Indicate a message received
     analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_MSG);
-    
-/*
-  
-    int i;
-    int val = 0;
-    byte comma = 0;
-    for (i = 0; i < buflen; i++) {
-
-      if (buf[i] == 44) {      
-        // CSV - S,88,20.17,21.91,871,5595,5436
-        // comma 5 = solar panel reading
-        // comma 6 = battery reading
-        
-        if (comma == 5) {
-          parsed_val = val;
-          solar_val = map(val, 0, 10000, 0, 4095); // 0xFFF 12 bit DAC
-          
-          
-          // Print the solar reading
-          //Serial.print(" pwm("); 
-          //Serial.print(solar_val, DEC); 
-          //Serial.print(")"); 
-        }
-        
-        ++comma;
-        val = 0;
-      }
-      
-      
-      Serial.write(char(buf[i]));
-      
-      
-      if (comma == 5 || comma == 6) {
-        byte c = buf[i];
-        // Only interested in numbers.
-        // ASCII hex values 0x30 to 0x30 are decimal 0 to 9
-        if (c > 0x2F && c < 0x3A) {
-            if (val > 0) {
-                // Expecting decimal numbers like 24,
-                // so for each new argument multiply by ten.
-                val *= 10;
-                val += c - 0x30;
-            } else {
-                val = c - 0x30;
-            }
-            //Serial.print(val, DEC); 
-        }
-      }
-      
-      
-    }
-    
-    
-    // Print the battery reading
-    //Serial.print(" Bat("); 
-    //Serial.print(val, DEC); 
-    //Serial.print(")");
-    
-    
-    Serial.println(); 
-        
-    Serial.print(parsed_val);
-    Serial.print(" -> ");
-    Serial.println(solar_val); 
-*/
- 
 
 
     // Parse the received message into a nrf24 payload
@@ -196,7 +131,7 @@ void loop()
     payload.serialize(tx);
     radio.write( &tx, Nrf24Payload_SIZE);
 
-    // Set the needle on the analor meter
+    // Set the needle on the analog meter
     solar_val = map(payload.getD(), 0, 10000, 0, 4095); // 0xFFF 12 bit DAC
     setVoltage(solar_val);
     
@@ -207,71 +142,37 @@ void loop()
     // Wait for the serial data to be sent
     Serial.flush();
 
-    // Turn off message indicator
-    analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
+
+    // Turn on the nrf24 radio
+    radio.powerDown();
+    // Allow time for the radio to power down
+    delay(100); 
     
+    // Turn off the RF receiver
+    digitalWrite(RF_POWER_PIN, LOW);
+    
+    // Turn off message indicator
+    analogWrite(DEBUG_LED_PIN, 0);
+
 
     // Sleep 'till the next message is due
     goToSleep(); 
     
-    /*
-    if (solar_val > 0) {
-      goToSleep(SLEEP_MODE_PWR_SAVE); 
-    } else {
-      // no need for pwm so full sleep
-      goToSleep(SLEEP_MODE_PWR_DOWN); 
-    }
-    */
+    
+    // Turn on the nrf24 radio
+    radio.powerUp();
+    
+  
+    // turn on the RF receiver
+    digitalWrite(RF_POWER_PIN, HIGH);
+    
+    // Indicate awake
+    analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
+
     
   }
 
 }
-
-/**
- * The human hearing range is commonly given as 20 to 20,000 Hz
- *
- * @see http://playground.arduino.cc/Code/PwmFrequency
- * @see http://playground.arduino.cc/Main/TimerPWMCheatsheet
- * @see http://www.letsmakerobots.com/content/changing-pwm-frequencies-arduino-controllers
- */
- /*
-void setPwmFrequency(int divisor) 
-{
-  // NB: Half these frequencies as using internal 8mhz clock.
-  //TCCR2B = TCCR2B & B11111000 | B00000001;    // set timer 2 divisor to     1 for PWM frequency of 31372.55 Hz
-  //TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
-  //TCCR2B = TCCR2B & B11111000 | B00000011;    // set timer 2 divisor to    32 for PWM frequency of   980.39 Hz
-  //TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz
-  //TCCR2B = TCCR2B & B11111000 | B00000101;    // set timer 2 divisor to   128 for PWM frequency of   245.10 Hz
-  //TCCR2B = TCCR2B & B11111000 | B00000110;    // set timer 2 divisor to   256 for PWM frequency of   122.55 Hz
-  //TCCR2B = TCCR2B & B11111000 | B00000111;    // set timer 2 divisor to  1024 for PWM frequency of    30.64 Hz
-
-  byte mode;
-  switch(divisor) {
-    case 1: mode = 0x01; break;
-    case 8: mode = 0x02; break;
-    case 32: mode = 0x03; break;
-    case 64: mode = 0x04; break;
-    case 128: mode = 0x05; break;
-    case 256: mode = 0x06; break;
-    case 1024: mode = 0x7; break;
-    default: return;
-  }
-  TCCR2B = TCCR2B & 0b11111000 | mode;
-}
-*/
-
-/*
-void digitalPotWrite(int address, int value) {
-  // take the SS pin low to select the chip:
-  digitalWrite(POT_CHIP_SELECT, LOW);
-  //  send in the address and value via SPI:
-  SPI.transfer(address);
-  SPI.transfer(value);
-  // take the SS pin high to de-select the chip:
-  digitalWrite(POT_CHIP_SELECT, HIGH); 
-}
-*/
 
 /**
  * Watchdog for while awake to ensure things are ticking over.
@@ -301,15 +202,6 @@ void watchdog_setup()
 void goToSleep()
 {
   
-  // Turn on the nrf24 radio
-  radio.powerDown();
-  
-  // Turn off the RF receiver
-  digitalWrite(RF_POWER_PIN, LOW);
-  
-  // Indicate sleep mode (not pwm as would need to not be totally asleep)
-  digitalWrite(DEBUG_LED_PIN, LOW);
- 
   cli();
     
   // ensure ADC is off
@@ -338,15 +230,7 @@ void goToSleep()
   */
   power_all_enable();
   
-  // Turn on the nrf24 radio
-  radio.powerUp();
-  
 
-  // turn on the RF receiver
-  digitalWrite(RF_POWER_PIN, HIGH);
-  
-  // Indicate awake
-  analogWrite(DEBUG_LED_PIN, DEBUG_LED_PWM_AWAKE);
   
 } 
 
