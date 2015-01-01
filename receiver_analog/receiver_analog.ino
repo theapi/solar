@@ -139,6 +139,7 @@ void loop()
     for (int i = 0; i < buflen; i++) {
       Serial.write(char(buf[i]));
     }
+    Serial.println();
     // Wait for the serial data to be sent
     Serial.flush();
 
@@ -260,9 +261,13 @@ Nrf24Payload parse433Message(uint8_t buf[VW_MAX_MESSAGE_LEN])
   // from: sprintf(msg, "S,%d,%s,%s,%i,%i,%lu", msgId, temp_internal, temp_external, soil_read, solr_mv, vcc);
   // NB rounding the temperature floats to ints since they're not that accurate anyway.
   
+  // Get upto the new line (which sadly is not there currently, @todo add new line to sensor data)
+  char *line;
+  line = strtok(buffer, "\n");
+  
   int i = 0;
   char *token;
-  token = strtok(buffer, ",");
+  token = strtok(line, ",");
   while (token != NULL) {
     printf("%i: %s\n", i, token);
     switch (i) {
@@ -291,7 +296,13 @@ Nrf24Payload parse433Message(uint8_t buf[VW_MAX_MESSAGE_LEN])
         break;
       case 6:
         // vcc
-        payload.setVcc(atoi(token));
+        // only interested in the first 4 chars, the rest are gibberish as there is no new line
+        char vcc[4];
+        for (byte x = 0; x < 4; x++) {
+          vcc[x] = token[x];
+        }
+        
+        payload.setVcc(atoi(vcc));
         break;
     }
     i++;
