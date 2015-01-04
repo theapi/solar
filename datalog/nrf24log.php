@@ -37,6 +37,17 @@ while(!feof($fp)) {
 
     // :,E,S,158,5384,6,8,807,5552
     $parsed = explode(',', trim($line));
+
+    // Handle negative temperatures
+    if ($parsed[6] > 65000) {
+      // Max 8bit int mx minus the value as a negative number
+      $parsed[6] = (65536 - $parsed[6]) * -1;
+    }
+    if ($parsed[3] > 65000) {
+      // Max 8bit int max minus the value as a negative number
+      $parsed[3] = (65536 - $parsed[6]) * -1;
+    }
+
     // "Time,MsgId,TempInt,TempExt,Soil,Solar,Battery\n";
     $csv = array(
       date('Y-m-d H:i:s'),
