@@ -30,7 +30,7 @@
 byte addresses[][6] = {"1Node","2Node"};
 
 
-byte role = 1; // 0 is receiver
+byte role = 0; // 0 is receiver
 unsigned long id = 0;
 
 
@@ -43,10 +43,12 @@ void setup() {
 
   // Setup and configure nrf24 radio
   radio.begin(); // Start up the radio
-  radio.setChannel(2);
-  radio.setPayloadSize(Nrf24Payload_SIZE);               
-  radio.setAutoAck(1); // Ensure autoACK is enabled
-  radio.setRetries(3,15); //  delay between retries & number of retries
+  radio.setChannel(80);
+  radio.setPayloadSize(Nrf24Payload_SIZE);
+  // For the slower data rate (further range) see https://github.com/TMRh20/RF24/issues/98
+  radio.setDataRate(RF24_250KBPS);          
+  radio.setAutoAck(false); // Ensure autoACK is enabled
+  radio.setRetries(3, 15); //  delay between retries & number of retries
 
   
 
