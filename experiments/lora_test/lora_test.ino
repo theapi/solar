@@ -105,9 +105,9 @@ void setup()
   
   // Open serial communications and wait for port to open:
 #if defined __SAMD21G18A__ && not defined ARDUINO_SAMD_FEATHER_M0 
-  SerialUSB.begin(38400);
+  SerialUSB.begin(115200);
 #else
-  Serial.begin(38400);  
+  Serial.begin(115200);  
 #endif 
 
   // Print a start message
@@ -132,6 +132,11 @@ void setup()
 #ifdef __SAMD21G18A__ 
   PRINT_CSTSTR("%s","Arduino M0/Zero detected\n");
 #endif
+
+  u8g.setRot180();
+  monitor.num = 0;
+  monitor.code = 9;
+  displayUpdate();
 
   // Power ON the module
   sx1272.ON();
