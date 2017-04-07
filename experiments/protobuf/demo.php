@@ -17,6 +17,18 @@ $vcc->setId(1);
 $vcc->setValue(5495);
 $data = $vcc->encode();
 
+$charge = new Sensor();
+$charge->setId(2);
+$charge->setValue(6453);
+
+$temperature = new Sensor();
+$temperature->setId(3);
+$temperature->setValue(23);
+
+$light = new Sensor();
+$light->setId(4);
+$light->setValue(123456);
+
 $to = new Sensor();
 $to->decode($data);
 print $to->getId() . ' : ' . $to->getValue() . "\n";
@@ -31,18 +43,22 @@ print $to->getId() . ' : ' . $to->getValue() . "\n";
 //$receiver->decode($data);
 //$sensors = $garden->getSensors();
 //foreach ($sensors as $sensor) {
-//  print $to->getId() . ' : ' . $to->getValue() . "\n";
+//  print $sensor->getId() . ' : ' . $sensor->getValue() . "\n";
 //}
 
 // @link https://github.com/google/protobuf/issues/2686
 $garden = new GardenSensors();
 $repeated = $garden->getSensors();
 $repeated[] = $vcc;
+$repeated[] = $charge;
+$repeated[] = $temperature;
+$repeated[] = $light;
 $data = $garden->encode();
+var_dump($data);
 
 $receiver = new GardenSensors();
 $receiver->decode($data);
 $sensors = $garden->getSensors();
 foreach ($sensors as $sensor) {
-  print $to->getId() . ' : ' . $to->getValue() . "\n";
+  print $sensor->getId() . ' : ' . $sensor->getValue() . "\n";
 }
