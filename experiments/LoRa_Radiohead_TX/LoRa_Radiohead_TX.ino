@@ -8,6 +8,8 @@
 
 #include <SPI.h>
 #include <RH_RF95.h>
+// oled display
+#include "U8glib.h"
 
 #define RFM95_CS 4
 #define RFM95_RST 2
@@ -19,12 +21,30 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
+// OLED
+U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE);
+
+typedef struct{
+  int sent;
+  int got;
+  int rssi;
+}
+monitor_t;
+monitor_t monitor;
+
 void setup() 
 {
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
   Serial.begin(115200);
+
+  //u8g.setRot180();
+  monitor.sent = 0;
+  monitor.got = 0;
+  monitor.rssi = 0;
+  displayUpdate();
+  
   delay(100);
 
   Serial.println("Arduino LoRa TX Test!");
@@ -56,37 +76,57 @@ void setup()
   rf95.setTxPower(23, false);
 }
 
-int16_t packetnum = 0;  // packet counter, we increment per xmission
+int16_t packetnum = 1;  // packet counter, we increment per xmission
 
 void loop()
 {
   Serial.println("Sending to rf95_server");
   // Send a message to rf95_server
   
-  char radiopacket[20] = "Hello World #      ";
-  itoa(packetnum++, radiopacket+13, 10);
+  //char radiopacket[20] = "Hello World #      ";
+  char radiopacket[30]   = "                   ";
+  itoa(packetnum, radiopacket+13, 10);
   Serial.print("Sending "); Serial.println(radiopacket);
-  radiopacket[19] = 0;
+  //radiopacket[19] = 0;
+  radiopacket[30] = 0;
   
-  Serial.println("Sending..."); delay(10);
+  //Serial.println("Sending..."); //delay(10);
   rf95.send((uint8_t *)radiopacket, 20);
 
-  Serial.println("Waiting for packet to complete..."); delay(10);
+  int rssi = 0;
+  int got = 0;
+  monitor.sent = packetnum;
+  monitor.got = got;
+  monitor.rssi = rssi;
+  displayUpdate();
+
+  ++packetnum;
+
+  //Serial.println("Waiting for packet to complete..."); delay(10);
   rf95.waitPacketSent();
   // Now wait for a reply
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
-  Serial.println("Waiting for reply..."); delay(10);
-  if (rf95.waitAvailableTimeout(1000))
+  
+
+  //Serial.println("Waiting for reply..."); delay(10);
+  if (rf95.waitAvailableTimeout(2000))
   { 
     // Should be a reply message for us now   
     if (rf95.recv(buf, &len))
    {
       Serial.print("Got reply: ");
       Serial.println((char*)buf);
+      got = atoi((char*)buf);
+      Serial.println(got);
       Serial.print("RSSI: ");
-      Serial.println(rf95.lastRssi(), DEC);    
+      rssi = rf95.lastRssi();
+      Serial.println(rssi, DEC);    
+
+      monitor.got = got;
+      monitor.rssi = rssi;
+      displayUpdate();
     }
     else
     {
@@ -97,5 +137,37 @@ void loop()
   {
     Serial.println("No reply, is there a listener around?");
   }
-  delay(1000);
+
+  
+  
+  delay(5000);
 }
+
+void displayUpdate()
+{
+  // picture loop
+  u8g.firstPage();
+  do {
+    draw();
+  } while( u8g.nextPage() );
+}
+
+void draw(void) {
+  // graphic commands to redraw the complete screen should be placed here
+
+  u8g.setFont(u8g_font_fub11n);
+  //u8g.setFont(u8g_font_unifont);
+  u8g.setFontPosTop();
+  
+  u8g.setPrintPos(0, 0);
+  u8g.print(monitor.sent);
+
+  u8g.setPrintPos(60, 0);
+  u8g.print(monitor.got);
+  
+  u8g.setPrintPos(0, 20);
+  u8g.print(monitor.rssi);
+  
+}
+
+

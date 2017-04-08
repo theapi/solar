@@ -8,6 +8,9 @@
 
 #include <SPI.h>
 #include <RH_RF95.h>
+// oled display
+#include "U8glib.h"
+
 
 #define RFM95_CS 4
 #define RFM95_RST 2
@@ -16,11 +19,21 @@
 // Change to 434.0 or other frequency, must match RX's freq!
 #define RF95_FREQ 868.0
 
+// Blinky on receipt
+#define LED 13
+
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-// Blinky on receipt
-#define LED 13
+// OLED
+U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE);
+
+typedef struct{
+  int num;
+  int rssi;
+}
+monitor_t;
+monitor_t monitor;
 
 void setup() 
 {
@@ -29,6 +42,12 @@ void setup()
   digitalWrite(RFM95_RST, HIGH);
 
   Serial.begin(115200);
+
+  //u8g.setRot180();
+  monitor.num = 0;
+  monitor.rssi = 0;
+  displayUpdate();
+  
   delay(100);
 
   Serial.println("Arduino LoRa RX Test!");
@@ -74,12 +93,22 @@ void loop()
       RH_RF95::printBuffer("Received: ", buf, len);
       Serial.print("Got: ");
       Serial.println((char*)buf);
+      int num = atoi((char*)buf);
+      Serial.println(num);
        Serial.print("RSSI: ");
+
+      int rssi = rf95.lastRssi();
       Serial.println(rf95.lastRssi(), DEC);
+
+      monitor.num = num;
+      monitor.rssi = rssi;
+      displayUpdate();
       
       // Send a reply
-      uint8_t data[] = "And hello back to you";
-      rf95.send(data, sizeof(data));
+      //uint8_t data[] = "And hello back to you";
+      char radiopacket[30]   = "                   ";
+      itoa(num, radiopacket, 10);
+      rf95.send(radiopacket, sizeof(radiopacket));
       rf95.waitPacketSent();
       Serial.println("Sent a reply");
       digitalWrite(LED, LOW);
@@ -89,5 +118,29 @@ void loop()
       Serial.println("Receive failed");
     }
   }
+}
+
+void displayUpdate()
+{
+  // picture loop
+  u8g.firstPage();
+  do {
+    draw();
+  } while( u8g.nextPage() );
+}
+
+void draw(void) {
+  // graphic commands to redraw the complete screen should be placed here
+
+  u8g.setFont(u8g_font_fub11n);
+  //u8g.setFont(u8g_font_unifont);
+  u8g.setFontPosTop();
+  
+  u8g.setPrintPos(0, 0);
+  u8g.print(monitor.num);
+  
+  u8g.setPrintPos(0, 20);
+  u8g.print(monitor.rssi);
+  
 }
 
