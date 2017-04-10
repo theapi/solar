@@ -16,23 +16,29 @@ void setup() {
 
   // Initialise the display.
   display.init();
- // display.flipScreenVertically();
-  display.setFont(ArialMT_Plain_24);
+  display.flipScreenVertically();
+  display.setFont(ArialMT_Plain_16);
 
+  rx_payload.setMsgId(254);
+  rx_payload.setA(1234);
+  rx_payload.setB(5678);
+  
+  display.clear();
+  display.drawString(0, 20, String(rx_payload.getMsgId()));
+  display.drawString(0, 45, String(rx_payload.getA()));
+  display.drawString(80, 45, String(rx_payload.getB())); 
+  display.display();
 }
 
 void loop() {
 
   display.clear();
 
-  if (payload_state = 2) {
-    display.drawString(20, 0, String(rx_payload.getMsgId()));
-    display.drawString(20, 40, String(rx_payload.getA()));
-    display.drawString(40, 0, String(rx_payload.getB())); 
-    payload_state = 0;
-  }
-  
   display.drawString(0, 0, String(millis()));
+  display.drawString(0, 20, String(rx_payload.getMsgId()));
+  display.drawString(0, 45, String(rx_payload.getA()));
+  display.drawString(80, 45, String(rx_payload.getB())); 
+  
   display.display();
   
   delay(10);
@@ -66,7 +72,7 @@ void serialEvent() {
       // so the main loop can do something about it:
       if (serial_byte_count == rx_payload.getPayloadSize()) {
         serial_byte_count = 0;
-        payload_state = 2;
+        payload_state = 0;
         rx_payload.unserialize(input_string);
       }
     }
