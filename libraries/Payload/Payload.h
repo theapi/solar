@@ -35,7 +35,7 @@ class Payload
     void setDeviceId(uint8_t device_id);
 
     // The id, not neccessarily unique, of the message.
-    uint16_t getMsgId();
+    uint8_t getMsgId();
     void setMsgId(uint8_t msg_id);
 
 

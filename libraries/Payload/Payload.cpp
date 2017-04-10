@@ -29,7 +29,7 @@ void Payload::setDeviceId(uint8_t device_id)
 }
 
 // The id, not neccessarily unique, of the message.
-uint16_t Payload::geMsgtId()
+uint8_t Payload::getMsgId()
 {
   return _payload.msg_id;
 }
@@ -38,13 +38,6 @@ void Payload::setMsgId(uint8_t id)
 {
   _payload.msg_id = id;
 }
-
-// The type of message.
-uint8_t Payload::getType()
-{
-  return _payload.type;
-}
-
 
 // The first integer data
 uint16_t Payload::getA()
