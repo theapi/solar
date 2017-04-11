@@ -1,6 +1,16 @@
 
 #include "SSD1306.h" // alias for `#include "SSD1306Wire.h"`
 #include "Payload.h"
+#include <ESP8266WiFi.h>
+
+//how many clients should be able to telnet to this ESP8266
+#define MAX_SRV_CLIENTS 1
+
+const char* ssid = "**********";
+const char* password = "**********";
+
+WiFiServer server(23);
+WiFiClient serverClients[MAX_SRV_CLIENTS];
 
 // Initialize the OLED display using Wire library
 SSD1306  display(0x3c, 4, 5);
@@ -28,9 +38,70 @@ void setup() {
   display.drawString(0, 45, String(rx_payload.getA()));
   display.drawString(80, 45, String(rx_payload.getB())); 
   display.display();
+
+  // Socket server.
+  WiFi.begin(ssid, password);
+  Serial.print("\nConnecting to "); Serial.println(ssid);
+  uint8_t i = 0;
+  while (WiFi.status() != WL_CONNECTED && i++ < 20) delay(500);
+  if(i == 21){
+    Serial.print("Could not connect to"); Serial.println(ssid);
+    while(1) delay(500);
+  }
+
+  server.begin();
+  server.setNoDelay(true);
+  
+  Serial.print("Ready! Use 'telnet ");
+  Serial.print(WiFi.localIP());
+  Serial.println(" 23' to connect");
 }
 
 void loop() {
+  uint8_t i;
+  //check if there are any new clients
+  if (server.hasClient()){
+    for (i = 0; i < MAX_SRV_CLIENTS; i++) {
+      //find free/disconnected spot
+      if (!serverClients[i] || !serverClients[i].connected()) {
+        if (serverClients[i]) {
+          serverClients[i].stop();
+        }
+        serverClients[i] = server.available();
+        Serial.print("New client: "); Serial.print(i);
+        continue;
+      }
+    }
+    //no free/disconnected spot so reject
+    WiFiClient serverClient = server.available();
+    serverClient.stop();
+  }
+  
+  //check clients for data
+  for (i = 0; i < MAX_SRV_CLIENTS; i++) {
+    if (serverClients[i] && serverClients[i].connected()) {
+      if (serverClients[i].available()) {
+        // Ignore client input
+        serverClients[i].flush();
+      }
+    }
+  }
+
+  if (payload_state == 2) {
+    payload_state = 0;
+    size_t len = Payload_SIZE;
+    uint8_t sbuf[len];
+    rx_payload.serialize(sbuf);
+    
+    //push payload data to all connected clients
+    for(i = 0; i < MAX_SRV_CLIENTS; i++){
+      if (serverClients[i] && serverClients[i].connected()){
+        serverClients[i].write(sbuf, len);
+        delay(1);
+      }
+    }
+  }
+
 
   display.clear();
 
@@ -72,7 +143,7 @@ void serialEvent() {
       // so the main loop can do something about it:
       if (serial_byte_count == rx_payload.getPayloadSize()) {
         serial_byte_count = 0;
-        payload_state = 0;
+        payload_state = 2;
         rx_payload.unserialize(input_string);
       }
     }
