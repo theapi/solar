@@ -106,9 +106,8 @@ uint16_t Payload::getF()
 // Populates the given array with the payload data
 void Payload::serialize(uint8_t payload[Payload_SIZE])
 {
-  payload[0] = _payload.msg_id;
-  payload[1] = _payload.device_id;
-  
+  payload[0] = _payload.device_id;
+  payload[1] = _payload.msg_id;
 
   payload[2] = (_payload.a >> 8);
   payload[3] = _payload.a;
@@ -134,17 +133,18 @@ void Payload::serialize(uint8_t payload[Payload_SIZE])
 // Parse the read byte data
 void Payload::unserialize(uint8_t payload[Payload_SIZE])
 {
-  _payload.msg_id = payload[0];
-  _payload.device_id = payload[1];
+  _payload.device_id = payload[0];
+  _payload.msg_id = payload[1];
+
   //_payload.msg_id = (payload[2] << 8) | payload[3];
   //_payload.vcc = (payload[4] << 8) | payload[5];
-  
+
   _payload.a = (payload[2] << 8) | payload[3];
   _payload.b = (payload[4] << 8) | payload[5];
-  
+
   _payload.c = (payload[6] << 8) | payload[7];
   _payload.d = (payload[8] << 8) | payload[9];
-  
+
   _payload.e = (payload[10] << 8) | payload[11];
   _payload.f = (payload[12] << 8) | payload[13];
 

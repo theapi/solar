@@ -6,8 +6,8 @@
 //how many clients should be able to telnet to this ESP8266
 #define MAX_SRV_CLIENTS 1
 
-const char* ssid = "**********";
-const char* password = "**********";
+const char* ssid = "VM9666838";
+const char* password = "jxfvzpXzb9mg";
 
 WiFiServer server(23);
 WiFiClient serverClients[MAX_SRV_CLIENTS];
@@ -58,6 +58,55 @@ void setup() {
 }
 
 void loop() {
+
+
+
+  while (Serial.available()) {
+    // get the new byte:
+    uint8_t in = (uint8_t) Serial.read();
+    
+    
+    if (payload_state == 0) {
+      // Check for the start of the payload
+      // which is device id "1".
+      if (in == 1) {
+        payload_state = 1;
+      }
+    }
+    
+    if (payload_state == 1) {
+      Serial.print(in, HEX);
+      // add it to the inputString:
+      input_string[serial_byte_count] = in;
+      ++serial_byte_count;
+      
+      // if the the last byte is received, set a flag
+      // so the main loop can do something about it:
+      if (serial_byte_count == Payload_SIZE - 1) {
+        serial_byte_count = 0;
+        payload_state = 2;
+        rx_payload.unserialize(input_string);
+        Serial.println();
+        int id = rx_payload.getMsgId();
+        int A = rx_payload.getA();
+        int B = rx_payload.getB();
+        Serial.print(id); Serial.print(" ");
+        Serial.print(A); Serial.print(" ");
+        Serial.print(B); Serial.print(" ");
+        Serial.println();
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+
+  
   uint8_t i;
   //check if there are any new clients
   if (server.hasClient()){
@@ -108,45 +157,10 @@ void loop() {
   display.drawString(0, 0, String(millis()));
   display.drawString(0, 20, String(rx_payload.getMsgId()));
   display.drawString(0, 45, String(rx_payload.getA()));
-  display.drawString(80, 45, String(rx_payload.getB())); 
+  display.drawString(80, 45, String(  rx_payload.getB() - 65536 )); 
   
   display.display();
   
   delay(10);
-}
-
-/*
-  SerialEvent occurs whenever a new data comes in the
- hardware serial RX.  This routine is run between each
- time loop() runs, so using delay inside loop can delay
- response.  Multiple bytes of data may be available.
- */
-void serialEvent() {
-  while (Serial.available()) {
-    // get the new byte:
-    uint8_t in = (uint8_t) Serial.read();
-    Serial.print(in);
-    if (payload_state == 0) {
-      // Check for the start of the payload
-      // which is device id "1".
-      if (in == 1) {
-        payload_state = 1;
-      }
-    }
-    
-    if (payload_state == 1) {
-      // add it to the inputString:
-      input_string[serial_byte_count] = in;
-      ++serial_byte_count;
-      
-      // if the the last byte is received, set a flag
-      // so the main loop can do something about it:
-      if (serial_byte_count == rx_payload.getPayloadSize()) {
-        serial_byte_count = 0;
-        payload_state = 2;
-        rx_payload.unserialize(input_string);
-      }
-    }
-  }
 }
 

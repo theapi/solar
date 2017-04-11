@@ -107,6 +107,12 @@ void loop()
       tx_payload.setMsgId(num % 255);
       tx_payload.setA(num);
       tx_payload.setB(rssi);
+//tx_payload.setMsgId(123);
+//      tx_payload.setA(456);
+//      tx_payload.setB(789);
+      uint8_t payload_buf[Payload_SIZE];
+      tx_payload.serialize(payload_buf);
+      Serial.write(payload_buf, Payload_SIZE);
 
       monitor.num = num;
       monitor.rssi = rssi;
