@@ -1,0 +1,60 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "9ad2bccb81ba0c43ecd3005ad2e72a55",
+    "content-hash": "6bc9423ae0b59d9ddb4f4f0febb76734",
+    "packages": [
+        {
+            "name": "google/protobuf",
+            "version": "v3.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/google/protobuf.git",
+                "reference": "b50c9ec1223895973d0e2fa6b6cb74ec3c8f3ce8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/google/protobuf/zipball/b50c9ec1223895973d0e2fa6b6cb74ec3c8f3ce8",
+                "reference": "b50c9ec1223895973d0e2fa6b6cb74ec3c8f3ce8",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">=4.8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Google\\Protobuf\\Internal\\": "php/src/Google/Protobuf/Internal",
+                    "GPBMetadata\\Google\\Protobuf\\Internal\\": "php/src/GPBMetadata/Google/Protobuf/Internal"
+                },
+                "files": [
+                    "php/src/Google/Protobuf/descriptor.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "proto library for PHP",
+            "homepage": "https://developers.google.com/protocol-buffers/",
+            "keywords": [
+                "proto"
+            ],
+            "time": "2017-04-04 21:40:06"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}
