@@ -16,12 +16,12 @@ class Payload
     typedef struct{
       uint8_t msg_id;
       uint8_t device_id;
-      uint16_t a;
-      uint16_t b;
-      uint16_t c;
-      uint16_t d;
-      uint16_t e;
-      uint16_t f;
+      int16_t a;
+      int16_t b;
+      int16_t c;
+      int16_t d;
+      int16_t e;
+      int16_t f;
     }
     payload_t;
 
@@ -40,28 +40,28 @@ class Payload
 
 
     // The first integer data
-    uint16_t getA();
-    void setA(uint16_t val);
+    int16_t getA();
+    void setA(int16_t val);
 
     // The second integer data
-    uint16_t getB();
-    void setB(uint16_t val);
+    int16_t getB();
+    void setB(int16_t val);
 
     // The third integer data
-    uint16_t getC();
-    void setC(uint16_t val);
+    int16_t getC();
+    void setC(int16_t val);
 
     // The forth integer data
-    uint16_t getD();
-    void setD(uint16_t val);
+    int16_t getD();
+    void setD(int16_t val);
     
     // The sith integer data
-    uint16_t getE();
-    void setE(uint16_t val);
+    int16_t getE();
+    void setE(int16_t val);
     
     // The seventh integer data
-    uint16_t getF();
-    void setF(uint16_t val);
+    int16_t getF();
+    void setF(int16_t val);
 
     // Creates a byte array for sending via the radio
     void serialize(uint8_t payload[Payload_SIZE]);

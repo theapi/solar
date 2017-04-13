@@ -40,65 +40,65 @@ void Payload::setMsgId(uint8_t id)
 }
 
 // The first integer data
-uint16_t Payload::getA()
+int16_t Payload::getA()
 {
   return _payload.a;
 }
 
-void Payload::setA(uint16_t val)
+void Payload::setA(int16_t val)
 {
   _payload.a = val;
 }
 
 // The second integer data
-uint16_t Payload::getB()
+int16_t Payload::getB()
 {
   return _payload.b;
 }
 
-void Payload::setB(uint16_t val)
+void Payload::setB(int16_t val)
 {
   _payload.b = val;
 }
 
 // The third integer data
-uint16_t Payload::getC()
+int16_t Payload::getC()
 {
   return _payload.c;
 }
 
-void Payload::setC(uint16_t val)
+void Payload::setC(int16_t val)
 {
   _payload.c = val;
 }
 
 // The forth integer data
-uint16_t Payload::getD()
+int16_t Payload::getD()
 {
   return _payload.d;
 }
 
-void Payload::setD(uint16_t val)
+void Payload::setD(int16_t val)
 {
   _payload.d = val;
 }
 
-void Payload::setE(uint16_t val)
+void Payload::setE(int16_t val)
 {
   _payload.e = val;
 }
 
-uint16_t Payload::getE()
+int16_t Payload::getE()
 {
   return _payload.e;
 }
 
-void Payload::setF(uint16_t val)
+void Payload::setF(int16_t val)
 {
   _payload.f = val;
 }
 
-uint16_t Payload::getF()
+int16_t Payload::getF()
 {
   return _payload.f;
 }

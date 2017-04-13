@@ -157,7 +157,7 @@ void loop() {
   display.drawString(0, 0, String(millis()));
   display.drawString(0, 20, String(rx_payload.getMsgId()));
   display.drawString(0, 45, String(rx_payload.getA()));
-  display.drawString(80, 45, String(  rx_payload.getB() - 65536 )); 
+  display.drawString(80, 45, String(rx_payload.getB())); 
   
   display.display();
   
