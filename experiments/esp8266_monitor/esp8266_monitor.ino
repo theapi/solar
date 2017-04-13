@@ -1,4 +1,5 @@
 
+#include "config.h"
 #include "SSD1306.h" // alias for `#include "SSD1306Wire.h"`
 #include "Payload.h"
 #include <ESP8266WiFi.h>
@@ -6,8 +7,8 @@
 //how many clients should be able to telnet to this ESP8266
 #define MAX_SRV_CLIENTS 1
 
-const char* ssid = "VM9666838";
-const char* password = "jxfvzpXzb9mg";
+const char* ssid = "XXXXXXXX";
+const char* password = "XXXXXXXX";
 
 WiFiServer server(23);
 WiFiClient serverClients[MAX_SRV_CLIENTS];
