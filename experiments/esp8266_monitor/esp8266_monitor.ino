@@ -94,6 +94,9 @@ void loop() {
         Serial.print(B); Serial.print(" ");
         Serial.println();
       }
+    } else {
+      Serial.print(char(in));
+      
     }
   }
 
@@ -154,9 +157,12 @@ void loop() {
   display.clear();
 
   display.drawString(0, 0, String(millis()));
+  
   display.drawString(0, 20, String(rx_payload.getMsgId()));
-  display.drawString(0, 45, String(rx_payload.getA()));
-  display.drawString(80, 45, String(rx_payload.getB())); 
+  display.drawString(35, 20, String(rx_payload.getA()));
+  display.drawString(80, 20, String(rx_payload.getB())); 
+
+  display.drawString(0, 45, WiFi.localIP().toString());
   
   display.display();
   
