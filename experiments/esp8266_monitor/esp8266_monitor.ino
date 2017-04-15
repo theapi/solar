@@ -85,7 +85,7 @@ void loop() {
     }
     
     if (payload_state == 1) {
-      Serial.print(in, HEX);
+      //Serial.print(in, HEX);
       // add it to the inputString:
       input_string[serial_byte_count] = in;
       ++serial_byte_count;
@@ -96,17 +96,20 @@ void loop() {
         serial_byte_count = 0;
         payload_state = 2;
         rx_payload.unserialize(input_string);
-        Serial.println();
-        int id = rx_payload.getMsgId();
-        int A = rx_payload.getA();
-        int B = rx_payload.getB();
-        Serial.print(id); Serial.print(" ");
-        Serial.print(A); Serial.print(" ");
-        Serial.print(B); Serial.print(" ");
-        Serial.println();
+//        Serial.println();
+//        Serial.print(rx_payload.getDeviceId()); Serial.print(", ");
+//        Serial.print(rx_payload.getMsgId()); Serial.print(", ");
+//        Serial.print(rx_payload.getA()); Serial.print(", ");
+//        Serial.print(rx_payload.getB()); Serial.print(", ");
+//        Serial.print(rx_payload.getC()); Serial.print(", ");
+//        Serial.print(rx_payload.getD()); Serial.print(", ");
+//        Serial.print(rx_payload.getE()); Serial.print(", ");
+//        Serial.println(rx_payload.getF());
+        
       }
     } else {
-      Serial.print(char(in));
+      // Passthru other serial messages.
+      //Serial.print(char(in));
       
     }
   }
@@ -121,7 +124,7 @@ void loop() {
           serverClients[i].stop();
         }
         serverClients[i] = server.available();
-        Serial.print("New client: "); Serial.print(i);
+        Serial.print("New client: "); Serial.println(i);
         continue;
       }
     }
