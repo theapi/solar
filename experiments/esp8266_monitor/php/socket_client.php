@@ -1,5 +1,10 @@
 #!/usr/bin/php -q
 <?php
+require 'Client.php';
+
+use Theapi\Solar\Monitor\Client;
+
+
 error_reporting(E_ALL);
 
 /* Allow the script to hang around waiting for connections. */
@@ -8,7 +13,6 @@ set_time_limit(0);
 /* Turn on implicit output flushing so we see what we're getting
  * as it comes in. */
 ob_implicit_flush();
-
 
 if (empty($argv[1])) {
   exit("Ip address needed: socket_client.php 192.168.0.145 23");
@@ -21,40 +25,18 @@ if (empty($argv[2])) {
   $port = $argv[2];
 }
 
-echo "TCP/IP Connection\n";
+$client = new Client();
+$fp = $client->start($address, $port);
+$client->read();
 
-
-/* Create a TCP/IP socket. */
-$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-if ($socket === false) {
-  echo "socket_create() failed: reason: " . socket_strerror(socket_last_error()) . "\n";
-} else {
-  echo "OK.\n";
+// send microtime when its our turn
+$ignored = true;
+while(1) {
+    $line = $client->read();
+    if ($line === "") {
+       continue;
+    } else {
+        echo $line;
+    }
+    usleep(200000);
 }
-
-echo "Attempting to connect to '$address' on port '$port'...";
-$result = socket_connect($socket, $address, $port);
-if ($result === false) {
-  echo "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) . "\n";
-} else {
-  echo "OK.\n";
-}
-
-
-while (1) {
-  $data = socket_read($socket, 32);
-  if ($data === false) {
-    // Lost connection.
-    echo socket_strerror(socket_last_error($socket));
-    break;
-  }
-
-
-  // @todo parse the payload.
-  echo $data;
-
-}
-
-echo "\nClosing socket...";
-socket_close($socket);
-echo "OK.\n\n";
