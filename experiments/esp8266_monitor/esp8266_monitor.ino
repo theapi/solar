@@ -170,6 +170,7 @@ void loop() {
     ping_last = currentMillis;
 
     ping_payload.setMsgId(++ping_msg_id);
+    //ping_payload.setF(1234);
     // Send a ping message.
     size_t len = Payload_SIZE;
     uint8_t sbuf[len];

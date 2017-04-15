@@ -25,8 +25,8 @@ class Client
         if (!$this->fp) {
             throw new \Exception('Unable to connect to ' . $this->server . ':' . $this->port, $errno);
         }
-        stream_set_timeout($this->fp, 2);
-        stream_set_blocking($this->fp, false);
+        stream_set_timeout($this->fp, 5);
+        stream_set_blocking($this->fp, true);
         if ($this->debug > 0) {
             echo ">< Connected!\n";
         }
