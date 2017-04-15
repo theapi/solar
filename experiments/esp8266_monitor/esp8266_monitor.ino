@@ -5,7 +5,7 @@
 #include <ESP8266WiFi.h>
 
 //how many clients should be able to telnet to this ESP8266
-#define MAX_SRV_CLIENTS 3
+#define MAX_SRV_CLIENTS 2
 
 
 WiFiServer server(23);
@@ -117,15 +117,20 @@ void loop() {
   uint8_t i;
   // check if there are any new TCP clients
   if (server.hasClient()) {
+    uint8_t allocated = 0;
     for (i = 0; i < MAX_SRV_CLIENTS; i++) {
-      //find free/disconnected spot
-      if (!serverClients[i] || !serverClients[i].connected()) {
-        if (serverClients[i]) {
-          serverClients[i].stop();
+      if (allocated == 0) {
+        //find free/disconnected spot
+        if (!serverClients[i] || !serverClients[i].connected()) {
+          if (serverClients[i]) {
+            serverClients[i].stop();
+          }
+          serverClients[i] = server.available();
+          serverClients[i].setNoDelay(true);
+          serverClients[i].setTimeout(100);
+          Serial.print("New client: "); Serial.println(i);
+          allocated = 1;
         }
-        serverClients[i] = server.available();
-        Serial.print("New client: "); Serial.println(i);
-        continue;
       }
     }
     //no free/disconnected spot so reject
@@ -159,9 +164,13 @@ void loop() {
     // push payload data to all connected clients
     for(i = 0; i < MAX_SRV_CLIENTS; i++){
       if (serverClients[i] && serverClients[i].connected()) {
-        serverClients[i].write('\t'); // Payload start byte
-        serverClients[i].write(sbuf, len);
-        serverClients[i].write('\n');
+        if (!serverClients[i].write('\t')) { // Payload start byte
+          serverClients[i].stop();
+        }
+        else {
+          serverClients[i].write(sbuf, len);
+          serverClients[i].write('\n');
+        }
       }
     }
   } 
@@ -179,9 +188,15 @@ void loop() {
     // push payload data to all connected clients
     for(i = 0; i < MAX_SRV_CLIENTS; i++){
       if (serverClients[i] && serverClients[i].connected()) {
-        serverClients[i].write('\t'); // Payload start byte
-        serverClients[i].write(sbuf, len);
-        serverClients[i].write('\n');
+        if (!serverClients[i].write('\t')) { // Payload start byte
+          serverClients[i].stop();
+          Serial.print("Stopped: ");
+          Serial.println(i);
+        }
+        else {
+          serverClients[i].write(sbuf, len);
+          serverClients[i].write('\n');
+        }
       }
     }
   }
