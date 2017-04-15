@@ -12,13 +12,12 @@ const char * host = "192.168.0.33"; // ip or dns
 
 
 Payload rx_payload = Payload();
-uint8_t input_string[Payload_SIZE];
-uint8_t payload_state = 0;
-uint8_t serial_byte_count = 0;
+
 
 
 const long socket_timeout = 5000;
 unsigned long socket_watchdog = 0;
+unsigned long last_msg = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -75,18 +74,47 @@ void handleSocket() {
   
   // Connect to the socket server for the data feed.
   socketConnect(host, port);
-  if (client.available()){
+  if (client.available()) {
+    Serial.print("time diff: ");
+    Serial.println(now - last_msg);
     socket_watchdog = now;
-    String line = client.readStringUntil('\n');
-    Serial.println(line);
-//
-//    uint8_t buf[Payload_SIZE];
-//    rx_payload.unserialize(line);
-//
-//    Serial.print(rx_payload.getMsgId()); Serial.print(", ");
-//    Serial.print(rx_payload.getA()); Serial.print(", ");
-//    Serial.print(rx_payload.getB()); Serial.print(", ");
-//    Serial.println();
+    last_msg = socket_watchdog;
+    
+
+    char buf[Payload_SIZE + 5];
+    int nbytes;
+    nbytes = client.readBytesUntil('\n', buf, Payload_SIZE + 5);
+//    Serial.print("Number of bytes read: ");
+//    Serial.println(nbytes);
+//    Serial.println("buf: ");
+//    Serial.println(buf);
+
+//Serial.print(buf[0], HEX); Serial.print(' ');
+//Serial.print(buf[1], HEX); Serial.print(' ');
+//Serial.println();
+   
+
+    // Check for payload signifier;
+    if (buf[0] == '\t') {
+      
+      uint8_t payload_buf[Payload_SIZE];
+      memcpy(payload_buf, buf+1, Payload_SIZE);
+      
+     // rx_payload.unserialize((uint8_t*)buf);
+      rx_payload.unserialize(payload_buf);
+      //Serial.print("Payload unserialised: ");
+      Serial.print(rx_payload.getMsgId()); Serial.print(", ");
+      Serial.print(rx_payload.getA()); Serial.print(", ");
+      Serial.print(rx_payload.getB()); Serial.print(", ");
+      Serial.print(rx_payload.getC()); Serial.print(", ");
+      Serial.print(rx_payload.getD()); Serial.print(", ");
+      Serial.print(rx_payload.getE()); Serial.print(", ");
+      Serial.println(rx_payload.getF());
+      Serial.println();
+    }
+    
+
+    
   }
   
 }

@@ -10,6 +10,7 @@
 
 WiFiServer server(23);
 WiFiClient serverClients[MAX_SRV_CLIENTS];
+uint8_t clients[MAX_SRV_CLIENTS];
 
 
 
@@ -17,7 +18,7 @@ Payload rx_payload = Payload();
 uint8_t input_string[Payload_SIZE];
 uint8_t payload_state = 0;
 uint8_t serial_byte_count = 0;
-
+uint8_t msg_id = 0;
 
 unsigned long previousMillis = 0;
 const long interval = 1000;
@@ -27,8 +28,10 @@ void setup() {
   Serial.println();
 
   rx_payload.setMsgId(254);
-  rx_payload.setA(1234);
-  rx_payload.setB(5678);
+  rx_payload.setA(0);
+  rx_payload.setB(72);
+  rx_payload.setC(105);
+  
   
   // Socket server.
   WiFi.begin(ssid, password);
@@ -53,7 +56,8 @@ void loop() {
 
   uint8_t i;
   //check if there are any new clients
-  if (server.hasClient()){
+  if (server.hasClient()) {
+
     for (i = 0; i < MAX_SRV_CLIENTS; i++) {
       //find free/disconnected spot
       if (!serverClients[i] || !serverClients[i].connected()) {
@@ -62,12 +66,14 @@ void loop() {
         }
         serverClients[i] = server.available();
         Serial.print("New client: "); Serial.println(i);
-        break;
+        continue;
       }
     }
+    
     //no free/disconnected spot so reject
     WiFiClient serverClient = server.available();
     serverClient.stop();
+    Serial.println("Regected connection");
   }
   
   //check clients for data
@@ -84,6 +90,8 @@ void loop() {
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
 
+    rx_payload.setMsgId(++msg_id);
+    rx_payload.setA((int)currentMillis);
     size_t len = Payload_SIZE;
     uint8_t sbuf[len];
     rx_payload.serialize(sbuf);
@@ -91,15 +99,13 @@ void loop() {
     //push payload data to all connected clients
     for(i = 0; i < MAX_SRV_CLIENTS; i++){
       if (serverClients[i] && serverClients[i].connected()){
-        // preamble byte
-        serverClients[i].write('P');
+        serverClients[i].write('\t'); // Payload start byte
         serverClients[i].write(sbuf, len);
         serverClients[i].write('\n');
         //delay(1);
       }
     }
   }
-  
 
 }
 
