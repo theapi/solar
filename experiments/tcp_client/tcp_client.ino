@@ -7,7 +7,7 @@
 // Use WiFiClient class to create TCP connections
 WiFiClient client;
 const uint16_t port = 23;
-const char * host = "192.168.0.33"; // ip or dns
+const char * host = "192.168.0.34"; // ip or dns
 
 
 
@@ -22,10 +22,6 @@ unsigned long last_msg = 0;
 void setup() {
   Serial.begin(115200);
   Serial.println();
-
-  rx_payload.setMsgId(254);
-  rx_payload.setA(1234);
-  rx_payload.setB(5678);
   
   // Socket server.
   WiFi.begin(ssid, password);
@@ -103,6 +99,7 @@ void handleSocket() {
      // rx_payload.unserialize((uint8_t*)buf);
       rx_payload.unserialize(payload_buf);
       //Serial.print("Payload unserialised: ");
+      Serial.print(rx_payload.getDeviceId()); Serial.print(", ");
       Serial.print(rx_payload.getMsgId()); Serial.print(", ");
       Serial.print(rx_payload.getA()); Serial.print(", ");
       Serial.print(rx_payload.getB()); Serial.print(", ");

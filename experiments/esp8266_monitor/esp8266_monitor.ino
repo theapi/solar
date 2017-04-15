@@ -5,7 +5,7 @@
 #include <ESP8266WiFi.h>
 
 //how many clients should be able to telnet to this ESP8266
-#define MAX_SRV_CLIENTS 1
+#define MAX_SRV_CLIENTS 3
 
 
 WiFiServer server(23);
@@ -15,9 +15,17 @@ WiFiClient serverClients[MAX_SRV_CLIENTS];
 SSD1306  display(0x3c, 4, 5);
 
 Payload rx_payload = Payload();
+Payload ping_payload = Payload();
 uint8_t input_string[Payload_SIZE];
 uint8_t payload_state = 0;
 uint8_t serial_byte_count = 0;
+
+unsigned long previousMillis = 0;
+const long interval = 100;
+
+const long ping_interval = 3000;
+unsigned long ping_last = 0;
+uint8_t ping_msg_id = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -27,6 +35,8 @@ void setup() {
   display.init();
   display.flipScreenVertically();
   display.setFont(ArialMT_Plain_16);
+
+  ping_payload.setDeviceId(254);
 
   rx_payload.setMsgId(254);
   rx_payload.setA(1234);
@@ -38,7 +48,7 @@ void setup() {
   display.drawString(80, 45, String(rx_payload.getB())); 
   display.display();
 
-  // Socket server.
+  
   WiFi.begin(ssid, password);
   Serial.print("\nConnecting to "); Serial.println(ssid);
   uint8_t i = 0;
@@ -48,10 +58,11 @@ void setup() {
     while(1) delay(500);
   }
 
+  // Socket server.
   server.begin();
   server.setNoDelay(true);
   
-  Serial.print("Ready! Use 'telnet ");
+  Serial.print("Ready! Use 'netcat ");
   Serial.print(WiFi.localIP());
   Serial.println(" 23' to connect");
 }
@@ -59,7 +70,7 @@ void setup() {
 void loop() {
 
 
-
+  // Read the data from the LoRa receiver.
   while (Serial.available()) {
     // get the new byte:
     uint8_t in = (uint8_t) Serial.read();
@@ -100,18 +111,9 @@ void loop() {
     }
   }
 
-
-
-
-
-
-
-
-
-  
   uint8_t i;
-  //check if there are any new clients
-  if (server.hasClient()){
+  // check if there are any new TCP clients
+  if (server.hasClient()) {
     for (i = 0; i < MAX_SRV_CLIENTS; i++) {
       //find free/disconnected spot
       if (!serverClients[i] || !serverClients[i].connected()) {
@@ -128,7 +130,7 @@ void loop() {
     serverClient.stop();
   }
   
-  //check clients for data
+  // check clients for data
   for (i = 0; i < MAX_SRV_CLIENTS; i++) {
     if (serverClients[i] && serverClients[i].connected()) {
       if (serverClients[i].available()) {
@@ -138,34 +140,64 @@ void loop() {
     }
   }
 
+  unsigned long currentMillis = millis();
+  
+  // Send payload to TCP clients when ready.
   if (payload_state == 2) {
     payload_state = 0;
+
+    // No need to ping if we're sending real data.
+    ping_last = currentMillis;
+    
     size_t len = Payload_SIZE;
     uint8_t sbuf[len];
     rx_payload.serialize(sbuf);
-    
-    //push payload data to all connected clients
+
+    // push payload data to all connected clients
     for(i = 0; i < MAX_SRV_CLIENTS; i++){
-      if (serverClients[i] && serverClients[i].connected()){
+      if (serverClients[i] && serverClients[i].connected()) {
+        serverClients[i].write('\t'); // Payload start byte
         serverClients[i].write(sbuf, len);
-        delay(1);
+        serverClients[i].write('\n');
+      }
+    }
+  } 
+  // Keep TCP clients connected with a ping.
+  else if (currentMillis - ping_last >= ping_interval) {
+    ping_last = currentMillis;
+
+    ping_payload.setMsgId(++ping_msg_id);
+    // Send a ping message.
+    size_t len = Payload_SIZE;
+    uint8_t sbuf[len];
+    ping_payload.serialize(sbuf);
+
+    // push payload data to all connected clients
+    for(i = 0; i < MAX_SRV_CLIENTS; i++){
+      if (serverClients[i] && serverClients[i].connected()) {
+        serverClients[i].write('\t'); // Payload start byte
+        serverClients[i].write(sbuf, len);
+        serverClients[i].write('\n');
       }
     }
   }
 
 
-  display.clear();
-
-  display.drawString(0, 0, String(millis()));
+  // Update the display  
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    display.clear();
   
-  display.drawString(0, 20, String(rx_payload.getMsgId()));
-  display.drawString(35, 20, String(rx_payload.getA()));
-  display.drawString(80, 20, String(rx_payload.getB())); 
-
-  display.drawString(0, 45, WiFi.localIP().toString());
+    display.drawString(0, 0, String(currentMillis));
+    
+    display.drawString(0, 20, String(rx_payload.getMsgId()));
+    display.drawString(35, 20, String(rx_payload.getA()));
+    display.drawString(80, 20, String(rx_payload.getB())); 
   
-  display.display();
+    display.drawString(0, 45, WiFi.localIP().toString());
+    
+    display.display();
+  }
   
-  delay(10);
 }
 
