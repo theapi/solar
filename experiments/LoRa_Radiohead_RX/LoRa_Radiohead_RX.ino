@@ -93,12 +93,13 @@ void loop()
     if (rf95.recv(buf, &len))
     {
       digitalWrite(LED, HIGH);
+      Serial.println();
       RH_RF95::printBuffer("Received: ", buf, len);
       Serial.print("Got: ");
       Serial.println((char*)buf);
       int num = atoi((char*)buf);
       Serial.println(num);
-       Serial.print("RSSI: ");
+      Serial.print("RSSI: ");
 
       int rssi = rf95.lastRssi();
       Serial.println(rf95.lastRssi(), DEC);
@@ -107,11 +108,14 @@ void loop()
       tx_payload.setMsgId(num % 255);
       tx_payload.setA(num);
       tx_payload.setB(rssi);
-//tx_payload.setMsgId(123);
-//      tx_payload.setA(456);
-//      tx_payload.setB(789);
+      tx_payload.setC(72);
+      tx_payload.setD(69);
+      tx_payload.setE(76);
+      tx_payload.setF(79);
+
       uint8_t payload_buf[Payload_SIZE];
       tx_payload.serialize(payload_buf);
+      Serial.write('\t'); // Payload start byte
       Serial.write(payload_buf, Payload_SIZE);
 
       monitor.num = num;
@@ -124,7 +128,7 @@ void loop()
       itoa(num, radiopacket, 10);
       rf95.send(radiopacket, sizeof(radiopacket));
       rf95.waitPacketSent();
-      Serial.println("Sent a reply");
+      //Serial.println("Sent a reply");
       digitalWrite(LED, LOW);
     }
     else

@@ -70,16 +70,15 @@ void loop() {
   while (Serial.available()) {
     // get the new byte:
     uint8_t in = (uint8_t) Serial.read();
-    
+    //Serial.println(in, HEX);
     if (payload_state == 0) {
       // Check for the start of the payload
-      // which is device id "1".
-      if (in == 1) {
+      if (in == '\t') {
         payload_state = 1;
       }
     }
     
-    if (payload_state == 1) {
+    else if (payload_state == 1) {
       //Serial.print(in, HEX);
       // add it to the inputString:
       input_string[serial_byte_count] = in;
@@ -87,10 +86,19 @@ void loop() {
       
       // if the the last byte is received, set a flag
       // so the main loop can do something about it:
-      if (serial_byte_count == Payload_SIZE - 1) {
+      if (serial_byte_count == Payload_SIZE) {
         serial_byte_count = 0;
         payload_state = 2;
         rx_payload.unserialize(input_string);
+        Serial.print(rx_payload.getDeviceId()); Serial.print(", ");
+      Serial.print(rx_payload.getMsgId()); Serial.print(", ");
+      Serial.print(rx_payload.getA()); Serial.print(", ");
+      Serial.print(rx_payload.getB()); Serial.print(", ");
+      Serial.print(rx_payload.getC()); Serial.print(", ");
+      Serial.print(rx_payload.getD()); Serial.print(", ");
+      Serial.print(rx_payload.getE()); Serial.print(", ");
+      Serial.println(rx_payload.getF());
+      Serial.println();
       }
     } else {
       // Passthru other serial messages.
