@@ -46,6 +46,8 @@ void loop() {
   // send a reply, to the IP address and port that sent us the packet we received
   Udp.beginPacketMulticast(ipMulti, portMulti,WiFi.localIP());
   Udp.write(++ping_msg_id);
+  Udp.print(" : ");
+  Udp.print(ping_msg_id);
   Udp.write(" - UDP Multicast packet sent by ");
   Udp.println(WiFi.localIP());
   Udp.endPacket();  
