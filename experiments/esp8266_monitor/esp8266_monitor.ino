@@ -1,9 +1,17 @@
-
+/**
+ * Takes a serial payload from the LoRa client (LoRa_Radiohead_RX.ino) 
+ * and publishes it on various protocols.
+ * 
+ * To subscribe to the UDP data: listen for broadcasts on 239.0.0.57 port 12345
+ * To subscribe to the MQTT data: mosquitto_sub -t solar
+ * To subscribe to the websocket got to WiFi.localIP() poet 80
+ */
 
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <WebSocketsServer.h>
 #include <ESP8266WebServer.h>
+#include <PubSubClient.h>
 #include "config.h"
 #include "SSD1306.h"
 #include "Payload.h"
@@ -19,6 +27,9 @@ unsigned int portMulti = 12345;      // local port to listen on
 ESP8266WebServer server = ESP8266WebServer(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
+WiFiClient espClient;
+PubSubClient mqtt_client(espClient);
+
 // Initialize the OLED display using Wire library
 SSD1306  display(0x3c, 4, 5);
 
@@ -32,6 +43,9 @@ const long interval = 100;
 
 const long ping_interval = 3000;
 unsigned long ping_last = 0;
+
+const char* mqtt_server = MQTT_SERVER;
+uint16_t mqtt_port = MQTT_PORT;
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
 
@@ -91,6 +105,8 @@ void setup() {
   });
 
   server.begin();
+
+  mqtt_client.setServer(mqtt_server, mqtt_port);
 
   Serial.print("Web server on: ");
   Serial.println(WiFi.localIP());
@@ -152,12 +168,14 @@ void loop() {
     ping_last = currentMillis;
     broadcast_udp();
     broadcast_websocket();
+    broadcast_mqtt();
   } 
   // Send the data continually, as its UDP some may get missed.
   else if (currentMillis - ping_last >= ping_interval) {
     ping_last = currentMillis;
     broadcast_udp();
     broadcast_websocket();
+    broadcast_mqtt();
   }
 
   // Update the display  
@@ -200,5 +218,38 @@ void broadcast_websocket() {
   str += String(rx_payload.getE()) + ",";
   str += String(rx_payload.getF());
   webSocket.broadcastTXT(str);
+}
+
+void broadcast_mqtt() {
+  char msg[50];
+  String str = String(rx_payload.getDeviceId()) + ",";
+  str += String(rx_payload.getMsgId()) + ",";
+  str += String(rx_payload.getA()) + ",";
+  str += String(rx_payload.getB()) + ",";
+  str += String(rx_payload.getC()) + ",";
+  str += String(rx_payload.getD()) + ",";
+  str += String(rx_payload.getE()) + ",";
+  str += String(rx_payload.getF());
+  str.toCharArray(msg, 50);
+  if (mqtt_connect()) {
+    mqtt_client.publish("solar", msg);
+  }
+}
+
+bool mqtt_connect() {
+  // Loop until we're reconnected
+  if (!mqtt_client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (mqtt_client.connect("SolarClient")) {
+      Serial.println("connected");
+      return true;
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(mqtt_client.state());
+      return true;
+    }
+  }
+  return true;
 }
 
