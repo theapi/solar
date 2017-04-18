@@ -4,7 +4,7 @@
  * 
  * To subscribe to the UDP data: listen for broadcasts on 239.0.0.57 port 12345
  * To subscribe to the MQTT data: mosquitto_sub -t solar
- * To subscribe to the websocket got to WiFi.localIP() poet 80
+ * To subscribe to the websocket go to WiFi.localIP() port 80
  */
 
 #include <ESP8266WiFi.h>
