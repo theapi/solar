@@ -21,8 +21,9 @@
 #define LED 13
 
 // Shift register pins for the LEDs on the front panel.
-#define SR_CLK 5
-#define SR_DATA 6
+#define SR_LATCH 16
+#define SR_CLK 17
+#define SR_DATA 15
   
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
@@ -41,6 +42,7 @@ monitor_t monitor;
 
 void setup() {
   pinMode(LED, OUTPUT);
+  pinMode(SR_LATCH, OUTPUT);
   pinMode(SR_CLK, OUTPUT);
   pinMode(SR_DATA, OUTPUT);
   pinMode(RFM95_RST, OUTPUT);
@@ -52,8 +54,10 @@ void setup() {
   monitor.num = 0;
   monitor.rssi = 0;
   displayUpdate();
-  
-  delay(100);
+
+  // Show the led panel is working.
+  tx_payload.setMsgId(0b10101010);
+  updateLedPanel();
 
   Serial.println("LoRa RX");
   
@@ -113,6 +117,11 @@ void loop() {
 
       monitor.num = num;
       monitor.rssi = rssi;
+
+      // Update the display now as there needs to be 
+      // a small delay before sending the reply.
+      displayUpdate();
+      updateLedPanel();
       
       // Send a reply
       char radiopacket[30]   = "                   ";
@@ -120,9 +129,6 @@ void loop() {
       rf95.send(radiopacket, sizeof(radiopacket));
       rf95.waitPacketSent();
       //Serial.println("Sent a reply");
-
-      displayUpdate();
-      updateFrontPanel();
       
       digitalWrite(LED, LOW);
     } else {
@@ -154,14 +160,14 @@ void draw(void) {
   
 }
 
-void updateFrontPanel()
-{
-   // NB the 74HC595 has latch tied to clock 
-   // so latch happens every clock
-   // latching data from the previous clock.
-   // So send an extra bit for the final latch.
-   byte leds = 0B11111111; // tmp
-   shiftOut(SR_DATA, SR_CLK, LSBFIRST, leds);
+void updateLedPanel() {
+  byte d = tx_payload.getMsgId();
+  
+  digitalWrite(SR_LATCH, LOW);
+  // Bit shift left as there is no 8th led.
+  shiftOut(SR_DATA, SR_CLK, MSBFIRST, d << 1);
+  digitalWrite(SR_LATCH, HIGH);
 }
+
 
 
