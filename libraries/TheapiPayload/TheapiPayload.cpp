@@ -1,9 +1,7 @@
-#include "Payload.h"
+#include "TheapiPayload.h"
 
-
-Payload::Payload()
-{
-  _payload.device_id = '-';
+TheapiPayload::TheapiPayload() {
+  setMsgType();
   _payload.msg_id = 0;
   _payload.a = 0;
   _payload.b = 0;
@@ -13,100 +11,97 @@ Payload::Payload()
   _payload.f = 0;
 }
 
-uint8_t Payload::getPayloadSize()
-{
-  return Payload_SIZE;
+uint8_t TheapiPayload::getPayloadSize() {
+  return TheapiPayload_SIZE;
 }
 
-uint8_t Payload::getDeviceId()
-{
-  return _payload.device_id;
+void TheapiPayload::setMsgType() {
+  _payload.msg_type = MSG_TYPE_GENERIC;
 }
 
-void Payload::setDeviceId(uint8_t device_id)
-{
-  _payload.device_id = device_id;
+uint8_t TheapiPayload::getMsgType() {
+  return _payload.msg_type;
 }
 
 // The id, not neccessarily unique, of the message.
-uint8_t Payload::getMsgId()
+uint8_t TheapiPayload::getMsgId()
 {
   return _payload.msg_id;
 }
 
-void Payload::setMsgId(uint8_t id)
+void TheapiPayload::setMsgId(uint8_t id)
 {
   _payload.msg_id = id;
 }
 
 // The first integer data
-int16_t Payload::getA()
+int16_t TheapiPayload::getA()
 {
   return _payload.a;
 }
 
-void Payload::setA(int16_t val)
+void TheapiPayload::setA(int16_t val)
 {
   _payload.a = val;
 }
 
 // The second integer data
-int16_t Payload::getB()
+int16_t TheapiPayload::getB()
 {
   return _payload.b;
 }
 
-void Payload::setB(int16_t val)
+void TheapiPayload::setB(int16_t val)
 {
   _payload.b = val;
 }
 
 // The third integer data
-int16_t Payload::getC()
+int16_t TheapiPayload::getC()
 {
   return _payload.c;
 }
 
-void Payload::setC(int16_t val)
+void TheapiPayload::setC(int16_t val)
 {
   _payload.c = val;
 }
 
 // The forth integer data
-int16_t Payload::getD()
+int16_t TheapiPayload::getD()
 {
   return _payload.d;
 }
 
-void Payload::setD(int16_t val)
+void TheapiPayload::setD(int16_t val)
 {
   _payload.d = val;
 }
 
-void Payload::setE(int16_t val)
+void TheapiPayload::setE(int16_t val)
 {
   _payload.e = val;
 }
 
-int16_t Payload::getE()
+int16_t TheapiPayload::getE()
 {
   return _payload.e;
 }
 
-void Payload::setF(int16_t val)
+void TheapiPayload::setF(int16_t val)
 {
   _payload.f = val;
 }
 
-int16_t Payload::getF()
+int16_t TheapiPayload::getF()
 {
   return _payload.f;
 }
 
 // Populates the given array with the payload data
-void Payload::serialize(uint8_t payload[Payload_SIZE])
+void TheapiPayload::serialize(uint8_t payload[TheapiPayload_SIZE])
 {
-  payload[0] = _payload.device_id;
+  payload[0] = _payload.msg_type;
   payload[1] = _payload.msg_id;
 
   payload[2] = (_payload.a >> 8);
@@ -131,9 +126,9 @@ void Payload::serialize(uint8_t payload[Payload_SIZE])
 }
 
 // Parse the read byte data
-void Payload::unserialize(uint8_t payload[Payload_SIZE])
+void TheapiPayload::unserialize(uint8_t payload[TheapiPayload_SIZE])
 {
-  _payload.device_id = payload[0];
+  _payload.msg_type = payload[0];
   _payload.msg_id = payload[1];
 
   //_payload.msg_id = (payload[2] << 8) | payload[3];
@@ -152,4 +147,3 @@ void Payload::unserialize(uint8_t payload[Payload_SIZE])
   //_payload.timestamp = ((uint32_t)payload[16] << 24) | ((uint32_t)payload[17] << 16) | ((uint32_t)payload[18] << 8) | (uint32_t)payload[19];
 
 }
-

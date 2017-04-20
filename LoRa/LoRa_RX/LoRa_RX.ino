@@ -7,7 +7,7 @@
 #include <RH_RF95.h>
 // oled display
 #include "U8glib.h"
-#include "Payload.h"
+#include "TheapiPayload.h"
 
 
 #define RFM95_CS 4
@@ -31,7 +31,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 // OLED
 U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE);
 
-Payload tx_payload = Payload();
+TheapiPayload tx_payload = TheapiPayload();
 
 typedef struct{
   int num;
@@ -101,7 +101,6 @@ void loop() {
       int rssi = rf95.lastRssi();
       Serial.println(rf95.lastRssi(), DEC);
 
-      tx_payload.setDeviceId(1);
       tx_payload.setMsgId(num % 255);
       tx_payload.setA(num);
       tx_payload.setB(rssi);
@@ -110,10 +109,10 @@ void loop() {
       tx_payload.setE(76);
       tx_payload.setF(79);
 
-      uint8_t payload_buf[Payload_SIZE];
+      uint8_t payload_buf[TheapiPayload_SIZE];
       tx_payload.serialize(payload_buf);
       Serial.write('\t'); // Payload start byte
-      Serial.write(payload_buf, Payload_SIZE);
+      Serial.write(payload_buf, TheapiPayload_SIZE);
 
       monitor.num = num;
       monitor.rssi = rssi;
