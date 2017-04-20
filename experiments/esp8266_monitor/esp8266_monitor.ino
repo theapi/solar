@@ -14,7 +14,7 @@
 #include <PubSubClient.h>
 #include "config.h"
 #include "SSD1306.h"
-#include "Payload.h"
+#include "TheapiPayloadGarden.h"
 #include "html.h"
 
 // A UDP instance to let us send and receive packets over UDP
@@ -33,8 +33,8 @@ PubSubClient mqtt_client(espClient);
 // Initialize the OLED display using Wire library
 SSD1306  display(0x3c, 4, 5);
 
-Payload rx_payload = Payload();
-uint8_t input_string[Payload_SIZE];
+TheapiPayloadGarden rx_payload = TheapiPayloadGarden();
+uint8_t input_string[TheapiPayloadGarden_SIZE];
 uint8_t payload_state = 0;
 uint8_t serial_byte_count = 0;
 
@@ -75,13 +75,13 @@ void setup() {
   display.setFont(ArialMT_Plain_16);
 
   rx_payload.setMsgId(254);
-  rx_payload.setA(1234);
-  rx_payload.setB(5678);
+  rx_payload.setVcc(1234);
+  rx_payload.setChargeMv(5678);
   
   display.clear();
   display.drawString(0, 20, String(rx_payload.getMsgId()));
-  display.drawString(0, 45, String(rx_payload.getA()));
-  display.drawString(80, 45, String(rx_payload.getB())); 
+  display.drawString(0, 45, String(rx_payload.getVcc()));
+  display.drawString(80, 45, String(rx_payload.getChargeMv())); 
   display.display();
 
   
@@ -137,7 +137,7 @@ void loop() {
       
       // if the the last byte is received, set a flag
       // so the main loop can do something about it:
-      if (serial_byte_count == Payload_SIZE) {
+      if (serial_byte_count == TheapiPayloadGarden_SIZE) {
         serial_byte_count = 0;
         payload_state = 2;
         rx_payload.unserialize(input_string);
@@ -186,8 +186,8 @@ void loop() {
     display.drawString(0, 0, String(currentMillis));
     
     display.drawString(0, 20, String(rx_payload.getMsgId()));
-    display.drawString(35, 20, String(rx_payload.getA()));
-    display.drawString(80, 20, String(rx_payload.getB())); 
+    display.drawString(35, 20, String(rx_payload.getVcc()));
+    display.drawString(80, 20, String(rx_payload.getChargeMv())); 
   
     display.drawString(0, 45, WiFi.localIP().toString());
     
@@ -197,7 +197,7 @@ void loop() {
 }
 
 void broadcast_udp() {
-    size_t len = Payload_SIZE;
+    size_t len = TheapiPayloadGarden_SIZE;
     uint8_t sbuf[len];
     rx_payload.serialize(sbuf);
     Udp.beginPacketMulticast(ipMulti, portMulti, WiFi.localIP());
@@ -209,27 +209,27 @@ void broadcast_udp() {
 }
 
 void broadcast_websocket() {
-  String str = String(rx_payload.getDeviceId()) + ",";
+  String str = String(rx_payload.getMsgType()) + ",";
   str += String(rx_payload.getMsgId()) + ",";
-  str += String(rx_payload.getA()) + ",";
-  str += String(rx_payload.getB()) + ",";
-  str += String(rx_payload.getC()) + ",";
-  str += String(rx_payload.getD()) + ",";
-  str += String(rx_payload.getE()) + ",";
-  str += String(rx_payload.getF());
+  str += String(rx_payload.getVcc()) + ",";
+  str += String(rx_payload.getChargeMv()) + ",";
+  str += String(rx_payload.getChargeMa()) + ",";
+  str += String(rx_payload.getLight()) + ",";
+  str += String(rx_payload.getSoil()) + ",";
+  str += String(rx_payload.getTemperature());
   webSocket.broadcastTXT(str);
 }
 
 void broadcast_mqtt() {
   char msg[50];
-  String str = String(rx_payload.getDeviceId()) + ",";
+  String str = String(rx_payload.getMsgType()) + ",";
   str += String(rx_payload.getMsgId()) + ",";
-  str += String(rx_payload.getA()) + ",";
-  str += String(rx_payload.getB()) + ",";
-  str += String(rx_payload.getC()) + ",";
-  str += String(rx_payload.getD()) + ",";
-  str += String(rx_payload.getE()) + ",";
-  str += String(rx_payload.getF());
+  str += String(rx_payload.getVcc()) + ",";
+  str += String(rx_payload.getChargeMv()) + ",";
+  str += String(rx_payload.getChargeMa()) + ",";
+  str += String(rx_payload.getLight()) + ",";
+  str += String(rx_payload.getSoil()) + ",";
+  str += String(rx_payload.getTemperature());
   str.toCharArray(msg, 50);
   if (mqtt_connect()) {
     mqtt_client.publish("solar", msg);

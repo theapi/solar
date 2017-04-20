@@ -1,14 +1,14 @@
 /**
  *  Library for defining the payload datastructure the garden sensor.
  */
-#ifndef THEAPIGARDENPAYLOAD_h
-#define THEAPIGARDENPAYLOAD_h
+#ifndef THEAPIPAYLOADGARDEN_h
+#define THEAPIPAYLOADGARDEN_h
 
 #include <stdint.h>
 
-#define TheapiGardenPayload_SIZE 14
+#define TheapiPayloadGarden_SIZE 14
 
-class TheapiGardenPayload
+class TheapiPayloadGarden
 {
   public:
     typedef struct{
@@ -23,7 +23,7 @@ class TheapiGardenPayload
     }
     payload_t;
 
-    TheapiGardenPayload();
+    TheapiPayloadGarden();
 
     // How big the payload is.
     uint8_t getPayloadSize();
@@ -65,10 +65,10 @@ class TheapiGardenPayload
     void setTemperature(int16_t val);
 
     // Creates a byte array for sending via the radio
-    void serialize(uint8_t payload[TheapiGardenPayload_SIZE]);
+    void serialize(uint8_t payload[TheapiPayloadGarden_SIZE]);
 
     // Parse the read byte data from the radio
-    void unserialize(uint8_t payload[TheapiGardenPayload_SIZE]);
+    void unserialize(uint8_t payload[TheapiPayloadGarden_SIZE]);
 
   private:
     payload_t _payload;
