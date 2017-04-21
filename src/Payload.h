@@ -11,7 +11,7 @@ namespace theapi {
       // Message types
       // ASCII printable characters so serial printing is simple.
       enum MsgType {
-        GENERIC = 0x49,
+        GENERIC = 49,
         GARDEN,
         PING,
         CMD,

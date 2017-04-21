@@ -5,6 +5,7 @@
 // oled display
 #include "U8glib.h"
 #include "GardenPayload.h"
+#include "AckPayload.h"
 
 #define RFM95_CS 4
 #define RFM95_RST 2
@@ -19,6 +20,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE);
 
 theapi::GardenPayload tx_payload = theapi::GardenPayload();
+theapi::AckPayload ack_payload = theapi::AckPayload();
 
 uint8_t msg_id = 0;
 
@@ -98,11 +100,18 @@ void loop() {
     if (rf95.recv(buf, &len)) {
       Serial.print("Got reply: ");
       Serial.println((char*)buf);
-      got = atoi((char*)buf);
-      Serial.println(got);
+      //got = atoi((char*)buf);
+      //Serial.println(got);
       Serial.print("RSSI: ");
       rssi = rf95.lastRssi();
       Serial.println(rssi, DEC);    
+
+      uint8_t ack_payload_buf[ack_payload.size()];
+      ack_payload.unserialize(buf);
+
+      got = ack_payload.getMsgId();
+      Serial.print("msg_id: ");
+      Serial.println(got, DEC);
 
       monitor.got = got;
       monitor.rssi = rssi;
