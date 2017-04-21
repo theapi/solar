@@ -32,7 +32,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 // OLED
 U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE);
 
-theapi::GardenPayload tx_payload = theapi::GardenPayload();
+theapi::GardenPayload garden_payload = theapi::GardenPayload();
 
 typedef struct{
   int num;
@@ -57,7 +57,7 @@ void setup() {
   displayUpdate();
 
   // Show the led panel is working.
-  tx_payload.setMsgId(0b10101010);
+  garden_payload.setMsgId(0b10101010);
   updateLedPanel();
 
   Serial.println("LoRa RX");
@@ -95,27 +95,23 @@ void loop() {
       RH_RF95::printBuffer("Received: ", buf, len);
       Serial.print("Got: ");
       Serial.println((char*)buf);
-      int num = atoi((char*)buf);
-      Serial.println(num);
+      //int num = atoi((char*)buf);
+      //Serial.println(num);
       Serial.print("RSSI: ");
 
       int rssi = rf95.lastRssi();
       Serial.println(rf95.lastRssi(), DEC);
 
-      tx_payload.setMsgId(num % 255);
-      tx_payload.setVcc(num);
-      tx_payload.setChargeMv(rssi);
-      tx_payload.setChargeMa(72);
-      tx_payload.setLight(69);
-      tx_payload.setSoil(76);
-      tx_payload.setTemperature(79);
-
-      uint8_t payload_buf[tx_payload.size()];
-      tx_payload.serialize(payload_buf);
+      garden_payload.unserialize(buf);
+      Serial.print("msg_id: ");
+      Serial.println(garden_payload.getMsgId());
+      
+      uint8_t payload_buf[garden_payload.size()];
+      garden_payload.serialize(payload_buf);
       Serial.write('\t'); // Payload start byte
-      Serial.write(payload_buf, tx_payload.size());
+      Serial.write(payload_buf, garden_payload.size());
 
-      monitor.num = num;
+      monitor.num = garden_payload.getMsgId();
       monitor.rssi = rssi;
 
       // Update the display now as there needs to be 
@@ -125,7 +121,7 @@ void loop() {
       
       // Send a reply
       char radiopacket[30]   = "                   ";
-      itoa(num, radiopacket, 10);
+      itoa(garden_payload.getMsgId(), radiopacket, 10);
       rf95.send(radiopacket, sizeof(radiopacket));
       rf95.waitPacketSent();
       //Serial.println("Sent a reply");
@@ -161,7 +157,7 @@ void draw(void) {
 }
 
 void updateLedPanel() {
-  byte d = tx_payload.getMsgId();
+  byte d = garden_payload.getMsgId();
   
   digitalWrite(SR_LATCH, LOW);
   // Bit shift left as there is no 8th led.
