@@ -1,5 +1,6 @@
 config.h
 .idea
+.DS_Store
 
 # Object files
 *.o

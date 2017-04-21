@@ -3,11 +3,14 @@
  * then pass the data through Serial to be processed by the monitor.
  */
 
+
 #include <SPI.h>
 #include <RH_RF95.h>
 // oled display
 #include "U8glib.h"
 #include "Payload.h"
+#include "GardenPayload.h"
+#include "AckPayload.h"
 
 
 #define RFM95_CS 4
@@ -31,7 +34,8 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 // OLED
 U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE);
 
-Payload tx_payload = Payload();
+theapi::GardenPayload garden_payload = theapi::GardenPayload();
+theapi::AckPayload ack_payload = theapi::AckPayload();
 
 typedef struct{
   int num;
@@ -56,7 +60,7 @@ void setup() {
   displayUpdate();
 
   // Show the led panel is working.
-  tx_payload.setMsgId(0b10101010);
+  garden_payload.setMsgId(0b10101010);
   updateLedPanel();
 
   Serial.println("LoRa RX");
@@ -94,28 +98,21 @@ void loop() {
       RH_RF95::printBuffer("Received: ", buf, len);
       Serial.print("Got: ");
       Serial.println((char*)buf);
-      int num = atoi((char*)buf);
-      Serial.println(num);
+      
       Serial.print("RSSI: ");
-
       int rssi = rf95.lastRssi();
       Serial.println(rf95.lastRssi(), DEC);
 
-      tx_payload.setDeviceId(1);
-      tx_payload.setMsgId(num % 255);
-      tx_payload.setA(num);
-      tx_payload.setB(rssi);
-      tx_payload.setC(72);
-      tx_payload.setD(69);
-      tx_payload.setE(76);
-      tx_payload.setF(79);
-
-      uint8_t payload_buf[Payload_SIZE];
-      tx_payload.serialize(payload_buf);
+      garden_payload.unserialize(buf);
+      Serial.print("msg_id: ");
+      Serial.println(garden_payload.getMsgId());
+      
+      uint8_t payload_buf[garden_payload.size()];
+      garden_payload.serialize(payload_buf);
       Serial.write('\t'); // Payload start byte
-      Serial.write(payload_buf, Payload_SIZE);
+      Serial.write(payload_buf, garden_payload.size());
 
-      monitor.num = num;
+      monitor.num = garden_payload.getMsgId();
       monitor.rssi = rssi;
 
       // Update the display now as there needs to be 
@@ -124,13 +121,16 @@ void loop() {
       updateLedPanel();
       
       // Send a reply
-      char radiopacket[30]   = "                   ";
-      itoa(num, radiopacket, 10);
-      rf95.send(radiopacket, sizeof(radiopacket));
+      ack_payload.setMsgId(garden_payload.getMsgId());
+      //ack_payload.setValue(1234);
+      uint8_t ack_payload_buf[ack_payload.size()];
+      ack_payload.serialize(ack_payload_buf);
+      rf95.send(ack_payload_buf, ack_payload.size());
       rf95.waitPacketSent();
-      //Serial.println("Sent a reply");
+
       
       digitalWrite(LED, LOW);
+      
     } else {
       Serial.println("Receive failed");
     }
@@ -161,7 +161,7 @@ void draw(void) {
 }
 
 void updateLedPanel() {
-  byte d = tx_payload.getMsgId();
+  byte d = garden_payload.getMsgId();
   
   digitalWrite(SR_LATCH, LOW);
   // Bit shift left as there is no 8th led.
