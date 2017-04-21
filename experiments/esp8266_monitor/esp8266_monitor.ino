@@ -14,7 +14,7 @@
 #include <PubSubClient.h>
 #include "config.h"
 #include "SSD1306.h"
-#include "TheapiPayloadGarden.h"
+#include "GardenPayload.h"
 #include "html.h"
 
 // A UDP instance to let us send and receive packets over UDP
@@ -33,8 +33,8 @@ PubSubClient mqtt_client(espClient);
 // Initialize the OLED display using Wire library
 SSD1306  display(0x3c, 4, 5);
 
-TheapiPayloadGarden rx_payload = TheapiPayloadGarden();
-uint8_t input_string[TheapiPayloadGarden_SIZE];
+theapi::GardenPayload rx_payload = theapi::GardenPayload();
+uint8_t input_string[theapi::GardenPayload::SIZE];
 uint8_t payload_state = 0;
 uint8_t serial_byte_count = 0;
 
@@ -137,7 +137,7 @@ void loop() {
       
       // if the the last byte is received, set a flag
       // so the main loop can do something about it:
-      if (serial_byte_count == TheapiPayloadGarden_SIZE) {
+      if (serial_byte_count == rx_payload.size()) {
         serial_byte_count = 0;
         payload_state = 2;
         rx_payload.unserialize(input_string);
@@ -197,7 +197,7 @@ void loop() {
 }
 
 void broadcast_udp() {
-    size_t len = TheapiPayloadGarden_SIZE;
+    size_t len = rx_payload.size();
     uint8_t sbuf[len];
     rx_payload.serialize(sbuf);
     Udp.beginPacketMulticast(ipMulti, portMulti, WiFi.localIP());

@@ -3,11 +3,12 @@
  * then pass the data through Serial to be processed by the monitor.
  */
 
+
 #include <SPI.h>
 #include <RH_RF95.h>
 // oled display
 #include "U8glib.h"
-#include "TheapiPayloadGarden.h"
+#include "GardenPayload.h"
 
 
 #define RFM95_CS 4
@@ -31,7 +32,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 // OLED
 U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE);
 
-TheapiPayloadGarden tx_payload = TheapiPayloadGarden();
+theapi::GardenPayload tx_payload = theapi::GardenPayload();
 
 typedef struct{
   int num;
@@ -109,10 +110,10 @@ void loop() {
       tx_payload.setSoil(76);
       tx_payload.setTemperature(79);
 
-      uint8_t payload_buf[TheapiPayloadGarden_SIZE];
+      uint8_t payload_buf[tx_payload.size()];
       tx_payload.serialize(payload_buf);
       Serial.write('\t'); // Payload start byte
-      Serial.write(payload_buf, TheapiPayloadGarden_SIZE);
+      Serial.write(payload_buf, tx_payload.size());
 
       monitor.num = num;
       monitor.rssi = rssi;
