@@ -71,7 +71,7 @@ void setup() {
 
   // Initialise the display.
   display.init();
-  display.flipScreenVertically();
+  //display.flipScreenVertically();
   display.setFont(ArialMT_Plain_16);
 
   rx_payload.setMsgId(254);
@@ -141,19 +141,19 @@ void loop() {
         serial_byte_count = 0;
         payload_state = 2;
         rx_payload.unserialize(input_string);
-//        Serial.print(rx_payload.getDeviceId()); Serial.print(", ");
-//      Serial.print(rx_payload.getMsgId()); Serial.print(", ");
-//      Serial.print(rx_payload.getA()); Serial.print(", ");
-//      Serial.print(rx_payload.getB()); Serial.print(", ");
-//      Serial.print(rx_payload.getC()); Serial.print(", ");
-//      Serial.print(rx_payload.getD()); Serial.print(", ");
-//      Serial.print(rx_payload.getE()); Serial.print(", ");
-//      Serial.println(rx_payload.getF());
-//      Serial.println();
+        Serial.print(rx_payload.getMsgType()); Serial.print(", ");
+      Serial.print(rx_payload.getMsgId()); Serial.print(", ");
+      Serial.print(rx_payload.getVcc()); Serial.print(", ");
+      Serial.print(rx_payload.getChargeMv()); Serial.print(", ");
+      Serial.print(rx_payload.getChargeMa()); Serial.print(", ");
+      Serial.print(rx_payload.getLight()); Serial.print(", ");
+      Serial.print(rx_payload.getSoil()); Serial.print(", ");
+      Serial.println(rx_payload.getTemperature());
+      Serial.println();
       }
     } else {
       // Passthru other serial messages.
-      //Serial.print(char(in));
+      Serial.print(char(in));
       
     }
   }
