@@ -137,7 +137,7 @@ void loop() {
 
       // Check the first byte for the payload type.
       if (serial_byte_count == 0) {
-        current_payload = serial_byte_count;
+        current_payload = in;
       }
 
       //Serial.print(in, HEX);
