@@ -14,7 +14,9 @@
 #include <PubSubClient.h>
 #include "config.h"
 #include "SSD1306.h"
+#include "Payload.h"
 #include "GardenPayload.h"
+#include "SignalPayload.h"
 #include "html.h"
 
 // A UDP instance to let us send and receive packets over UDP
@@ -34,8 +36,10 @@ PubSubClient mqtt_client(espClient);
 SSD1306  display(0x3c, 4, 5);
 
 theapi::GardenPayload rx_payload = theapi::GardenPayload();
+theapi::SignalPayload signal_payload = theapi::SignalPayload();
 uint8_t input_string[theapi::GardenPayload::SIZE];
 uint8_t payload_state = 0;
+uint8_t current_payload;
 uint8_t serial_byte_count = 0;
 
 unsigned long previousMillis = 0;
@@ -130,26 +134,38 @@ void loop() {
     }
     
     else if (payload_state == 1) {
+
+      // Check the first byte for the payload type.
+      if (serial_byte_count == 0) {
+        current_payload = in;
+        Serial.print("current_payload: ");
+        Serial.println(current_payload, HEX);
+      }
+
       //Serial.print(in, HEX);
       // add it to the inputString:
       input_string[serial_byte_count] = in;
       ++serial_byte_count;
-      
+
       // if the the last byte is received, set a flag
       // so the main loop can do something about it:
-      if (serial_byte_count == rx_payload.size()) {
-        serial_byte_count = 0;
-        payload_state = 2;
-        rx_payload.unserialize(input_string);
-        Serial.print(rx_payload.getMsgType()); Serial.print(", ");
-      Serial.print(rx_payload.getMsgId()); Serial.print(", ");
-      Serial.print(rx_payload.getVcc()); Serial.print(", ");
-      Serial.print(rx_payload.getChargeMv()); Serial.print(", ");
-      Serial.print(rx_payload.getChargeMa()); Serial.print(", ");
-      Serial.print(rx_payload.getLight()); Serial.print(", ");
-      Serial.print(rx_payload.getSoil()); Serial.print(", ");
-      Serial.println(rx_payload.getTemperature());
-      Serial.println();
+      switch (current_payload) {
+        case theapi::Payload::SIGNAL:
+          // Use SignalPayload
+          if (serial_byte_count == signal_payload.size()) {
+            serial_byte_count = 0;
+            payload_state = 2;
+            signal_payload.unserialize(input_string);
+          }
+          break;
+        default:
+          // Use GardenPayload
+          if (serial_byte_count == rx_payload.size()) {
+            serial_byte_count = 0;
+            payload_state = 2;
+            rx_payload.unserialize(input_string);
+          }
+          break;
       }
     } else {
       // Passthru other serial messages.
@@ -160,22 +176,23 @@ void loop() {
 
   unsigned long currentMillis = millis();
   
-  // Send payload to TCP clients when ready.
+  // Send payload to listeners when ready.
   if (payload_state == 2) {
     payload_state = 0;
 
     // No need to ping if we're sending real data.
     ping_last = currentMillis;
-    broadcast_udp();
-    broadcast_websocket();
-    broadcast_mqtt();
+    udpBroadcast();
+    websocketBroadcast();
+    mqttBroadcast();
+    serialPrintPayload();
+
+    current_payload = 0;
   } 
   // Send the data continually, as its UDP some may get missed.
   else if (currentMillis - ping_last >= ping_interval) {
     ping_last = currentMillis;
-    broadcast_udp();
-    broadcast_websocket();
-    broadcast_mqtt();
+    udpBroadcast();
   }
 
   // Update the display  
@@ -196,48 +213,90 @@ void loop() {
   
 }
 
-void broadcast_udp() {
-    size_t len = rx_payload.size();
-    uint8_t sbuf[len];
-    rx_payload.serialize(sbuf);
-    Udp.beginPacketMulticast(ipMulti, portMulti, WiFi.localIP());
-    Udp.write('\t'); // Payload start byte
-    Udp.write(sbuf, len);
-    Udp.write('\n');
-    Udp.endPacket();  
-    Udp.stop();  
-}
-
-void broadcast_websocket() {
-  String str = String(rx_payload.getMsgType()) + ",";
-  str += String(rx_payload.getMsgId()) + ",";
-  str += String(rx_payload.getVcc()) + ",";
-  str += String(rx_payload.getChargeMv()) + ",";
-  str += String(rx_payload.getChargeMa()) + ",";
-  str += String(rx_payload.getLight()) + ",";
-  str += String(rx_payload.getSoil()) + ",";
-  str += String(rx_payload.getTemperature());
-  webSocket.broadcastTXT(str);
-}
-
-void broadcast_mqtt() {
-  char msg[50];
-  String str = String(rx_payload.getMsgType()) + ",";
-  str += String(rx_payload.getMsgId()) + ",";
-  str += String(rx_payload.getVcc()) + ",";
-  str += String(rx_payload.getChargeMv()) + ",";
-  str += String(rx_payload.getChargeMa()) + ",";
-  str += String(rx_payload.getLight()) + ",";
-  str += String(rx_payload.getSoil()) + ",";
-  str += String(rx_payload.getTemperature());
-  str.toCharArray(msg, 50);
-  if (mqtt_connect()) {
-    mqtt_client.publish("solar", msg);
+void serialPrintPayload() {
+  switch (current_payload) {
+    case theapi::Payload::SIGNAL:
+      Serial.print("SIGNAL: ");
+      Serial.print(signal_payload.getMsgType()); Serial.print(", ");
+      Serial.print(signal_payload.getMsgId()); Serial.print(", ");
+      Serial.print(signal_payload.getRssi()); Serial.print(", ");
+      Serial.print(signal_payload.getSnr()); Serial.print(", ");
+      Serial.println(signal_payload.getFreqError());
+      Serial.println();
+    break;
+    default:
+      Serial.print("GARDEN: ");
+      Serial.print(rx_payload.getMsgType()); Serial.print(", ");
+      Serial.print(rx_payload.getMsgId()); Serial.print(", ");
+      Serial.print(rx_payload.getVcc()); Serial.print(", ");
+      Serial.print(rx_payload.getChargeMv()); Serial.print(", ");
+      Serial.print(rx_payload.getChargeMa()); Serial.print(", ");
+      Serial.print(rx_payload.getLight()); Serial.print(", ");
+      Serial.print(rx_payload.getSoil()); Serial.print(", ");
+      Serial.println(rx_payload.getTemperature());
+      Serial.println();
+    break;
   }
 }
 
-bool mqtt_connect() {
-  // Loop until we're reconnected
+void udpBroadcast() {
+  Udp.beginPacketMulticast(ipMulti, portMulti, WiFi.localIP());
+  Udp.write('\t'); // Payload start byte
+
+  // Send the contents of the buffer.
+  switch (current_payload) {
+    case theapi::Payload::SIGNAL:
+      {
+        size_t len = signal_payload.size();
+        uint8_t sbuf[len];
+        signal_payload.serialize(sbuf);
+        Udp.write(sbuf, len);
+      }
+      break;
+    default:
+      {
+        size_t len = rx_payload.size();
+        uint8_t sbuf[len];
+        rx_payload.serialize(sbuf);
+        Udp.write(sbuf, len);
+      }
+      break;
+  }
+
+  Udp.write('\n');
+  Udp.endPacket();  
+  Udp.stop(); 
+}
+
+void websocketBroadcast() {
+  String str;
+  switch (current_payload) {
+    case theapi::Payload::SIGNAL:
+      // Send the signal data.
+      str = String(signal_payload.getMsgType()) + ",";
+      str += String(signal_payload.getMsgId()) + ",";
+      str += String(signal_payload.getRssi()) + ",";
+      str += String(signal_payload.getSnr()) + ",";
+      str += String(signal_payload.getFreqError());
+      webSocket.broadcastTXT(str);
+    break;
+    default:
+      // Send the garden data
+      str = String(rx_payload.getMsgType()) + ",";
+      str += String(rx_payload.getMsgId()) + ",";
+      str += String(rx_payload.getVcc()) + ",";
+      str += String(rx_payload.getChargeMv()) + ",";
+      str += String(rx_payload.getChargeMa()) + ",";
+      str += String(rx_payload.getLight()) + ",";
+      str += String(rx_payload.getSoil()) + ",";
+      str += String(rx_payload.getTemperature());
+      webSocket.broadcastTXT(str);
+    break;
+  }
+}
+
+bool mqttConnect() {
+  // Connect if needed.
   if (!mqtt_client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
@@ -252,4 +311,48 @@ bool mqtt_connect() {
   }
   return true;
 }
+
+void mqttBroadcast() {
+
+  String str;
+  char msg[50];
+  
+  switch (current_payload) {
+    case theapi::Payload::SIGNAL:
+    {
+      // Send the signal data.
+      str = String(signal_payload.getMsgType()) + ",";
+      str += String(signal_payload.getMsgId()) + ",";
+      str += String(signal_payload.getRssi()) + ",";
+      str += String(signal_payload.getSnr()) + ",";
+      str += String(signal_payload.getFreqError());
+      memset(msg, 0, sizeof msg);
+      str.toCharArray(msg, sizeof msg);
+      if (mqttConnect()) {
+        mqtt_client.publish("solar/signal", msg);
+      }
+    }
+    break;
+    default:
+    {
+      str = String(rx_payload.getMsgType()) + ",";
+      str += String(rx_payload.getMsgId()) + ",";
+      str += String(rx_payload.getVcc()) + ",";
+      str += String(rx_payload.getChargeMv()) + ",";
+      str += String(rx_payload.getChargeMa()) + ",";
+      str += String(rx_payload.getLight()) + ",";
+      str += String(rx_payload.getSoil()) + ",";
+      str += String(rx_payload.getTemperature());
+      memset(msg, 0, sizeof msg);
+      str.toCharArray(msg, sizeof msg);
+      if (mqttConnect()) {
+        mqtt_client.publish("solar/garden", msg);
+      }
+    }
+    break;
+  }
+  
+}
+
+
 

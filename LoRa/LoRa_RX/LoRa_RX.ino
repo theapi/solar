@@ -115,10 +115,12 @@ void loop() {
       Serial.write(payload_buf, garden_payload.size());
 
       // Send radio signal data to the monitor.
-      signal_payload.setRssi(garden_payload.getMsgId());
+      signal_payload.setMsgId(garden_payload.getMsgId());
       signal_payload.setRssi(rssi);
+      signal_payload.setSnr(rf95.lastSNR());
+      signal_payload.setFreqError(rf95.frequencyError());
       uint8_t signal_payload_buf[signal_payload.size()];
-      garden_payload.serialize(signal_payload_buf);
+      signal_payload.serialize(signal_payload_buf);
       Serial.write('\t'); // Payload start byte
       Serial.write(signal_payload_buf, signal_payload.size());
 

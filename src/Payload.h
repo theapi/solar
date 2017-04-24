@@ -20,5 +20,7 @@ namespace theapi {
       };
   };
 
-}; // end namespace
+}
+
+// end namespace
 #endif

@@ -21,26 +21,22 @@ namespace theapi {
   }
 
   // The id, not neccessarily unique, of the message.
-  uint8_t AckPayload::getMsgId()
-  {
+  uint8_t AckPayload::getMsgId() {
     return _payload.msg_id;
   }
 
-  void AckPayload::setMsgId(uint8_t id)
-  {
+  void AckPayload::setMsgId(uint8_t id) {
     _payload.msg_id = id;
   }
 
   // Populates the given array with the payload data
-  void AckPayload::serialize(uint8_t payload[AckPayload::SIZE])
-  {
+  void AckPayload::serialize(uint8_t payload[AckPayload::SIZE]) {
     payload[0] = _payload.msg_type;
     payload[1] = _payload.msg_id;
   }
 
   // Parse the read byte data
-  void AckPayload::unserialize(uint8_t payload[AckPayload::SIZE])
-  {
+  void AckPayload::unserialize(uint8_t payload[AckPayload::SIZE]) {
     _payload.msg_type = payload[0];
     _payload.msg_id = payload[1];
   }

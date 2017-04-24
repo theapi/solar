@@ -27,83 +27,68 @@ namespace theapi {
   }
 
   // The id, not neccessarily unique, of the message.
-  uint8_t GenericPayload::getMsgId()
-  {
+  uint8_t GenericPayload::getMsgId() {
     return _payload.msg_id;
   }
 
-  void GenericPayload::setMsgId(uint8_t id)
-  {
+  void GenericPayload::setMsgId(uint8_t id) {
     _payload.msg_id = id;
   }
 
   // The first integer data
-  int16_t GenericPayload::getA()
-  {
+  int16_t GenericPayload::getA() {
     return _payload.a;
   }
 
-  void GenericPayload::setA(int16_t val)
-  {
+  void GenericPayload::setA(int16_t val) {
     _payload.a = val;
   }
 
   // The second integer data
-  int16_t GenericPayload::getB()
-  {
+  int16_t GenericPayload::getB() {
     return _payload.b;
   }
 
-  void GenericPayload::setB(int16_t val)
-  {
+  void GenericPayload::setB(int16_t val) {
     _payload.b = val;
   }
 
   // The third integer data
-  int16_t GenericPayload::getC()
-  {
+  int16_t GenericPayload::getC() {
     return _payload.c;
   }
 
-  void GenericPayload::setC(int16_t val)
-  {
+  void GenericPayload::setC(int16_t val) {
     _payload.c = val;
   }
 
   // The forth integer data
-  int16_t GenericPayload::getD()
-  {
+  int16_t GenericPayload::getD() {
     return _payload.d;
   }
 
-  void GenericPayload::setD(int16_t val)
-  {
+  void GenericPayload::setD(int16_t val) {
     _payload.d = val;
   }
 
-  void GenericPayload::setE(int16_t val)
-  {
+  void GenericPayload::setE(int16_t val) {
     _payload.e = val;
   }
 
-  int16_t GenericPayload::getE()
-  {
+  int16_t GenericPayload::getE() {
     return _payload.e;
   }
 
-  void GenericPayload::setF(int16_t val)
-  {
+  void GenericPayload::setF(int16_t val) {
     _payload.f = val;
   }
 
-  int16_t GenericPayload::getF()
-  {
+  int16_t GenericPayload::getF() {
     return _payload.f;
   }
 
   // Populates the given array with the payload data
-  void GenericPayload::serialize(uint8_t payload[GenericPayload::SIZE])
-  {
+  void GenericPayload::serialize(uint8_t payload[GenericPayload::SIZE]) {
     payload[0] = _payload.msg_type;
     payload[1] = _payload.msg_id;
 
@@ -120,17 +105,16 @@ namespace theapi {
     payload[12] = (_payload.f >> 8);
     payload[13] = _payload.f;
 
-  /*
-    payload[16] = (_payload.timestamp >> 24);
-    payload[17] = (_payload.timestamp >> 16);
-    payload[18] = (_payload.timestamp >> 8);
-    payload[19] = _payload.timestamp;
-  */
+    /*
+     payload[16] = (_payload.timestamp >> 24);
+     payload[17] = (_payload.timestamp >> 16);
+     payload[18] = (_payload.timestamp >> 8);
+     payload[19] = _payload.timestamp;
+     */
   }
 
   // Parse the read byte data
-  void GenericPayload::unserialize(uint8_t payload[GenericPayload::SIZE])
-  {
+  void GenericPayload::unserialize(uint8_t payload[GenericPayload::SIZE]) {
     _payload.msg_type = payload[0];
     _payload.msg_id = payload[1];
 

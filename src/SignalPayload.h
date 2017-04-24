@@ -7,17 +7,15 @@
 #include <stdint.h>
 
 namespace theapi {
-  class SignalPayload
-  {
+  class SignalPayload {
     public:
-      typedef struct{
-        uint8_t msg_type;
-        uint8_t msg_id;
-        int16_t rssi;
-        int16_t snr;
-        int16_t frq_error;
-      }
-      payload_t;
+      typedef struct {
+          uint8_t msg_type;
+          uint8_t msg_id;
+          int16_t rssi;
+          int16_t snr;
+          int16_t frq_error;
+      } payload_t;
 
       const static uint8_t SIZE = 8;
 
@@ -56,8 +54,8 @@ namespace theapi {
        * receiver centre frequency and that of the received LoRa signal.
        * This function returns the estimates offset (in Hz) of the last received message.
        */
-      int16_t getFrqError();
-      void setFrqError(int16_t);
+      int16_t getFreqError();
+      void setFreqError(int16_t);
 
       // Creates the byte array for sending.
       void serialize(uint8_t payload[SignalPayload::SIZE]);
@@ -69,5 +67,6 @@ namespace theapi {
       payload_t _payload;
 
   };
-};
+}
+
 #endif

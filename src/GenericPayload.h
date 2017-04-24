@@ -7,20 +7,18 @@
 #include <stdint.h>
 
 namespace theapi {
-  class GenericPayload
-  {
+  class GenericPayload {
     public:
-      typedef struct{
-        uint8_t msg_type;
-        uint8_t msg_id;
-        int16_t a;
-        int16_t b;
-        int16_t c;
-        int16_t d;
-        int16_t e;
-        int16_t f;
-      }
-      payload_t;
+      typedef struct {
+          uint8_t msg_type;
+          uint8_t msg_id;
+          int16_t a;
+          int16_t b;
+          int16_t c;
+          int16_t d;
+          int16_t e;
+          int16_t f;
+      } payload_t;
 
       const static uint8_t SIZE = 14;
 
@@ -40,7 +38,6 @@ namespace theapi {
       // The id, not neccessarily unique, of the message.
       uint8_t getMsgId();
       void setMsgId(uint8_t msg_id);
-
 
       // The first integer data
       int16_t getA();
@@ -76,5 +73,6 @@ namespace theapi {
       payload_t _payload;
 
   };
-};
+}
+
 #endif

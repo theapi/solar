@@ -29,83 +29,68 @@ namespace theapi {
   }
 
   // The id, not neccessarily unique, of the message.
-  uint8_t GardenPayload::getMsgId()
-  {
+  uint8_t GardenPayload::getMsgId() {
     return _payload.msg_id;
   }
 
-  void GardenPayload::setMsgId(uint8_t id)
-  {
+  void GardenPayload::setMsgId(uint8_t id) {
     _payload.msg_id = id;
   }
 
   // The first integer data
-  int16_t GardenPayload::getVcc()
-  {
+  int16_t GardenPayload::getVcc() {
     return _payload.a;
   }
 
-  void GardenPayload::setVcc(int16_t val)
-  {
+  void GardenPayload::setVcc(int16_t val) {
     _payload.a = val;
   }
 
   // The second integer data
-  int16_t GardenPayload::getChargeMv()
-  {
+  int16_t GardenPayload::getChargeMv() {
     return _payload.b;
   }
 
-  void GardenPayload::setChargeMv(int16_t val)
-  {
+  void GardenPayload::setChargeMv(int16_t val) {
     _payload.b = val;
   }
 
   // The third integer data
-  int16_t GardenPayload::getChargeMa()
-  {
+  int16_t GardenPayload::getChargeMa() {
     return _payload.c;
   }
 
-  void GardenPayload::setChargeMa(int16_t val)
-  {
+  void GardenPayload::setChargeMa(int16_t val) {
     _payload.c = val;
   }
 
   // The forth integer data
-  int16_t GardenPayload::getLight()
-  {
+  int16_t GardenPayload::getLight() {
     return _payload.d;
   }
 
-  void GardenPayload::setLight(int16_t val)
-  {
+  void GardenPayload::setLight(int16_t val) {
     _payload.d = val;
   }
 
-  int16_t GardenPayload::getSoil()
-  {
+  int16_t GardenPayload::getSoil() {
     return _payload.e;
   }
 
-  void GardenPayload::setSoil(int16_t val)
-  {
+  void GardenPayload::setSoil(int16_t val) {
     _payload.e = val;
   }
 
-  int16_t GardenPayload::getTemperature()
-  {
+  int16_t GardenPayload::getTemperature() {
     return _payload.f;
   }
 
-  void GardenPayload::setTemperature(int16_t val)
-  {
+  void GardenPayload::setTemperature(int16_t val) {
     _payload.f = val;
   }
 
   // Populates the given array with the payload data
-  void GardenPayload::serialize(uint8_t payload[GardenPayload::SIZE])
-  {
+  void GardenPayload::serialize(uint8_t payload[GardenPayload::SIZE]) {
     payload[0] = _payload.msg_type;
     payload[1] = _payload.msg_id;
 
@@ -122,17 +107,16 @@ namespace theapi {
     payload[12] = (_payload.f >> 8);
     payload[13] = _payload.f;
 
-  /*
-    payload[16] = (_payload.timestamp >> 24);
-    payload[17] = (_payload.timestamp >> 16);
-    payload[18] = (_payload.timestamp >> 8);
-    payload[19] = _payload.timestamp;
-  */
+    /*
+     payload[16] = (_payload.timestamp >> 24);
+     payload[17] = (_payload.timestamp >> 16);
+     payload[18] = (_payload.timestamp >> 8);
+     payload[19] = _payload.timestamp;
+     */
   }
 
   // Parse the read byte data
-  void GardenPayload::unserialize(uint8_t payload[GardenPayload::SIZE])
-  {
+  void GardenPayload::unserialize(uint8_t payload[GardenPayload::SIZE]) {
     _payload.msg_type = payload[0];
     _payload.msg_id = payload[1];
 
