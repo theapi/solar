@@ -11,7 +11,7 @@
 #include "Payload.h"
 #include "GardenPayload.h"
 #include "AckPayload.h"
-
+#include "SignalPayload.h"
 
 #define RFM95_CS 4
 #define RFM95_RST 2
@@ -36,6 +36,7 @@ U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE);
 
 theapi::GardenPayload garden_payload = theapi::GardenPayload();
 theapi::AckPayload ack_payload = theapi::AckPayload();
+theapi::SignalPayload signal_payload = theapi::SignalPayload();
 
 typedef struct{
   int num;
@@ -106,11 +107,20 @@ void loop() {
       garden_payload.unserialize(buf);
       Serial.print("msg_id: ");
       Serial.println(garden_payload.getMsgId());
-      
+
+      // Send the garden data to the monitor.
       uint8_t payload_buf[garden_payload.size()];
       garden_payload.serialize(payload_buf);
       Serial.write('\t'); // Payload start byte
       Serial.write(payload_buf, garden_payload.size());
+
+      // Send radio signal data to the monitor.
+      signal_payload.setRssi(garden_payload.getMsgId());
+      signal_payload.setRssi(rssi);
+      uint8_t signal_payload_buf[signal_payload.size()];
+      garden_payload.serialize(signal_payload_buf);
+      Serial.write('\t'); // Payload start byte
+      Serial.write(signal_payload_buf, signal_payload.size());
 
       monitor.num = garden_payload.getMsgId();
       monitor.rssi = rssi;

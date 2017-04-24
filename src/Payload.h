@@ -16,6 +16,7 @@ namespace theapi {
         PING,
         CMD,
         ACK,
+        SIGNAL,
       };
   };
 
