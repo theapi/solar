@@ -7,14 +7,12 @@
 #include <stdint.h>
 
 namespace theapi {
-  class AckPayload
-  {
+  class AckPayload {
     public:
-      typedef struct{
-        uint8_t msg_type;
-        uint8_t msg_id;
-      }
-      payload_t;
+      typedef struct {
+          uint8_t msg_type;
+          uint8_t msg_id;
+      } payload_t;
 
       const static uint8_t SIZE = 2;
 
@@ -45,5 +43,6 @@ namespace theapi {
       payload_t _payload;
 
   };
-};
+}
+
 #endif

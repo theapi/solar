@@ -21,49 +21,40 @@ namespace theapi {
   }
 
   // The id, not neccessarily unique, of the message.
-  uint8_t SignalPayload::getMsgId()
-  {
+  uint8_t SignalPayload::getMsgId() {
     return _payload.msg_id;
   }
 
-  void SignalPayload::setMsgId(uint8_t id)
-  {
+  void SignalPayload::setMsgId(uint8_t id) {
     _payload.msg_id = id;
   }
 
-  int16_t SignalPayload::getRssi()
-  {
+  int16_t SignalPayload::getRssi() {
     return _payload.rssi;
   }
 
-  void SignalPayload::setRssi(int16_t val)
-  {
+  void SignalPayload::setRssi(int16_t val) {
     _payload.rssi = val;
   }
 
-  int16_t SignalPayload::getSnr()
-  {
+  int16_t SignalPayload::getSnr() {
     return _payload.snr;
   }
 
-  void SignalPayload::setSnr(int16_t val)
-  {
+  void SignalPayload::setSnr(int16_t val) {
     _payload.snr = val;
   }
 
-  int16_t SignalPayload::getFreqError()
-  {
+  int16_t SignalPayload::getFreqError() {
     return _payload.frq_error;
   }
 
-  void SignalPayload::setFreqError(int16_t val)
-  {
+  void SignalPayload::setFreqError(int16_t val) {
     _payload.frq_error = val;
   }
 
   // Populates the given array with the payload data
-  void SignalPayload::serialize(uint8_t payload[SignalPayload::SIZE])
-  {
+  void SignalPayload::serialize(uint8_t payload[SignalPayload::SIZE]) {
     payload[0] = _payload.msg_type;
     payload[1] = _payload.msg_id;
 
@@ -76,8 +67,7 @@ namespace theapi {
   }
 
   // Parse the read byte data
-  void SignalPayload::unserialize(uint8_t payload[SignalPayload::SIZE])
-  {
+  void SignalPayload::unserialize(uint8_t payload[SignalPayload::SIZE]) {
     _payload.msg_type = payload[0];
     _payload.msg_id = payload[1];
 

@@ -7,17 +7,15 @@
 #include <stdint.h>
 
 namespace theapi {
-  class SignalPayload
-  {
+  class SignalPayload {
     public:
-      typedef struct{
-        uint8_t msg_type;
-        uint8_t msg_id;
-        int16_t rssi;
-        int16_t snr;
-        int16_t frq_error;
-      }
-      payload_t;
+      typedef struct {
+          uint8_t msg_type;
+          uint8_t msg_id;
+          int16_t rssi;
+          int16_t snr;
+          int16_t frq_error;
+      } payload_t;
 
       const static uint8_t SIZE = 8;
 
@@ -69,5 +67,6 @@ namespace theapi {
       payload_t _payload;
 
   };
-};
+}
+
 #endif
