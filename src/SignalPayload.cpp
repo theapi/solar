@@ -51,12 +51,12 @@ namespace theapi {
     _payload.snr = val;
   }
 
-  int16_t SignalPayload::getFrqError()
+  int16_t SignalPayload::getFreqError()
   {
     return _payload.frq_error;
   }
 
-  void SignalPayload::setFrqError(int16_t val)
+  void SignalPayload::setFreqError(int16_t val)
   {
     _payload.frq_error = val;
   }

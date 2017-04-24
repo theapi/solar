@@ -56,8 +56,8 @@ namespace theapi {
        * receiver centre frequency and that of the received LoRa signal.
        * This function returns the estimates offset (in Hz) of the last received message.
        */
-      int16_t getFrqError();
-      void setFrqError(int16_t);
+      int16_t getFreqError();
+      void setFreqError(int16_t);
 
       // Creates the byte array for sending.
       void serialize(uint8_t payload[SignalPayload::SIZE]);
