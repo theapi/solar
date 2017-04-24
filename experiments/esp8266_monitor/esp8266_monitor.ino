@@ -138,6 +138,8 @@ void loop() {
       // Check the first byte for the payload type.
       if (serial_byte_count == 0) {
         current_payload = in;
+        Serial.print("current_payload: ");
+        Serial.println(current_payload, HEX);
       }
 
       //Serial.print(in, HEX);
@@ -214,6 +216,7 @@ void loop() {
 void serialPrintPayload() {
   switch (current_payload) {
     case theapi::Payload::SIGNAL:
+      Serial.print("SIGNAL: ");
       Serial.print(signal_payload.getMsgType()); Serial.print(", ");
       Serial.print(signal_payload.getMsgId()); Serial.print(", ");
       Serial.print(signal_payload.getRssi()); Serial.print(", ");
@@ -222,6 +225,7 @@ void serialPrintPayload() {
       Serial.println();
     break;
     default:
+      Serial.print("GARDEN: ");
       Serial.print(rx_payload.getMsgType()); Serial.print(", ");
       Serial.print(rx_payload.getMsgId()); Serial.print(", ");
       Serial.print(rx_payload.getVcc()); Serial.print(", ");
