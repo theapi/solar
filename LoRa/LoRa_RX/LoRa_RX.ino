@@ -5,13 +5,17 @@
 
 
 #include <SPI.h>
+#include <Crypto.h>
+#include <AES.h>
 #include <RH_RF95.h>
-// oled display
-#include "U8glib.h"
+
 #include "Payload.h"
 #include "GardenPayload.h"
 #include "AckPayload.h"
 #include "SignalPayload.h"
+
+
+#define ENCRYPTION_BUFFER_SIZE 16
 
 #define RFM95_CS 4
 #define RFM95_RST 2
@@ -31,19 +35,20 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-// OLED
-U8GLIB_SSD1306_128X64_2X u8g(U8G_I2C_OPT_NONE);
 
 theapi::GardenPayload garden_payload = theapi::GardenPayload();
 theapi::AckPayload ack_payload = theapi::AckPayload();
 theapi::SignalPayload signal_payload = theapi::SignalPayload();
 
-typedef struct{
-  int num;
-  int rssi;
-}
-monitor_t;
-monitor_t monitor;
+
+
+//@TODO: PRIVATE KEY!!!!!!!!!
+byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
+
+AES128 cipher;
+uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
+uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
 
 void setup() {
   pinMode(LED, OUTPUT);
@@ -54,11 +59,6 @@ void setup() {
   digitalWrite(RFM95_RST, HIGH);
 
   Serial.begin(115200);
-
-  //u8g.setRot180();
-  monitor.num = 0;
-  monitor.rssi = 0;
-  displayUpdate();
 
   // Show the led panel is working.
   garden_payload.setMsgId(0b10101010);
@@ -97,14 +97,16 @@ void loop() {
       digitalWrite(LED, HIGH);
       Serial.println();
       RH_RF95::printBuffer("Received: ", buf, len);
-      Serial.print("Got: ");
-      Serial.println((char*)buf);
+//      Serial.print("Got: ");
+//      Serial.println((char*)buf);
       
       Serial.print("RSSI: ");
       int rssi = rf95.lastRssi();
       Serial.println(rf95.lastRssi(), DEC);
 
-      garden_payload.unserialize(buf);
+      // Decrypt the message.
+      cipher.decryptBlock(decrypted_buf, buf);
+      garden_payload.unserialize(decrypted_buf);
       Serial.print("msg_id: ");
       Serial.println(garden_payload.getMsgId());
 
@@ -124,20 +126,21 @@ void loop() {
       Serial.write('\t'); // Payload start byte
       Serial.write(signal_payload_buf, signal_payload.size());
 
-      monitor.num = garden_payload.getMsgId();
-      monitor.rssi = rssi;
-
-      // Update the display now as there needs to be 
-      // a small delay before sending the reply.
-      displayUpdate();
       updateLedPanel();
       
+      // There needs to be a small delay before sending the reply.
+      // YUK
+      delay(50);
+
       // Send a reply
       ack_payload.setMsgId(garden_payload.getMsgId());
       //ack_payload.setValue(1234);
       uint8_t ack_payload_buf[ack_payload.size()];
       ack_payload.serialize(ack_payload_buf);
-      rf95.send(ack_payload_buf, ack_payload.size());
+      //rf95.send(ack_payload_buf, ack_payload.size());
+      uint8_t encrypted_ack_buffer[16];
+      cipher.encryptBlock(encrypted_ack_buffer, ack_payload_buf);
+      rf95.send(encrypted_ack_buffer, 16);
       rf95.waitPacketSent();
 
       
@@ -149,28 +152,6 @@ void loop() {
   }
 }
 
-void displayUpdate() {
-  // picture loop
-  u8g.firstPage();
-  do {
-    draw();
-  } while( u8g.nextPage() );
-}
-
-void draw(void) {
-  // graphic commands to redraw the complete screen should be placed here
-
-  u8g.setFont(u8g_font_fub11n);
-  //u8g.setFont(u8g_font_unifont);
-  u8g.setFontPosTop();
-  
-  u8g.setPrintPos(0, 0);
-  u8g.print(monitor.num);
-  
-  u8g.setPrintPos(0, 20);
-  u8g.print(monitor.rssi);
-  
-}
 
 void updateLedPanel() {
   byte d = garden_payload.getMsgId();

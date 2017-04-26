@@ -1,11 +1,15 @@
 
 
 #include <SPI.h>
+#include <Crypto.h>
+#include <AES.h>
 #include <RH_RF95.h>
 // oled display
 #include "U8glib.h"
 #include "GardenPayload.h"
 #include "AckPayload.h"
+
+#define ENCRYPTION_BUFFER_SIZE 16
 
 #define RFM95_CS 4
 #define RFM95_RST 2
@@ -23,6 +27,7 @@ theapi::GardenPayload tx_payload = theapi::GardenPayload();
 theapi::AckPayload ack_payload = theapi::AckPayload();
 
 uint8_t msg_id = 0;
+int rssi = 0;
 
 typedef struct {
   int sent;
@@ -31,6 +36,14 @@ typedef struct {
 }
 monitor_t;
 monitor_t monitor;
+
+//@TODO: PRIVATE KEY!!!!!!!!!
+byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
+
+AES128 cipher;
+uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
+uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
 
 void setup() {
   pinMode(RFM95_RST, OUTPUT);
@@ -46,7 +59,7 @@ void setup() {
   
   delay(100);
 
-  Serial.println("LoRa GArden TX");
+  //Serial.println("LoRa Garden TX");
 
   // manual reset
   digitalWrite(RFM95_RST, LOW);
@@ -55,16 +68,16 @@ void setup() {
   delay(10);
 
   while (!rf95.init()) {
-    Serial.println("LoRa radio init failed");
+    Serial.println("init failed");
     while (1);
   }
-  Serial.println("LoRa radio init OK!");
+  Serial.println("init OK");
 
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
     while (1);
   }
-  Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
+  //Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
   
   rf95.setTxPower(23, false);
 }
@@ -81,9 +94,11 @@ void loop() {
   tx_payload.setTemperature(79);
   uint8_t payload_buf[tx_payload.size()];
   tx_payload.serialize(payload_buf);
-  rf95.send(payload_buf, tx_payload.size());
+  //rf95.send(payload_buf, tx_payload.size());
+  cipher.encryptBlock(encrypted_buffer, payload_buf);
+  rf95.send(encrypted_buffer, ENCRYPTION_BUFFER_SIZE);
 
-  int rssi = 0;
+  
   int got = 0;
   monitor.sent = msg_id;
   monitor.got = got;
@@ -98,16 +113,19 @@ void loop() {
   if (rf95.waitAvailableTimeout(2000)) { 
     // Should be a reply message for us now   
     if (rf95.recv(buf, &len)) {
-      Serial.print("Got reply: ");
-      Serial.println((char*)buf);
+      RH_RF95::printBuffer("Received: ", buf, len);
+      //Serial.print("Got reply: ");
+      //Serial.println((char*)buf);
       //got = atoi((char*)buf);
       //Serial.println(got);
       Serial.print("RSSI: ");
       rssi = rf95.lastRssi();
       Serial.println(rssi, DEC);    
 
-      uint8_t ack_payload_buf[ack_payload.size()];
-      ack_payload.unserialize(buf);
+      //uint8_t ack_payload_buf[ack_payload.size()];
+      uint8_t decrypted_ack_buf[16];
+      cipher.decryptBlock(decrypted_ack_buf, buf);
+      ack_payload.unserialize(decrypted_ack_buf);
 
       got = ack_payload.getMsgId();
       Serial.print("msg_id: ");
@@ -120,7 +138,7 @@ void loop() {
       Serial.println("Receive failed");
     }
   } else {
-    Serial.println("No reply, is there a listener around?");
+    Serial.println("No reply");
   }
 
   
