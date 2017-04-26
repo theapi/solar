@@ -1,29 +1,33 @@
 
 /**
- * Speck-256-ECB
+ * AES-128-ECB
+ * 
+ * https://rweather.github.io/arduinolibs/crypto.html
+ * https://github.com/rweather/arduinolibs/tree/master/libraries/Crypto
  */
 
 #include <Crypto.h>
-#include <SpeckSmall.h>
+#include <AES.h>
 #include "Payload.h"
 #include "GardenPayload.h"
+
+#define ENCRYPTION_BUFFER_SIZE 32
 
 uint8_t msg_id = 0;
 theapi::GardenPayload payload = theapi::GardenPayload();
 
-byte key[32] = {0x1f, 0x1e, 0x1d, 0x1c, 0x1b, 0x1a, 0x19, 0x18,
-              0x17, 0x16, 0x15, 0x14, 0x13, 0x12, 0x11, 0x10,
-              0x0f, 0x0e, 0x0d, 0x0c, 0x0b, 0x0a, 0x09, 0x08,
-              0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00};
 
-SpeckSmall cipher;
-byte encrypted_buffer[theapi::GardenPayload::SIZE];
+byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
+
+AES128 cipher;
+uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
+uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
 
 void setup() {
   Serial.begin(115200);
   Serial.println();
-
-  cipher.setKey(key, 32);
+  Serial.println("Setup");
 
   payload.setMsgId(msg_id);
   payload.setVcc(1234);
@@ -35,18 +39,20 @@ void setup() {
 
 }
 
+
 void loop() {
 
   payload.setMsgId(++msg_id);
+  Serial.print("Encrypting msg_id: ");
+  Serial.println(msg_id);
 
   uint8_t payload_buf[payload.size()];
   payload.serialize(payload_buf);
- 
+
   // Encrypt
   cipher.encryptBlock(encrypted_buffer, payload_buf);
 
   // Decrypt
-  uint8_t decrypted_buf[payload.size()];
   cipher.decryptBlock(decrypted_buf, encrypted_buffer);
   payload.unserialize(decrypted_buf);
 
