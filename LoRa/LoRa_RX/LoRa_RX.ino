@@ -9,6 +9,7 @@
 #include <AES.h>
 #include <RH_RF95.h>
 
+#include "config.h"
 #include "Payload.h"
 #include "GardenPayload.h"
 #include "AckPayload.h"
@@ -40,15 +41,12 @@ theapi::GardenPayload garden_payload = theapi::GardenPayload();
 theapi::AckPayload ack_payload = theapi::AckPayload();
 theapi::SignalPayload signal_payload = theapi::SignalPayload();
 
-
-
-//@TODO: PRIVATE KEY!!!!!!!!!
-byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-                0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
-
 AES128 cipher;
 uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
 uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
+
+uint8_t rx_node_id = 1;
+uint8_t garden_node_id = 2;
 
 void setup() {
   pinMode(LED, OUTPUT);
@@ -84,6 +82,8 @@ void setup() {
   }
   Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
 
+  rf95.setModemConfig(RH_RF95::Bw500Cr45Sf128);
+
   rf95.setTxPower(23, false);
 }
 
@@ -97,6 +97,7 @@ void loop() {
       digitalWrite(LED, HIGH);
       Serial.println();
       RH_RF95::printBuffer("Received: ", buf, len);
+      //Serial.print("headerFrom: "); Serial.println(rf95.headerFrom());
 //      Serial.print("Got: ");
 //      Serial.println((char*)buf);
       
@@ -130,7 +131,7 @@ void loop() {
       
       // There needs to be a small delay before sending the reply.
       // YUK
-      delay(50);
+      delay(100);
 
       // Send a reply
       ack_payload.setMsgId(garden_payload.getMsgId());
@@ -140,6 +141,8 @@ void loop() {
       //rf95.send(ack_payload_buf, ack_payload.size());
       uint8_t encrypted_ack_buffer[16];
       cipher.encryptBlock(encrypted_ack_buffer, ack_payload_buf);
+      //rf95.setHeaderTo(garden_node_id);
+      //rf95.setHeaderFrom(rx_node_id);
       rf95.send(encrypted_ack_buffer, 16);
       rf95.waitPacketSent();
 

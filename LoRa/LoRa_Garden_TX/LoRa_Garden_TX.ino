@@ -6,6 +6,7 @@
 #include <RH_RF95.h>
 // oled display
 #include "U8glib.h"
+#include "config.h"
 #include "GardenPayload.h"
 #include "AckPayload.h"
 
@@ -37,13 +38,12 @@ typedef struct {
 monitor_t;
 monitor_t monitor;
 
-//@TODO: PRIVATE KEY!!!!!!!!!
-byte key[16] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-                0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
-
 AES128 cipher;
 uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
 uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
+
+uint8_t rx_node_id = 1;
+uint8_t garden_node_id = 2;
 
 void setup() {
   pinMode(RFM95_RST, OUTPUT);
@@ -78,6 +78,8 @@ void setup() {
     while (1);
   }
   //Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
+
+  rf95.setModemConfig(RH_RF95::Bw500Cr45Sf128);
   
   rf95.setTxPower(23, false);
 }
@@ -96,6 +98,8 @@ void loop() {
   tx_payload.serialize(payload_buf);
   //rf95.send(payload_buf, tx_payload.size());
   cipher.encryptBlock(encrypted_buffer, payload_buf);
+  //rf95.setHeaderTo(rx_node_id);
+  //rf95.setHeaderFrom(garden_node_id);
   rf95.send(encrypted_buffer, ENCRYPTION_BUFFER_SIZE);
 
   
@@ -114,6 +118,7 @@ void loop() {
     // Should be a reply message for us now   
     if (rf95.recv(buf, &len)) {
       RH_RF95::printBuffer("Received: ", buf, len);
+      //Serial.print("headerFrom: "); Serial.println(rf95.headerFrom());
       //Serial.print("Got reply: ");
       //Serial.println((char*)buf);
       //got = atoi((char*)buf);
