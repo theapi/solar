@@ -11,16 +11,16 @@
 
 #define ENCRYPTION_BUFFER_SIZE 16
 
-#define RFM95_CS 4
-#define RFM95_RST 2
+#define RFM95_CS 10
+//#define RFM95_RST 2
 #define RFM95_INT 3
 
 #define RF95_FREQ 868.0
 
-#define PIN_SENSOR_SOLAR_CURRENT A0
+#define PIN_SENSOR_LIGHT A0
 #define PIN_SENSOR_SOLAR_VOLTS A1
 #define PIN_SENSOR_SOIL A2
-#define PIN_SENSOR_LIGHT A3
+#define PIN_SENSOR_SOLAR_CURRENT A3
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
@@ -36,8 +36,8 @@ uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
 uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
 
 void setup() {
-  pinMode(RFM95_RST, OUTPUT);
-  digitalWrite(RFM95_RST, HIGH);
+  //pinMode(RFM95_RST, OUTPUT);
+  //digitalWrite(RFM95_RST, HIGH);
 
   Serial.begin(115200);
 
@@ -47,10 +47,10 @@ void setup() {
   //Serial.println("LoRa Garden TX");
 
   // manual reset
-  digitalWrite(RFM95_RST, LOW);
-  delay(10);
-  digitalWrite(RFM95_RST, HIGH);
-  delay(10);
+//  digitalWrite(RFM95_RST, LOW);
+//  delay(10);
+//  digitalWrite(RFM95_RST, HIGH);
+//  delay(10);
 
   while (!rf95.init()) {
     Serial.println("init failed");
