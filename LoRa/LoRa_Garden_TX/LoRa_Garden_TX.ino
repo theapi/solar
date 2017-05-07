@@ -1,9 +1,11 @@
 
 
 #include <SPI.h>
+#include <Wire.h>
 #include <Crypto.h>
 #include <AES.h>
 #include <RH_RF95.h>
+#include <Adafruit_ADS1015.h>
 
 #include "config.h"
 #include "GardenPayload.h"
@@ -20,10 +22,14 @@
 #define PIN_SENSOR_LIGHT A0
 #define PIN_SENSOR_SOLAR_VOLTS A1
 #define PIN_SENSOR_SOIL A2
-#define PIN_SENSOR_SOLAR_CURRENT A3
+
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
+
+// The differential ADC.
+Adafruit_ADS1015 ads;
+
 
 theapi::GardenPayload tx_payload = theapi::GardenPayload();
 theapi::AckPayload ack_payload = theapi::AckPayload();
@@ -41,6 +47,7 @@ void setup() {
 
   Serial.begin(115200);
 
+  ads.setGain(GAIN_TWO); // 2x gain   +/- 2.048V  1 bit = 1mV
   
   delay(100);
 
@@ -65,26 +72,21 @@ void setup() {
 
   rf95.setModemConfig(RH_RF95::Bw500Cr45Sf128);
   rf95.setTxPower(10, false);
+
+  ads.begin();
 }
 
 void loop() {
 
   tx_payload.setMsgId(++msg_id);
 
-  // Must read the internal referenced analogs first.
-  tx_payload.setChargeMa(readSolarCurrent());
-
   uint16_t vcc = readVcc();
   tx_payload.setVcc(vcc);
-
-  // Switch the reference back to vcc.
-  analogReference(DEFAULT);
-  analogRead(PIN_SENSOR_SOLAR_VOLTS);
 
   // Read the temperature while the aref settles.
   tx_payload.setTemperature(readTemperature());
   
-  // Vcc aref
+  tx_payload.setChargeMa(readSolarCurrent());
   tx_payload.setChargeMv(readSolarVolts(vcc));
   tx_payload.setLight(readLight(vcc));
   tx_payload.setSoil(readSoil(vcc));
@@ -120,11 +122,6 @@ void loop() {
   } else {
     Serial.println("No reply");
   }
-
-  // Change to internal aref now so it has plenty of time to switch.
-  analogReference(INTERNAL);
-  // Need to make a reading for the ref change to take effect.
-  analogRead(PIN_SENSOR_SOLAR_CURRENT);
   
   delay(5000);
 }
@@ -161,19 +158,7 @@ uint16_t readVcc()
 
 uint16_t readSolarCurrent() {
   // 1 ohm inline resistor
-  //analogReference(INTERNAL);
-  uint16_t val;
-
-  // This first reading after a mux change is unreliable.
-  val = analogRead(PIN_SENSOR_SOLAR_CURRENT);
-  
-  // Average the next readings.
-  val = 0;
-  for (uint8_t i = 0; i < 2; i++) { 
-    val += analogRead(PIN_SENSOR_SOLAR_CURRENT);
-  }
-
-  return val / 2;
+  return ads.readADC_Differential_0_1();
 }
 
 uint16_t readSolarVolts(uint16_t vcc) {
