@@ -27,7 +27,7 @@
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-// The differential ADC.
+// The external I2C ADC.
 Adafruit_ADS1015 ads;
 
 
@@ -42,22 +42,11 @@ uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
 uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
 
 void setup() {
-  //pinMode(RFM95_RST, OUTPUT);
-  //digitalWrite(RFM95_RST, HIGH);
-
   Serial.begin(115200);
 
   ads.setGain(GAIN_TWO); // 2x gain   +/- 2.048V  1 bit = 1mV
   
   delay(100);
-
-  //Serial.println("LoRa Garden TX");
-
-  // manual reset
-//  digitalWrite(RFM95_RST, LOW);
-//  delay(10);
-//  digitalWrite(RFM95_RST, HIGH);
-//  delay(10);
 
   while (!rf95.init()) {
     Serial.println("init failed");
@@ -87,7 +76,7 @@ void loop() {
   tx_payload.setTemperature(readTemperature());
   
   tx_payload.setChargeMa(readSolarCurrent());
-  tx_payload.setChargeMv(readSolarVolts(vcc));
+  tx_payload.setChargeMv(readSolarVolts());
   tx_payload.setLight(readLight(vcc));
   tx_payload.setSoil(readSoil(vcc));
   
@@ -161,36 +150,19 @@ uint16_t readSolarCurrent() {
   return ads.readADC_Differential_0_1();
 }
 
-uint16_t readSolarVolts(uint16_t vcc) {
-  // Voltage divider to half the incoming volts.
-  uint16_t val;
-
-  // This first reading after a mux change is unreliable.
-  val = analogRead(PIN_SENSOR_SOLAR_VOLTS);
-  
-  // Add the next 2 readings.
-  // To avergage and account for the halving votage divider.
-  val = 0;
-  for (uint8_t i = 0; i < 2; i++) { 
-    val += analogRead(PIN_SENSOR_SOLAR_VOLTS);
-  }
-
-  return vcc / 1024.0 * val;
+uint16_t readSolarVolts() {
+  // Voltage divider to reduce the maximum to 2V.
+  // 8V -> 2V
+  // Solar Panel --- 300K --- | --- 100K --- GND
+  return ads.readADC_SingleEnded(2);
 }
 
 uint16_t readLight(uint16_t vcc) {
-  uint16_t val;
-
-  // This first reading after a mux change is unreliable.
-  val = analogRead(PIN_SENSOR_LIGHT);
+  // Can't use a simple LDR as it will use 4.5mA
+  // @link https://learn.adafruit.com/photocells/using-a-photocell
+  // Maybe a lux meter - https://www.adafruit.com/product/439
   
-  // Average the next 2 readings.
-  val = 0;
-  for (uint8_t i = 0; i < 2; i++) { 
-    val += analogRead(PIN_SENSOR_LIGHT);
-  }
-
-  return val / 2;
+  return 0;
 }
 
 uint16_t readSoil(uint16_t vcc) {
