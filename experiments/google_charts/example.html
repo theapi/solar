@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <script type="text/javascript">
+      var csv = "50,123,4700,6432,74,1233,499,23";
+      var data_json = '{"msg_type":50,"msg_id":123,"vcc":4700,"charge_mv":6432,"charge_ma":74,"soil":499,"temperature":23}';
+      var data_obj = JSON.parse(data_json);
+      console.log(data_obj);
+    </script>
+   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+   <script type="text/javascript">
+      google.charts.load('current', {'packages':['gauge']});
+      google.charts.setOnLoadCallback(drawChart);
+
+
+
+      function drawChart() {
+
+        var data_ma = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['mA', 0],
+        ]);
+
+        var data_vcc = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['VCC', 0],
+        ]);
+
+
+          var options = {
+            min: 0, max:200,
+            width: 200, height: 200,
+            redFrom: 0, redTo: 20,
+            yellowFrom:20, yellowTo: 30,
+            majorTicks: [0,50,100,150,200],minorTicks: 5
+          };
+
+          var chart_ma = new google.visualization.Gauge(document.getElementById('chart_ma'));
+
+          data_ma.setValue(0, 1, data_obj.charge_ma);
+          chart_ma.draw(data_ma, options);
+
+          var chart_vcc = new google.visualization.Gauge(document.getElementById('chart_vcc'));
+          data_vcc.setValue(0, 1, data_obj.vcc);
+          var options = {
+            min: 0, max: 6000,
+            width: 200, height: 200,
+            redFrom: 5500, redTo: 6000,
+            yellowFrom:0, yellowTo: 3000,
+            majorTicks: [0,1,2,3,4,5,6], minorTicks: 10
+          };
+          chart_vcc.draw(data_vcc, options);
+
+      }
+    </script>
+  </head>
+  <body>
+    <span id="chart_ma" style="width: 120px; height: 120px;"></span>
+    <span id="chart_vcc" style="width: 120px; height: 120px;"></span>
+  </body>
+
+</html>
