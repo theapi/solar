@@ -20,7 +20,6 @@
 #define RF95_FREQ 868.0
 
 #define PIN_SENSOR_LIGHT A0
-#define PIN_SENSOR_SOLAR_VOLTS A1
 #define PIN_SENSOR_SOIL A2
 
 
@@ -77,6 +76,9 @@ void loop() {
   
   tx_payload.setChargeMa(readSolarCurrent());
   tx_payload.setChargeMv(readSolarVolts());
+
+Serial.print("getChargeMv: "); Serial.println(tx_payload.getChargeMv()); 
+  
   tx_payload.setLight(readLight(vcc));
   tx_payload.setSoil(readSoil(vcc));
   
@@ -147,14 +149,19 @@ uint16_t readVcc()
 
 uint16_t readSolarCurrent() {
   // 1 ohm inline resistor
-  return ads.readADC_Differential_0_1();
+  // Invert result as the wires are connected goofy.
+  return ads.readADC_Differential_0_1() * -1;
 }
 
 uint16_t readSolarVolts() {
   // Voltage divider to reduce the maximum to 2V.
   // 8V -> 2V
   // Solar Panel --- 300K --- | --- 100K --- GND
-  return ads.readADC_SingleEnded(2);
+  int16_t val = ads.readADC_SingleEnded(2);
+  // Calibration:
+  // 1000mV = 268, 2000mV = 537, 3000mV = 805... 
+  // so 3.7313mV = 1
+  return val * 3.7313F;
 }
 
 uint16_t readLight(uint16_t vcc) {
