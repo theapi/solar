@@ -1,41 +1,35 @@
-
-const char index_html[] PROGMEM = R"=====(
-
 <html>
-<head>
-<script type="text/javascript">
-var data_obj;
-</script>
-
-
+  <head>
     <script type="text/javascript">
-       var data_json = '{"garden":{"msg_type":0,"msg_id":0,"vcc":0,"solar_mv":0,"charge_ma":0,"light": 0,"soil":0,"temperature":0}, "signal":{"rssi":0,"snr":0}}';
-       data_obj = JSON.parse(data_json);
+
+      var data_json = '{"garden":{"msg_type":50,"msg_id":123,"vcc":4700,"solar_mv":6432,"charge_ma":74,"light": 1999,"soil":499,"temperature":23}, "signal":{"rssi":-52,"snr":14}}';
+      var data_obj = JSON.parse(data_json);
+      console.log(data_obj);
     </script>
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-      <script type="text/javascript">
+   <script type="text/javascript">
       google.charts.load('current', {'packages':['gauge']});
       google.charts.setOnLoadCallback(drawChart);
 
       function drawChart() {
         // Message id
-        if (typeof data_obj.garden !== 'undefined') {
+        if (data_obj.garden.msg_id) {
           var msg_id_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
-            ['msg', 0],
+            ['msg_id', 0],
           ]);
           var msg_id_chart = new google.visualization.Gauge(document.getElementById('chart_msg_id'));
           msg_id_data.setValue(0, 1, data_obj.garden.msg_id);
           var msg_id_options = {
-            min: 0, max: 255,
-            width: 140, height: 140,
-            minorTicks: 10
+            min: 0, max: 254,
+            width: 150, height: 150,
+            majorTicks: [0,64,127,192,254], minorTicks: 10
           };
           msg_id_chart.draw(msg_id_data, msg_id_options);
         }
 
         // Soil
-        if (typeof data_obj.garden !== 'undefined') {
+        if (data_obj.garden.soil) {
           var soil_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
             ['soil', 0],
@@ -44,32 +38,32 @@ var data_obj;
           soil_data.setValue(0, 1, data_obj.garden.soil);
           var soil_options = {
             min: 0, max: 1023,
-            width: 180, height: 180,
+            width: 150, height: 150,
             minorTicks: 10
           };
           soil_chart.draw(soil_data, soil_options);
         }
 
         // Temperature
-        if (typeof data_obj.garden !== 'undefined') {
+        if (data_obj.garden.temperature) {
           var temperature_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
-            ['\u00B0C', 0],
+            ['°C', 0],
           ]);
           var temperature_chart = new google.visualization.Gauge(document.getElementById('chart_temperature'));
           temperature_data.setValue(0, 1, data_obj.garden.temperature);
           var temperature_options = {
             min: 0, max: 50,
-            width: 180, height: 180,
+            width: 150, height: 150,
             redFrom: 40, redTo: 50,
             yellowFrom:30, yellowTo: 40,
-            majorTicks: [0,10,20,30,40,50], minorTicks: 10
+            minorTicks: 10
           };
           temperature_chart.draw(temperature_data, temperature_options);
         }
 
         // VCC
-        if (typeof data_obj.garden !== 'undefined') {
+        if (data_obj.garden.vcc) {
           var vcc_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
             ['VCC', 0],
@@ -89,10 +83,10 @@ var data_obj;
         }
 
         // Light
-        if (typeof data_obj.garden !== 'undefined') {
+        if (data_obj.garden.light) {
           var light_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
-            ['light', 0],
+            ['Light', 0],
           ]);
           var light_chart = new google.visualization.Gauge(document.getElementById('chart_light'));
           light_data.setValue(0, 1, data_obj.garden.light);
@@ -107,10 +101,10 @@ var data_obj;
         }
 
         // Solar mV
-        if (typeof data_obj.garden !== 'undefined') {
+        if (data_obj.garden.solar_mv) {
           var solar_mv_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
-            ['mV', 0],
+            ['solar mV', 0],
           ]);
           var solar_mv_chart = new google.visualization.Gauge(document.getElementById('chart_solar_mv'));
           solar_mv_data.setValue(0, 1, data_obj.garden.solar_mv);
@@ -125,7 +119,7 @@ var data_obj;
         }
 
         // Charge mA
-        if (typeof data_obj.garden !== 'undefined') {
+        if (data_obj.garden.charge_ma) {
           var ma_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
             ['mA', 0],
@@ -143,7 +137,7 @@ var data_obj;
         }
 
         // RSSI
-        if (typeof data_obj.signal !== 'undefined') {
+        if (data_obj.signal.rssi) {
           var rssi_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
             ['RSSI', 0],
@@ -151,15 +145,15 @@ var data_obj;
           var rssi_chart = new google.visualization.Gauge(document.getElementById('chart_rssi'));
           rssi_data.setValue(0, 1, data_obj.signal.rssi);
           var rssi_options = {
-            min: -140, max: 0,
-            width: 140, height: 140,
-            majorTicks: [-140, -112, -84, -56, -28, 0],  minorTicks: 10
+            min: -150, max: 0,
+            width: 150, height: 150,
+            minorTicks: 10
           };
           rssi_chart.draw(rssi_data, rssi_options);
         }
 
         // SNR
-        if (typeof data_obj.signal !== 'undefined') {
+        if (data_obj.signal.snr) {
           var snr_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
             ['SNR', 0],
@@ -168,64 +162,32 @@ var data_obj;
           snr_data.setValue(0, 1, data_obj.signal.snr);
           var snr_options = {
             min: 0, max: 100,
-            width: 140, height: 140,
-            majorTicks: [0,20,40,60,80,100], minorTicks: 10
+            width: 150, height: 150,
+            minorTicks: 10
           };
           snr_chart.draw(snr_data, snr_options);
         }
 
       }
     </script>
-
-<script type="text/javascript">
-  var connection = new WebSocket('ws://192.168.0.34:81/', ['arduino']);
-  connection.onopen = function () {
-      connection.send('Connect ' + new Date());
-  };
-  connection.onerror = function (error) {
-      console.log('WebSocket Error ', error);
-  };
-  connection.onmessage = function (e) {
-      console.log('Server: ', e.data);
-      var json_obj = JSON.parse(e.data);
-      console.log(json_obj);
-
-      if (typeof json_obj.signal !== 'undefined') {
-          data_obj.signal = json_obj.signal;
-      }
-      if (typeof json_obj.garden !== 'undefined') {
-          data_obj.garden = json_obj.garden;
-      }
-      if (typeof json_obj.status !== 'undefined') {
-          data_obj.status = json_obj.status;
-      }
-
-      drawChart();
-  };
-</script>
-
-</head>
-<body>
-
-<div style="margin: auto; width: 360;">
-
+  </head>
+  <body>
+<div style="margin: auto; width: 450;">
+    <span id="chart_msg_id" style="float:left;"></span>
     <span id="chart_soil" style="float:left;"></span>
-    <span id="chart_temperature" style="float:left;"></span>
+    <span id="chart_temperature" ></span>
 </div>
-<div style="margin: auto; width: 800; clear:both;">
+<div style="margin: auto; width: 800;">
     <span id="chart_vcc" style="float:left;"></span>
     <span id="chart_light" style="float:left;"></span>
     <span id="chart_solar_mv" style="float:left;"></span>
     <span id="chart_ma" style="float:left;"></span>
 </div>
-<div style="margin: auto; width: 450;">
-    <span id="chart_msg_id" style="float:left;"></span>
+<div style="margin: auto; width: 300;">
     <span id="chart_rssi" style="float:left;"></span>
     <span id="chart_snr" style="float:left;"></span>
 </div>
 
-</body>
+  </body>
+
 </html>
-
-)=====";
-

@@ -1,5 +1,5 @@
 
-const char index_html[] PROGMEM = R"=====(
+
 
 <html>
 <head>
@@ -9,8 +9,8 @@ var data_obj;
 
 
     <script type="text/javascript">
-       var data_json = '{"garden":{"msg_type":0,"msg_id":0,"vcc":0,"solar_mv":0,"charge_ma":0,"light": 0,"soil":0,"temperature":0}, "signal":{"rssi":0,"snr":0}}';
-       data_obj = JSON.parse(data_json);
+    var data_json = '{"garden":{"msg_type":0,"msg_id":0,"vcc":0,"solar_mv":0,"charge_ma":0,"light": 0,"soil":0,"temperature":0}, "signal":{"rssi":0,"snr":0}}';
+    data_obj = JSON.parse(data_json);
     </script>
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
       <script type="text/javascript">
@@ -226,6 +226,3 @@ var data_obj;
 
 </body>
 </html>
-
-)=====";
-
