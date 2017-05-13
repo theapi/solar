@@ -81,6 +81,14 @@ void setup() {
   onewireSensors.begin();
   onewireSensors.getAddress(deviceAddress, 0);
 
+  // Connect the light sensor to ground.
+  // The light sensor is a voltage source.
+  // So to insure that there is not a voltage higher than vcc
+  // on the external ADC, it's ground is connected via the pin
+  // which is high impedance on startup.
+  pinMode(PIN_SENSOR_GND, OUTPUT);
+  digitalWrite(PIN_SENSOR_GND, LOW);
+
   // Begin the external ADC.
   ads.begin();
 }
@@ -95,12 +103,8 @@ void loop() {
   // Read the temperature while the aref settles.
   tx_payload.setTemperature(readTemperature());
 
-  // Connect the light sensor to ground.
-  pinMode(PIN_SENSOR_GND, OUTPUT);
-  digitalWrite(PIN_SENSOR_GND, LOW);
-
   // Power up the soil sensor.
-  digitalWrite(PIN_SENSOR_GND, HIGH);
+  digitalWrite(PIN_SENSOR_VCC, HIGH);
   
   tx_payload.setChargeMa(readSolarCurrent());
   tx_payload.setChargeMv(readSolarVolts());
@@ -108,13 +112,8 @@ void loop() {
   tx_payload.setSoil(readSoil(vcc));
 
   // Power down the soil sensor.
-  digitalWrite(PIN_SENSOR_GND, LOW);
+  digitalWrite(PIN_SENSOR_VCC, LOW);
 
-  // Disconnect the light sensor.
-  // This insures that there is not a voltage higher than vcc
-  // on the external ADC, as the light sensor is a voltage source.
-  pinMode(PIN_SENSOR_GND, INPUT);
-  
   // Build the payload buffer.
   uint8_t payload_buf[tx_payload.size()];
   tx_payload.serialize(payload_buf);
