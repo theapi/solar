@@ -2,6 +2,8 @@
 
 #include <SPI.h>
 #include <Wire.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 #include <Crypto.h>
 #include <AES.h>
 #include <RH_RF95.h>
@@ -22,6 +24,8 @@
 #define PIN_SENSOR_GND 8
 #define PIN_SENSOR_VCC 7
 #define PIN_SENSOR_SOIL A2
+// Data wire is plugged into pin 6 on the Arduino
+#define ONE_WIRE_BUS 6
 
 
 // Singleton instance of the radio driver
@@ -40,6 +44,12 @@ int rssi = 0;
 AES128 cipher;
 uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
 uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
+
+// Setup a oneWire instance to communicate with any OneWire devices.
+OneWire oneWire(ONE_WIRE_BUS);
+// Pass the oneWire reference to Dallas Temperature.
+DallasTemperature onewireSensors(&oneWire);
+DeviceAddress deviceAddress;
 
 void setup() {
   Serial.begin(115200);
@@ -66,6 +76,12 @@ void setup() {
   // Start with no volts to the sensors using this power source.
   digitalWrite(PIN_SENSOR_VCC, LOW);
 
+  // Begin the onwire library. 
+  onewireSensors.setWaitForConversion(true);
+  onewireSensors.begin();
+  onewireSensors.getAddress(deviceAddress, 0);
+
+  // Begin the external ADC.
   ads.begin();
 }
 
@@ -204,7 +220,11 @@ uint16_t readSoil(uint16_t vcc) {
 }
 
 uint16_t readTemperature() {
-return 25; //@todo do a real reading
-
+  if (onewireSensors.isConversionAvailable(deviceAddress)) {
+    // Send the command to get temperatures
+    onewireSensors.requestTemperatures(); 
+    return onewireSensors.getTempCByIndex(0);
+  }
+  return 99; // Indicates a bad read.
 }
 
