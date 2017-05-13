@@ -19,7 +19,8 @@
 
 #define RF95_FREQ 868.0
 
-#define PIN_SENSOR_LIGHT A0
+#define PIN_SENSOR_GND 8
+#define PIN_SENSOR_VCC 7
 #define PIN_SENSOR_SOIL A2
 
 
@@ -61,6 +62,10 @@ void setup() {
   rf95.setModemConfig(RH_RF95::Bw500Cr45Sf128);
   rf95.setTxPower(10, false);
 
+  pinMode(PIN_SENSOR_VCC, OUTPUT);
+  // Start with no volts to the sensors using this power source.
+  digitalWrite(PIN_SENSOR_VCC, LOW);
+
   ads.begin();
 }
 
@@ -73,14 +78,26 @@ void loop() {
 
   // Read the temperature while the aref settles.
   tx_payload.setTemperature(readTemperature());
+
+  // Connect the light sensor to ground.
+  pinMode(PIN_SENSOR_GND, OUTPUT);
+  digitalWrite(PIN_SENSOR_GND, LOW);
+
+  // Power up the soil sensor.
+  digitalWrite(PIN_SENSOR_GND, HIGH);
   
   tx_payload.setChargeMa(readSolarCurrent());
   tx_payload.setChargeMv(readSolarVolts());
-
-Serial.print("getChargeMv: "); Serial.println(tx_payload.getChargeMv()); 
-  
   tx_payload.setLight(readLight(vcc));
   tx_payload.setSoil(readSoil(vcc));
+
+  // Power down the soil sensor.
+  digitalWrite(PIN_SENSOR_GND, LOW);
+
+  // Disconnect the light sensor.
+  // This insures that there is not a voltage higher than vcc
+  // on the external ADC, as the light sensor is a voltage source.
+  pinMode(PIN_SENSOR_GND, INPUT);
   
   // Build the payload buffer.
   uint8_t payload_buf[tx_payload.size()];
@@ -156,7 +173,7 @@ uint16_t readSolarCurrent() {
 uint16_t readSolarVolts() {
   // Voltage divider to reduce the maximum to 2V.
   // 8V -> 2V
-  // Solar Panel --- 300K --- | --- 100K --- GND
+  // Solar panel --- 300K --- | --- 100K --- GND
   int16_t val = ads.readADC_SingleEnded(2);
   // Calibration:
   // 1000mV = 268, 2000mV = 537, 3000mV = 805... 
@@ -165,11 +182,10 @@ uint16_t readSolarVolts() {
 }
 
 uint16_t readLight(uint16_t vcc) {
-  // Can't use a simple LDR as it will use 4.5mA
-  // @link https://learn.adafruit.com/photocells/using-a-photocell
-  // Maybe a lux meter - https://www.adafruit.com/product/439
-  
-  return 0;
+  // A very small solar panel with no load.
+  // Mini solar panel --- 100K --- | --- 100K --- GND
+  int16_t val = ads.readADC_SingleEnded(3);
+  return val * 2;
 }
 
 uint16_t readSoil(uint16_t vcc) {
