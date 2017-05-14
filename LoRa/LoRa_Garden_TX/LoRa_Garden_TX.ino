@@ -4,6 +4,12 @@
 #include <Wire.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <avr/wdt.h>
+#include <avr/sleep.h>    // Sleep Modes
+#include <avr/power.h>    // Power management
+
+#define RNG_WATCHDOG 0 // and remove ISR(WDT_vect) from RNG.cpp (line 195) 
+
 #include <Crypto.h>
 #include <AES.h>
 #include <RH_RF95.h>
@@ -27,6 +33,7 @@
 // Data wire is plugged into pin 6 on the Arduino
 #define ONE_WIRE_BUS 6
 
+#define WD_DO_STUFF 1 // How many watchdog interupts before doing real work.
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
@@ -51,7 +58,21 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature onewireSensors(&oneWire);
 DeviceAddress deviceAddress;
 
+volatile byte wd_isr = WD_DO_STUFF;
+
+ISR(WDT_vect) {
+  // Wake up by watchdog
+  if (wd_isr == 0) {
+      wd_isr = WD_DO_STUFF;
+  } else {
+      --wd_isr; 
+      // Go back to sleep.
+      goToSleep();
+  }
+}
+
 void setup() {
+  watchdog_setup();
   Serial.begin(115200);
 
   ads.setGain(GAIN_TWO); // 2x gain   +/- 2.048V  1 bit = 1mV
@@ -73,8 +94,7 @@ void setup() {
   rf95.setTxPower(10, false);
 
   pinMode(PIN_SENSOR_VCC, OUTPUT);
-  // Start with no volts to the sensors using this power source.
-  digitalWrite(PIN_SENSOR_VCC, LOW);
+  digitalWrite(PIN_SENSOR_VCC, HIGH);
 
   // Begin the onwire library. 
   onewireSensors.setWaitForConversion(true);
@@ -95,17 +115,20 @@ void setup() {
 
 void loop() {
 
+  // Reset watchdog so he knows all is well.
+  wdt_reset();
+
+  // Power up the sensors.
+  digitalWrite(PIN_SENSOR_VCC, HIGH);
+
   tx_payload.setMsgId(++msg_id);
 
   uint16_t vcc = readVcc();
   tx_payload.setVcc(vcc);
 
-  // Read the temperature while the aref settles.
+  // Read the temperature.
   tx_payload.setTemperature(readTemperature());
 
-  // Power up the soil sensor.
-  digitalWrite(PIN_SENSOR_VCC, HIGH);
-  
   tx_payload.setChargeMa(readSolarCurrent());
   tx_payload.setChargeMv(readSolarVolts());
   tx_payload.setLight(readLight(vcc));
@@ -146,8 +169,67 @@ void loop() {
     Serial.println("No reply");
   }
   
-  delay(5000);
+  // Watchdog will wake us up in 8 seconds time.
+  goToSleep();
 }
+
+/**
+ * Watchdog for while awake to ensure things are ticking over.
+ */
+void watchdog_setup() {
+  // Clear any previous watchdog interupt
+  MCUSR = 0;
+  
+  // Reset after 8 seconds, 
+  // unless wdt_reset(); has been successfully called
+  
+  /* In order to change WDE or the prescaler, we need to
+   * set WDCE (This will allow updates for 4 clock cycles).
+   */
+  WDTCSR |= (1<<WDCE) | (1<<WDE);
+
+  /* set new watchdog timeout prescaler value */
+  WDTCSR = 1<<WDP0 | 1<<WDP3; /* 8.0 seconds */
+  
+  /* Enable the WD interrupt (note no reset). */
+  WDTCSR |= _BV(WDIE);
+  
+  //wdt_enable(WDTO_8S);
+  wdt_reset();
+}
+
+void goToSleep() {
+  //digitalWrite(LED_DEBUG, LOW);
+  
+ 
+  cli();
+  
+  // disable ADC
+  byte old_ADCSRA = ADCSRA;
+  ADCSRA = 0;
+  
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
+  power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
+  sleep_enable();
+  sei();
+  
+  // turn off brown-out enable in software
+  MCUCR = bit (BODS) | bit (BODSE);  // turn on brown-out enable select
+  MCUCR = bit (BODS);        // this must be done within 4 clock cycles of above
+  sleep_cpu();              // sleep within 3 clock cycles of above
+                              
+  sleep_disable();  
+  MCUSR = 0; // clear the reset register 
+  
+  power_all_enable();    // power everything back on
+  
+  // put ADC back
+  ADCSRA = old_ADCSRA;
+  
+  //digitalWrite(LED_DEBUG, HIGH);
+  
+} 
 
 /**
  * Read the internal voltage.
@@ -219,11 +301,8 @@ uint16_t readSoil(uint16_t vcc) {
 }
 
 uint16_t readTemperature() {
-  if (onewireSensors.isConversionAvailable(deviceAddress)) {
-    // Send the command to get temperatures
-    onewireSensors.requestTemperatures(); 
-    return onewireSensors.getTempCByIndex(0);
-  }
-  return 99; // Indicates a bad read.
+  // Send the command to get temperatures
+  onewireSensors.requestTemperatures(); 
+  return onewireSensors.getTempCByIndex(0);
 }
 
