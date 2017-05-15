@@ -59,11 +59,11 @@ var data_obj;
           var temperature_chart = new google.visualization.Gauge(document.getElementById('chart_temperature'));
           temperature_data.setValue(0, 1, data_obj.garden.temperature);
           var temperature_options = {
-            min: 0, max: 50,
+            min: -20, max: 50,
             width: 180, height: 180,
             redFrom: 40, redTo: 50,
             yellowFrom:30, yellowTo: 40,
-            majorTicks: [0,10,20,30,40,50], minorTicks: 10
+            majorTicks: [-20,-10,0,10,20,30,40,50], minorTicks: 10
           };
           temperature_chart.draw(temperature_data, temperature_options);
         }
@@ -97,7 +97,7 @@ var data_obj;
           var light_chart = new google.visualization.Gauge(document.getElementById('chart_light'));
           light_data.setValue(0, 1, data_obj.garden.light);
           var light_options = {
-            min: 0, max: 2000,
+            min: 0, max: 6000,
             width: 200, height: 200,
             redFrom: 0, redTo: 10,
             yellowFrom:10, yellowTo: 100,
@@ -115,11 +115,11 @@ var data_obj;
           var solar_mv_chart = new google.visualization.Gauge(document.getElementById('chart_solar_mv'));
           solar_mv_data.setValue(0, 1, data_obj.garden.solar_mv);
           var solar_mv_options = {
-            min: 0, max: 10000,
+            min: 0, max: 8000,
             width: 200, height: 200,
             yellowFrom:5500, yellowTo: 6000,
-            greenFrom:6000, greenTo: 10000,
-            majorTicks: [0,1,2,3,4,5,6,7,8,9,10], minorTicks: 10
+            greenFrom:6000, greenTo: 8000,
+            majorTicks: [0,1,2,3,4,5,6,7,8], minorTicks: 10
           };
           solar_mv_chart.draw(solar_mv_data, solar_mv_options);
         }
