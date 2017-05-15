@@ -42,7 +42,9 @@ var data_obj;
           var soil_options = {
             min: 0, max: 1023,
             width: 180, height: 180,
-            minorTicks: 10
+            redFrom: 0, redTo: 127,
+            yellowFrom:127, yellowTo: 256,
+            majorTicks: [0,256, 512, 768, 1023], minorTicks: 16
           };
           soil_chart.draw(soil_data, soil_options);
         }
@@ -56,11 +58,11 @@ var data_obj;
           var temperature_chart = new google.visualization.Gauge(document.getElementById('chart_temperature'));
           temperature_data.setValue(0, 1, data_obj.garden.temperature);
           var temperature_options = {
-            min: -20, max: 50,
+            min: -10, max: 50,
             width: 180, height: 180,
             redFrom: 40, redTo: 50,
             yellowFrom:30, yellowTo: 40,
-            majorTicks: [-20,-10,0,10,20,30,40,50], minorTicks: 10
+            majorTicks: [-10,'0',10,20,30,40,50], minorTicks: 10
           };
           temperature_chart.draw(temperature_data, temperature_options);
         }
@@ -94,11 +96,14 @@ var data_obj;
           var light_chart = new google.visualization.Gauge(document.getElementById('chart_light'));
           light_data.setValue(0, 1, data_obj.garden.light);
           var light_options = {
-            min: 0, max: 6000,
+            min: 0, max: 5000,
             width: 200, height: 200,
-            redFrom: 0, redTo: 10,
-            yellowFrom:10, yellowTo: 100,
-            minorTicks: 10
+            redFrom: 0, redTo: 1000,
+            redColor: "#2e2d4f",
+            yellowFrom:2500, yellowTo: 3500,
+            greenFrom:3500, greenTo: 5000,
+            greenColor: "#ffee38",
+            majorTicks: [0,1,2,3,4,5], minorTicks: 10
           };
           light_chart.draw(light_data, light_options);
         }
