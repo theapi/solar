@@ -1,0 +1,15 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP ADS1015
+D 12-bit analog to digital converter, I2C interface
+K adc i2c quad double
+F https://cdn-shop.adafruit.com/datasheets/ads1015.pdf
+$ENDCMP
+#
+$CMP ADS1015_Breakout
+D 12-bit analog to digital converter, I2C interface
+K adc i2c quad double
+F https://cdn-shop.adafruit.com/datasheets/ads1015.pdf
+$ENDCMP
+#
+#End Doc Library
