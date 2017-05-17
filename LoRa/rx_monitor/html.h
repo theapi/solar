@@ -9,15 +9,52 @@ var data_obj;
 
 
     <script type="text/javascript">
-       var data_json = '{"garden":{"msg_type":0,"msg_id":0,"vcc":0,"solar_mv":0,"charge_ma":0,"light": 0,"soil":0,"temperature":0}, "signal":{"rssi":0,"snr":0}}';
+       var data_json = '{"garden":{"msg_type":0,"msg_id":0,"vcc":0,"solar_mv":0,"charge_ma":0,"light": 0,"soil":0,"temperature":0}, "signal":{"rssi":0,"snr":0}, "connection":{"status":0}}';
        data_obj = JSON.parse(data_json);
     </script>
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
       <script type="text/javascript">
-      google.charts.load('current', {'packages':['gauge']});
+      google.charts.load('current', {'packages':['gauge', 'corechart']});
       google.charts.setOnLoadCallback(drawChart);
 
       function drawChart() {
+
+        // Connection status
+        if (typeof data_obj.connection !== 'undefined') {
+          var connection_data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['0', 0],
+            ['1', 0],
+            ['2', 0],
+          ]);
+          var connection_chart = new google.visualization.PieChart(document.getElementById('chart_connection'));
+          if (data_obj.connection.status == 1) {
+            connection_data.setValue(0, 1, 0);
+            connection_data.setValue(1, 1, 1);
+            connection_data.setValue(2, 1, 0);
+          } else if (data_obj.connection.status == 2) {
+            connection_data.setValue(0, 1, 0);
+            connection_data.setValue(1, 1, 0);
+            connection_data.setValue(2, 1, 1);
+          } else {
+            connection_data.setValue(0, 1, 1);
+            connection_data.setValue(1, 1, 0);
+            connection_data.setValue(2, 1, 0);
+          }
+
+          var connection_options = {
+            min: 0, max: 2,
+            width: 30, height: 30,
+            colors:['blue', 'green' , 'red'],
+            pieHole: 0.6,
+            pieSliceText: 'none',
+            enableInteractivity: false,
+            legend: {position: 'none'},
+            //majorTicks: ['0', '1', '2'], minorTicks: 0
+          };
+          connection_chart.draw(connection_data, connection_options);
+        }
+
         // Message id
         if (typeof data_obj.garden !== 'undefined') {
           var msg_id_data = google.visualization.arrayToDataTable([
@@ -186,9 +223,15 @@ var data_obj;
   var connection = new WebSocket('ws://192.168.0.34:81/', ['arduino']);
   connection.onopen = function () {
       connection.send('Connect ' + new Date());
+      data_obj.connection.status = 1;
   };
   connection.onerror = function (error) {
       console.log('WebSocket Error ', error);
+      data_obj.connection.status = 2;
+  };
+  connection.onclose = function () {
+      console.log('WebSocket closed');
+      data_obj.connection.status = 0;
   };
   connection.onmessage = function (e) {
       console.log('Server: ', e.data);
@@ -212,6 +255,9 @@ var data_obj;
 </head>
 <body>
 
+  <div>
+    <span id="chart_connection" style="float:left;"></span>
+  </div>
 <div style="margin: auto; width: 360;">
 
     <span id="chart_soil" style="float:left;"></span>
@@ -231,6 +277,7 @@ var data_obj;
 
 </body>
 </html>
+
 
 )=====";
 
