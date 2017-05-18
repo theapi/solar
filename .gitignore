@@ -1,6 +1,9 @@
 config.h
+config.php
 .idea
 .DS_Store
+
+vendor
 
 # Object files
 *.o
@@ -30,5 +33,3 @@ config.h
 .project
 .buildpath
 .settings
-
-
