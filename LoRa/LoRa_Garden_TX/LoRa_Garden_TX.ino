@@ -8,10 +8,10 @@
 #include <avr/sleep.h>    // Sleep Modes
 #include <avr/power.h>    // Power management
 
-#define RNG_WATCHDOG 0 // and remove ISR(WDT_vect) from RNG.cpp (line 195) 
+//#define RNG_WATCHDOG 0 // and remove ISR(WDT_vect) from RNG.cpp (line 195) 
 
-#include <Crypto.h>
-#include <AES.h>
+//#include <Crypto.h>
+//#include <AES.h>
 #include <RH_RF95.h>
 #include <Adafruit_ADS1015.h>
 
@@ -19,7 +19,7 @@
 #include "GardenPayload.h"
 #include "AckPayload.h"
 
-#define ENCRYPTION_BUFFER_SIZE 16
+//#define ENCRYPTION_BUFFER_SIZE 16
 
 #define RFM95_CS 10
 //#define RFM95_RST 2
@@ -48,9 +48,9 @@ theapi::AckPayload ack_payload = theapi::AckPayload();
 uint8_t msg_id = 0;
 int rssi = 0;
 
-AES128 cipher;
-uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
-uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
+//AES128 cipher;
+//uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
+//uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
 
 // Setup a oneWire instance to communicate with any OneWire devices.
 OneWire oneWire(ONE_WIRE_BUS);
@@ -61,32 +61,34 @@ DeviceAddress deviceAddress;
 volatile byte wd_isr = WD_DO_STUFF;
 
 ISR(WDT_vect) {
-  // Wake up by watchdog
-  if (wd_isr == 0) {
-      wd_isr = WD_DO_STUFF;
-  } else {
-      --wd_isr; 
-      // Go back to sleep.
-      goToSleep();
-  }
+  wdt_disable();  // disable watchdog
+  
+//  // Wake up by watchdog
+//  if (wd_isr == 0) {
+//      wd_isr = WD_DO_STUFF;
+//  } else {
+//      --wd_isr; 
+//      // Go back to sleep.
+//      goToSleep();
+//  }
 }
 
 void setup() {
-  watchdog_setup();
-  Serial.begin(115200);
+  //watchdog_setup();
+  //Serial.begin(115200);
 
   ads.setGain(GAIN_TWO); // 2x gain   +/- 2.048V  1 bit = 1mV
   
   delay(100);
 
   while (!rf95.init()) {
-    Serial.println("init failed");
+    //Serial.println("init failed");
     while (1);
   }
-  Serial.println("init OK");
+  //Serial.println("init OK");
 
   if (!rf95.setFrequency(RF95_FREQ)) {
-    Serial.println("setFrequency failed");
+    //Serial.println("setFrequency failed");
     while (1);
   }
 
@@ -141,35 +143,40 @@ void loop() {
   uint8_t payload_buf[tx_payload.size()];
   tx_payload.serialize(payload_buf);
   // Encrypt the payload.
-  cipher.encryptBlock(encrypted_buffer, payload_buf);
+  //cipher.encryptBlock(encrypted_buffer, payload_buf);
   // Send it.
-  rf95.send(encrypted_buffer, ENCRYPTION_BUFFER_SIZE);
+  rf95.send(payload_buf, tx_payload.size());
+  //rf95.send(encrypted_buffer, ENCRYPTION_BUFFER_SIZE);
   rf95.waitPacketSent();
   
-  // Now wait for a reply
-  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-  uint8_t len = sizeof(buf);
+//  // Now wait for a reply
+//  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+//  uint8_t len = sizeof(buf);
 
-  if (rf95.waitAvailableTimeout(2000)) { 
-    // Should be a reply message for us now   
-    if (rf95.recv(buf, &len)) {
-      RH_RF95::printBuffer("Received: ", buf, len);
-      Serial.print("RSSI: ");
-      rssi = rf95.lastRssi();
-      Serial.println(rssi, DEC);    
+//  if (rf95.waitAvailableTimeout(2000)) { 
+//    // Should be a reply message for us now   
+//    if (rf95.recv(buf, &len)) {
+//      RH_RF95::printBuffer("Received: ", buf, len);
+//      Serial.print("RSSI: ");
+//      rssi = rf95.lastRssi();
+//      Serial.println(rssi, DEC);    
+//
+////      uint8_t decrypted_ack_buf[16];
+////      cipher.decryptBlock(decrypted_ack_buf, buf);
+//      //ack_payload.unserialize(decrypted_ack_buf);
+//      ack_payload.unserialize(buf);
+//
+//    } else {
+//      Serial.println("Receive failed");
+//    }
+//  } else {
+//    Serial.println("No reply");
+//  }
 
-      uint8_t decrypted_ack_buf[16];
-      cipher.decryptBlock(decrypted_ack_buf, buf);
-      ack_payload.unserialize(decrypted_ack_buf);
-
-    } else {
-      Serial.println("Receive failed");
-    }
-  } else {
-    Serial.println("No reply");
-  }
-  
+  //delay(5000);
+  rf95.sleep();
   // Watchdog will wake us up in 8 seconds time.
+  delay(5);
   goToSleep();
 }
 
@@ -202,11 +209,19 @@ void goToSleep() {
   //digitalWrite(LED_DEBUG, LOW);
   
  
-  cli();
+  noInterrupts();
   
   // disable ADC
   byte old_ADCSRA = ADCSRA;
   ADCSRA = 0;
+
+    // clear various "reset" flags
+  MCUSR = 0;     
+  // allow changes, disable reset
+  WDTCSR = bit (WDCE) | bit (WDE);
+  // set interrupt mode and an interval 
+  WDTCSR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
+  wdt_reset();  // pat the dog
   
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
@@ -217,6 +232,8 @@ void goToSleep() {
   // turn off brown-out enable in software
   MCUCR = bit (BODS) | bit (BODSE);  // turn on brown-out enable select
   MCUCR = bit (BODS);        // this must be done within 4 clock cycles of above
+  
+  interrupts ();             // guarantees next instruction executed
   sleep_cpu();              // sleep within 3 clock cycles of above
                               
   sleep_disable();  

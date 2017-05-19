@@ -5,8 +5,8 @@
 
 
 #include <SPI.h>
-#include <Crypto.h>
-#include <AES.h>
+//#include <Crypto.h>
+//#include <AES.h>
 #include <RH_RF95.h>
 
 #include "config.h"
@@ -16,7 +16,7 @@
 #include "SignalPayload.h"
 
 
-#define ENCRYPTION_BUFFER_SIZE 16
+//#define ENCRYPTION_BUFFER_SIZE 16
 
 #define RFM95_CS 4
 #define RFM95_RST 2
@@ -41,9 +41,9 @@ theapi::GardenPayload garden_payload = theapi::GardenPayload();
 theapi::AckPayload ack_payload = theapi::AckPayload();
 theapi::SignalPayload signal_payload = theapi::SignalPayload();
 
-AES128 cipher;
-uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
-uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
+//AES128 cipher;
+//uint8_t encrypted_buffer[ENCRYPTION_BUFFER_SIZE];
+//uint8_t decrypted_buf[ENCRYPTION_BUFFER_SIZE];
 
 uint8_t rx_node_id = 1;
 uint8_t garden_node_id = 2;
@@ -106,8 +106,9 @@ void loop() {
       Serial.println(rf95.lastRssi(), DEC);
 
       // Decrypt the message.
-      cipher.decryptBlock(decrypted_buf, buf);
-      garden_payload.unserialize(decrypted_buf);
+      //cipher.decryptBlock(decrypted_buf, buf);
+      //garden_payload.unserialize(decrypted_buf);
+      garden_payload.unserialize(buf);
       Serial.print("msg_id: ");
       Serial.println(garden_payload.getMsgId());
 
@@ -138,12 +139,12 @@ void loop() {
       //ack_payload.setValue(1234);
       uint8_t ack_payload_buf[ack_payload.size()];
       ack_payload.serialize(ack_payload_buf);
-      //rf95.send(ack_payload_buf, ack_payload.size());
-      uint8_t encrypted_ack_buffer[16];
-      cipher.encryptBlock(encrypted_ack_buffer, ack_payload_buf);
+      rf95.send(ack_payload_buf, ack_payload.size());
+      //uint8_t encrypted_ack_buffer[16];
+      //cipher.encryptBlock(encrypted_ack_buffer, ack_payload_buf);
       //rf95.setHeaderTo(garden_node_id);
       //rf95.setHeaderFrom(rx_node_id);
-      rf95.send(encrypted_ack_buffer, 16);
+      //rf95.send(encrypted_ack_buffer, 16);
       rf95.waitPacketSent();
 
       
