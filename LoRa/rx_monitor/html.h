@@ -5,6 +5,7 @@ const char index_html[] PROGMEM = R"=====(
 <head>
 <script type="text/javascript">
 var data_obj;
+var timer = 0;
 </script>
 
 
@@ -16,6 +17,27 @@ var data_obj;
       <script type="text/javascript">
       google.charts.load('current', {'packages':['gauge', 'corechart']});
       google.charts.setOnLoadCallback(drawChart);
+
+      // Update the timer every second.
+      setInterval(drawTimer, 1000);
+
+      function drawTimer() {
+        // Timer
+        var timer_data = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['timer', 0],
+        ]);
+        var timer_chart = new google.visualization.Gauge(document.getElementById('chart_timer'));
+        timer_data.setValue(0, 1, ++timer);
+        var timer_options = {
+          min: 0, max: 180,
+          width: 180, height: 180,
+          redFrom: 160, redTo: 180,
+          yellowFrom:30, yellowTo: 160,
+          majorTicks: [0, 20, 40, 60, 80, 100, 120, 140, 160, 180], minorTicks: 10
+        };
+        timer_chart.draw(timer_data, timer_options);
+      }
 
       function drawChart() {
 
@@ -69,6 +91,10 @@ var data_obj;
             minorTicks: 10
           };
           msg_id_chart.draw(msg_id_data, msg_id_options);
+
+          // Reset the timer
+          timer = 0;
+          drawTimer();
         }
 
         // Soil
@@ -258,8 +284,8 @@ var data_obj;
   <div>
     <span id="chart_connection" style="float:left;"></span>
   </div>
-<div style="margin: auto; width: 360;">
-
+<div style="margin: auto; width: 550;">
+    <span id="chart_timer" style="float:left;"></span>
     <span id="chart_soil" style="float:left;"></span>
     <span id="chart_temperature" style="float:left;"></span>
 </div>
@@ -269,7 +295,7 @@ var data_obj;
     <span id="chart_solar_mv" style="float:left;"></span>
     <span id="chart_ma" style="float:left;"></span>
 </div>
-<div style="margin: auto; width: 450;">
+<div style="margin: auto; width: 420;">
     <span id="chart_msg_id" style="float:left;"></span>
     <span id="chart_rssi" style="float:left;"></span>
     <span id="chart_snr" style="float:left;"></span>
@@ -277,6 +303,7 @@ var data_obj;
 
 </body>
 </html>
+
 
 
 )=====";
