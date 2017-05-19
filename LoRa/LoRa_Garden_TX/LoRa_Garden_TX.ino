@@ -33,7 +33,7 @@
 // Data wire is plugged into pin 6 on the Arduino
 #define ONE_WIRE_BUS 6
 
-#define WD_DO_STUFF 1 // How many watchdog interupts before doing real work.
+#define WD_DO_STUFF 2 // How many watchdog interupts before doing real work.
 
 // Singleton instance of the radio driver
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
@@ -63,14 +63,14 @@ volatile byte wd_isr = WD_DO_STUFF;
 ISR(WDT_vect) {
   wdt_disable();  // disable watchdog
   
-//  // Wake up by watchdog
-//  if (wd_isr == 0) {
-//      wd_isr = WD_DO_STUFF;
-//  } else {
-//      --wd_isr; 
-//      // Go back to sleep.
-//      goToSleep();
-//  }
+  // Wake up by watchdog
+  if (wd_isr == 0) {
+      wd_isr = WD_DO_STUFF;
+  } else {
+      --wd_isr; 
+      // Go back to sleep.
+      goToSleep();
+  }
 }
 
 void setup() {
