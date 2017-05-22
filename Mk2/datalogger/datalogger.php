@@ -69,18 +69,21 @@ while (1) {
                 $requestBody->setValues(array(array_values($array)));
                 $optParams['insertDataOption'] = 'INSERT_ROWS';
                 $optParams['valueInputOption'] = 'RAW';
-
-                $response = $google_service->spreadsheets_values->append(
-                    $spreadsheetId,
-                    $range,
-                    $requestBody,
-                    $optParams
-                );
-                $updates = $response->getUpdates();
-                foreach ($updates as $k => $v) {
-                    printf("%s: %s\n", $k, $v);
+                try {
+                    $response = $google_service->spreadsheets_values->append(
+                        $spreadsheetId,
+                        $range,
+                        $requestBody,
+                        $optParams
+                    );
+                    $updates = $response->getUpdates();
+                    foreach ($updates as $k => $v) {
+                        printf("%s: %s\n", $k, $v);
+                    }
+                    $msg_id = $array['msg_id'];
+                } catch (Exception $e) {
+                    print $e->getMessage();
                 }
-                $msg_id = $array['msg_id'];
             }
         }
     }
