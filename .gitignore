@@ -33,3 +33,6 @@ vendor
 .project
 .buildpath
 .settings
+Release/
+Debug/
+
