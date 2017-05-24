@@ -33,7 +33,7 @@ int mcuTemperatureRaw() {
   while (bit_is_set(ADCSRA,ADSC));
 
   // Reading register "ADCW" takes care of how to read ADCL and ADCH.
-  return ADCW;
+  return (ADCL | (ADCH << 8)); // combine bytes 
 }
 
 int mcuTemperature(void)
