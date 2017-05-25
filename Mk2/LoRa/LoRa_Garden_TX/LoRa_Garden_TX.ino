@@ -124,12 +124,10 @@ void loop() {
   digitalWrite(PIN_SENSOR_VCC, HIGH);
 
   tx_payload.setMsgId(++msg_id);
-
-  uint16_t vcc = readVcc();
-  tx_payload.setVcc(vcc);
   tx_payload.setCpuTemperature(readCpuTemperature());
+  tx_payload.setVcc(readVcc());
 
-  // Read the temperature.
+  // Read the external temperature.
   tx_payload.setTemperature(readTemperature());
 
   tx_payload.setChargeMa(readSolarCurrent());
@@ -243,7 +241,7 @@ void goToSleep() {
 
   // put ADC back
   ADCSRA = old_ADCSRA;
-  ADCSRA |= _BV(ADEN);  // enable the ADC
+  //ADCSRA |= _BV(ADEN);  // enable the ADC
 
   //digitalWrite(LED_DEBUG, HIGH);
 
@@ -252,20 +250,17 @@ void goToSleep() {
 /**
  * Read the internal voltage.
  */
-uint16_t readVcc()
-{
+uint16_t readVcc() {
   // Read 1.1V reference against AVcc
   // set the reference to Vcc and the measurement to the internal 1.1V reference
   ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+  ADCSRA |= _BV(ADEN);  // enable the ADC
 
-  _delay_ms(2); // Wait for Vref to settle
+  _delay_ms(10); // Wait for Vref to settle
   ADCSRA |= _BV(ADSC); // Start conversion
   while (bit_is_set(ADCSRA,ADSC)); // measuring
 
-  uint8_t low  = ADCL; // must read ADCL first - it then locks ADCH
-  uint8_t high = ADCH; // unlocks both
-
-  uint16_t result = (high<<8) | low;
+  uint16_t result = ADCL | (ADCH << 8); // combine bytes
 
   result = 1125300L / result; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
   return result; // Vcc in millivolts
@@ -276,22 +271,26 @@ uint16_t readCpuTemperature() {
   int avg = 0;
   double t;
 
+
   // The internal temperature has to be used
   // with the internal reference of 1.1V.
   // Set the internal reference and mux.
   ADMUX = (_BV(REFS1) | _BV(REFS0) | _BV(MUX3));
+  ADCSRA |= _BV(ADEN);  // enable the ADC
+  _delay_ms(10); // Wait for Vref to settle
 
   // Average a bit shiftable amount of readings.
   for (uint8_t i; i < 8; i++) {
     sum += readCpuTemperatureRaw();
   }
+  
   avg = sum / 8;
 
   // subtract 273 for celsius
   // subtract the extra offest.
   // the 1.22 is a fixed coefficient k (http://www.atmel.com/Images/Atmel-8108-Calibration-of-the-AVR's-Internal-Temperature-Reference_ApplicationNote_AVR122.pdf)
   //@link https://playground.arduino.cc/Main/InternalTemperatureSensor
-  t = (avg - 333.5) / 1.22;
+  t = (avg - 324.5) / 1.22;
 
   // The returned temperature is in degrees Celsius.
   return round(t);
@@ -304,7 +303,7 @@ int readCpuTemperatureRaw() {
   // Detect end-of-conversion
   while (bit_is_set(ADCSRA,ADSC));
 
-  // Reading register "ADCW" takes care of how to read ADCL and ADCH.
+  // read ADCL and ADCH.
   return (ADCL | (ADCH << 8)); // combine bytes
 }
 
