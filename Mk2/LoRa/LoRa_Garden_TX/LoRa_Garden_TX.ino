@@ -8,14 +8,14 @@
 #include <avr/sleep.h>    // Sleep Modes
 #include <avr/power.h>    // Power management
 
-//#define RNG_WATCHDOG 0 // and remove ISR(WDT_vect) from RNG.cpp (line 195) 
+//#define RNG_WATCHDOG 0 // and remove ISR(WDT_vect) from RNG.cpp (line 195)
 
 //#include <Crypto.h>
 //#include <AES.h>
 #include <RH_RF95.h>
 #include <Adafruit_ADS1015.h>
 
-#include "config.h"
+//#include "config.h"
 #include "GardenPayload.h"
 #include "AckPayload.h"
 
@@ -62,12 +62,12 @@ volatile byte wd_isr = WD_DO_STUFF;
 
 ISR(WDT_vect) {
   wdt_disable();  // disable watchdog
-  
+
   // Wake up by watchdog
   if (wd_isr == 0) {
       wd_isr = WD_DO_STUFF;
   } else {
-      --wd_isr; 
+      --wd_isr;
       // Go back to sleep.
       goToSleep();
   }
@@ -78,7 +78,7 @@ void setup() {
   //Serial.begin(115200);
 
   ads.setGain(GAIN_TWO); // 2x gain   +/- 2.048V  1 bit = 1mV
-  
+
   delay(100);
 
   while (!rf95.init()) {
@@ -98,7 +98,7 @@ void setup() {
   pinMode(PIN_SENSOR_VCC, OUTPUT);
   digitalWrite(PIN_SENSOR_VCC, HIGH);
 
-  // Begin the onwire library. 
+  // Begin the onwire library.
   onewireSensors.setWaitForConversion(true);
   onewireSensors.begin();
   onewireSensors.getAddress(deviceAddress, 0);
@@ -127,14 +127,14 @@ void loop() {
 
   uint16_t vcc = readVcc();
   tx_payload.setVcc(vcc);
+  tx_payload.setCpuTemperature(readCpuTemperature());
 
   // Read the temperature.
   tx_payload.setTemperature(readTemperature());
 
   tx_payload.setChargeMa(readSolarCurrent());
   tx_payload.setChargeMv(readSolarVolts());
-  tx_payload.setLight(readLight(vcc));
-  tx_payload.setSoil(readSoil(vcc));
+  tx_payload.setLight(readLight());
 
   // Power down the soil sensor.
   digitalWrite(PIN_SENSOR_VCC, LOW);
@@ -148,18 +148,18 @@ void loop() {
   rf95.send(payload_buf, tx_payload.size());
   //rf95.send(encrypted_buffer, ENCRYPTION_BUFFER_SIZE);
   rf95.waitPacketSent();
-  
+
 //  // Now wait for a reply
 //  uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 //  uint8_t len = sizeof(buf);
 
-//  if (rf95.waitAvailableTimeout(2000)) { 
-//    // Should be a reply message for us now   
+//  if (rf95.waitAvailableTimeout(2000)) {
+//    // Should be a reply message for us now
 //    if (rf95.recv(buf, &len)) {
 //      RH_RF95::printBuffer("Received: ", buf, len);
 //      Serial.print("RSSI: ");
 //      rssi = rf95.lastRssi();
-//      Serial.println(rssi, DEC);    
+//      Serial.println(rssi, DEC);
 //
 ////      uint8_t decrypted_ack_buf[16];
 ////      cipher.decryptBlock(decrypted_ack_buf, buf);
@@ -186,10 +186,10 @@ void loop() {
 void watchdog_setup() {
   // Clear any previous watchdog interupt
   MCUSR = 0;
-  
-  // Reset after 8 seconds, 
+
+  // Reset after 8 seconds,
   // unless wdt_reset(); has been successfully called
-  
+
   /* In order to change WDE or the prescaler, we need to
    * set WDCE (This will allow updates for 4 clock cycles).
    */
@@ -197,85 +197,115 @@ void watchdog_setup() {
 
   /* set new watchdog timeout prescaler value */
   WDTCSR = 1<<WDP0 | 1<<WDP3; /* 8.0 seconds */
-  
+
   /* Enable the WD interrupt (note no reset). */
   WDTCSR |= _BV(WDIE);
-  
+
   //wdt_enable(WDTO_8S);
   wdt_reset();
 }
 
 void goToSleep() {
   //digitalWrite(LED_DEBUG, LOW);
-  
- 
+
+
   noInterrupts();
-  
+
   // disable ADC
   byte old_ADCSRA = ADCSRA;
   ADCSRA = 0;
 
     // clear various "reset" flags
-  MCUSR = 0;     
+  MCUSR = 0;
   // allow changes, disable reset
   WDTCSR = bit (WDCE) | bit (WDE);
-  // set interrupt mode and an interval 
+  // set interrupt mode and an interval
   WDTCSR = bit (WDIE) | bit (WDP3) | bit (WDP0);    // set WDIE, and 8 seconds delay
   wdt_reset();  // pat the dog
-  
+
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
   power_all_disable();  // power off ADC, Timer 0 and 1, serial interface
   sleep_enable();
   sei();
-  
+
   // turn off brown-out enable in software
   MCUCR = bit (BODS) | bit (BODSE);  // turn on brown-out enable select
   MCUCR = bit (BODS);        // this must be done within 4 clock cycles of above
-  
+
   interrupts ();             // guarantees next instruction executed
   sleep_cpu();              // sleep within 3 clock cycles of above
-                              
-  sleep_disable();  
-  MCUSR = 0; // clear the reset register 
-  
+
+  sleep_disable();
+  MCUSR = 0; // clear the reset register
+
   power_all_enable();    // power everything back on
-  
+
   // put ADC back
   ADCSRA = old_ADCSRA;
-  
+  ADCSRA |= _BV(ADEN);  // enable the ADC
+
   //digitalWrite(LED_DEBUG, HIGH);
-  
-} 
+
+}
 
 /**
  * Read the internal voltage.
  */
-uint16_t readVcc() 
+uint16_t readVcc()
 {
   // Read 1.1V reference against AVcc
   // set the reference to Vcc and the measurement to the internal 1.1V reference
-  #if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
-    ADMUX = _BV(REFS0) | _BV(MUX4) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
-  #elif defined (__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
-    ADMUX = _BV(MUX5) | _BV(MUX0);
-  #elif defined (__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__)
-    ADMUX = _BV(MUX3) | _BV(MUX2);
-  #else
-    ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
-  #endif  
- 
+  ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
+
   _delay_ms(2); // Wait for Vref to settle
   ADCSRA |= _BV(ADSC); // Start conversion
   while (bit_is_set(ADCSRA,ADSC)); // measuring
- 
-  uint8_t low  = ADCL; // must read ADCL first - it then locks ADCH  
+
+  uint8_t low  = ADCL; // must read ADCL first - it then locks ADCH
   uint8_t high = ADCH; // unlocks both
- 
+
   uint16_t result = (high<<8) | low;
- 
+
   result = 1125300L / result; // Calculate Vcc (in mV); 1125300 = 1.1*1023*1000
   return result; // Vcc in millivolts
+}
+
+uint16_t readCpuTemperature() {
+  int sum = 0;
+  int avg = 0;
+  double t;
+
+  // The internal temperature has to be used
+  // with the internal reference of 1.1V.
+  // Set the internal reference and mux.
+  ADMUX = (_BV(REFS1) | _BV(REFS0) | _BV(MUX3));
+
+  // Average a bit shiftable amount of readings.
+  for (uint8_t i; i < 8; i++) {
+    sum += readCpuTemperatureRaw();
+  }
+  avg = sum / 8;
+
+  // subtract 273 for celsius
+  // subtract the extra offest.
+  // the 1.22 is a fixed coefficient k (http://www.atmel.com/Images/Atmel-8108-Calibration-of-the-AVR's-Internal-Temperature-Reference_ApplicationNote_AVR122.pdf)
+  //@link https://playground.arduino.cc/Main/InternalTemperatureSensor
+  t = (avg - 333.5) / 1.22;
+
+  // The returned temperature is in degrees Celsius.
+  return round(t);
+}
+
+int readCpuTemperatureRaw() {
+  // Start the conversion
+  ADCSRA |= _BV(ADSC);
+
+  // Detect end-of-conversion
+  while (bit_is_set(ADCSRA,ADSC));
+
+  // Reading register "ADCW" takes care of how to read ADCL and ADCH.
+  return (ADCL | (ADCH << 8)); // combine bytes
 }
 
 uint16_t readSolarCurrent() {
@@ -290,36 +320,20 @@ uint16_t readSolarVolts() {
   // Solar panel --- 300K --- | --- 100K --- GND
   int16_t val = ads.readADC_SingleEnded(2);
   // Calibration:
-  // 1000mV = 268, 2000mV = 537, 3000mV = 805... 
+  // 1000mV = 268, 2000mV = 537, 3000mV = 805...
   // so 3.7313mV = 1
   return val * 3.7313F;
 }
 
-uint16_t readLight(uint16_t vcc) {
+uint16_t readLight() {
   // A very small solar panel with no load.
   // Mini solar panel --- 100K --- | --- 100K --- GND
   int16_t val = ads.readADC_SingleEnded(3);
   return val * 2;
 }
 
-uint16_t readSoil(uint16_t vcc) {
-  uint16_t val;
-
-  // This first reading after a mux change is unreliable.
-  val = analogRead(PIN_SENSOR_SOIL);
-
-  // Average the next 2 readings.
-  val = 0;
-  for (uint8_t i = 0; i < 2; i++) { 
-    val += analogRead(PIN_SENSOR_SOIL);
-  }
-
-  return val / 2;
-}
-
 uint16_t readTemperature() {
   // Send the command to get temperatures
-  onewireSensors.requestTemperatures(); 
+  onewireSensors.requestTemperatures();
   return onewireSensors.getTempCByIndex(0);
 }
-

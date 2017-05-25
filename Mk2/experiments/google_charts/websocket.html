@@ -7,7 +7,7 @@ var timer = 0;
 
 
     <script type="text/javascript">
-       var data_json = '{"garden":{"msg_type":0,"msg_id":0,"vcc":0,"solar_mv":0,"charge_ma":0,"light": 0,"soil":0,"temperature":0}, "signal":{"rssi":0,"snr":0}, "connection":{"status":0}}';
+       var data_json = '{"garden":{"msg_type":0,"msg_id":0,"vcc":0,"solar_mv":0,"charge_ma":0,"light": 0,"cpu":0,"temperature":0}, "signal":{"rssi":0,"snr":0}, "connection":{"status":0}}';
        data_obj = JSON.parse(data_json);
     </script>
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -94,22 +94,22 @@ var timer = 0;
           drawTimer();
         }
 
-        // Soil
+        // Cpu temperature
         if (typeof data_obj.garden !== 'undefined') {
-          var soil_data = google.visualization.arrayToDataTable([
+          var cpu_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
-            ['soil', 0],
+            ['CPU \u00B0C', 0],
           ]);
-          var soil_chart = new google.visualization.Gauge(document.getElementById('chart_soil'));
-          soil_data.setValue(0, 1, data_obj.garden.soil);
-          var soil_options = {
-            min: 0, max: 1023,
+          var cpu_chart = new google.visualization.Gauge(document.getElementById('chart_cpu'));
+          cpu_data.setValue(0, 1, data_obj.garden.cpu);
+          var cpu_options = {
+            min: -10, max: 100,
             width: 180, height: 180,
-            redFrom: 0, redTo: 127,
-            yellowFrom:127, yellowTo: 256,
-            majorTicks: [0,256, 512, 768, 1023], minorTicks: 16
+            redFrom: 80, redTo: 100,
+            yellowFrom:70, yellowTo: 80,
+            majorTicks: [-10,'0',10,20,30,40,50], minorTicks: 10
           };
-          soil_chart.draw(soil_data, soil_options);
+          cpu_chart.draw(cpu_data, cpu_options);
         }
 
         // Temperature
@@ -283,7 +283,7 @@ var timer = 0;
   </div>
 <div style="margin: auto; width: 550;">
     <span id="chart_timer" style="float:left;"></span>
-    <span id="chart_soil" style="float:left;"></span>
+    <span id="chart_cpu" style="float:left;"></span>
     <span id="chart_temperature" style="float:left;"></span>
 </div>
 <div style="margin: auto; width: 800; clear:both;">

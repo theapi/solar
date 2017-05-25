@@ -57,8 +57,8 @@ namespace theapi {
       void setLight(int16_t val);
 
       // The sith integer data
-      int16_t getSoil();
-      void setSoil(int16_t val);
+      int16_t getCpuTemperature();
+      void setCpuTemperature(int16_t val);
 
       // The seventh integer data
       int16_t getTemperature();

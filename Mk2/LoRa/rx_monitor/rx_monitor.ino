@@ -1,7 +1,7 @@
 /**
- * Takes a serial payload from the LoRa client (LoRa_Radiohead_RX.ino) 
+ * Takes a serial payload from the LoRa client (LoRa_Radiohead_RX.ino)
  * and publishes it on various protocols.
- * 
+ *
  * To subscribe to the UDP data: listen for broadcasts on 239.0.0.57 port 12345
  * To subscribe to the MQTT data: mosquitto_sub -t solar
  * To subscribe to the websocket go to WiFi.localIP() port 80
@@ -83,14 +83,14 @@ void setup() {
   rx_payload.setMsgId(254);
   rx_payload.setVcc(1234);
   rx_payload.setChargeMv(5678);
-  
+
   display.clear();
   display.drawString(0, 20, String(rx_payload.getMsgId()));
   display.drawString(0, 45, String(rx_payload.getVcc()));
-  display.drawString(80, 45, String(rx_payload.getChargeMv())); 
+  display.drawString(80, 45, String(rx_payload.getChargeMv()));
   display.display();
 
-  
+
   WiFi.begin(ssid, password);
   Serial.print("\nConnecting to "); Serial.println(ssid);
   uint8_t i = 0;
@@ -120,7 +120,7 @@ void setup() {
 
   String ip = WiFi.localIP().toString();
   ip_end = ip.substring(ip.lastIndexOf('.'));
-    
+
 }
 
 void loop() {
@@ -132,7 +132,7 @@ void loop() {
     // get the new byte:
     uint8_t in = (uint8_t) Serial.read();
     //Serial.println(in, HEX);
-    
+
     if (payload_state == 0) {
       // Check for the start of the payload
       if (in == '\t') {
@@ -173,12 +173,12 @@ void loop() {
     } else {
       // Passthru other serial messages.
       Serial.print(char(in));
-      
+
     }
   }
 
   unsigned long currentMillis = millis();
-  
+
   // Send payload to listeners when ready.
   if (payload_state == 2) {
     payload_state = 0;
@@ -191,14 +191,14 @@ void loop() {
     serialPrintPayload();
 
     current_payload = 0;
-  } 
+  }
   // Send the data continually, as its UDP some may get missed.
   else if (currentMillis - ping_last >= ping_interval) {
     ping_last = currentMillis;
     udpBroadcast();
   }
 
-  // Update the display  
+  // Update the display
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
     display.clear();
@@ -208,18 +208,18 @@ void loop() {
       display.drawString(100, 0, ip_end);
     }
     display.drawString(0, 0, String(currentMillis));
-    
+
     display.drawString(0, 20, String(rx_payload.getMsgId()));
     display.drawString(35, 20, String(rx_payload.getVcc()));
     display.drawString(80, 20, String(rx_payload.getChargeMa()));
 
     display.drawString(0, 45, String(signal_payload.getRssi()));
     display.drawString(35, 45, String(signal_payload.getSnr()));
-    display.drawString(80, 45, String(signal_payload.getFreqError())); 
-    
+    display.drawString(80, 45, String(signal_payload.getFreqError()));
+
     display.display();
   }
-  
+
 }
 
 void serialPrintPayload() {
@@ -241,7 +241,7 @@ void serialPrintPayload() {
       Serial.print(rx_payload.getChargeMv()); Serial.print(", ");
       Serial.print(rx_payload.getChargeMa()); Serial.print(", ");
       Serial.print(rx_payload.getLight()); Serial.print(", ");
-      Serial.print(rx_payload.getSoil()); Serial.print(", ");
+      Serial.print(rx_payload.getCpuTemperature()); Serial.print(", ");
       Serial.println(rx_payload.getTemperature());
       Serial.println();
     break;
@@ -273,8 +273,8 @@ void udpBroadcast() {
   }
 
   Udp.write('\n');
-  Udp.endPacket();  
-  Udp.stop(); 
+  Udp.endPacket();
+  Udp.stop();
 }
 
 void websocketBroadcast() {
@@ -293,9 +293,6 @@ void websocketBroadcast() {
     break;
     default:
       // Send the garden data as json
-
-      // '{"msg_type":50,"msg_id":123,"vcc":4700,"solar_mv":6432,"charge_ma":74,"light": 1999,"soil":499,"temperature":23}'
-      
       str = "{\"garden\":{";
       str += "\"msg_type\":" + String(rx_payload.getMsgType()) + ", ";
       str += "\"msg_id\":" + String(rx_payload.getMsgId()) + ",";
@@ -303,7 +300,7 @@ void websocketBroadcast() {
       str += "\"solar_mv\":" + String(rx_payload.getChargeMv()) + ",";
       str += "\"charge_ma\":" + String(rx_payload.getChargeMa()) + ",";
       str += "\"light\":" + String(rx_payload.getLight()) + ",";
-      str += "\"soil\":" + String(rx_payload.getSoil()) + ",";
+      str += "\"cpu\":" + String(rx_payload.getCpuTemperature()) + ",";
       str += "\"temperature\":" + String(rx_payload.getTemperature());
       str += "}}";
       webSocket.broadcastTXT(str);
@@ -332,7 +329,7 @@ void mqttBroadcast() {
 
   String str;
   char msg[50];
-  
+
   switch (current_payload) {
     case theapi::Payload::SIGNAL:
     {
@@ -357,7 +354,7 @@ void mqttBroadcast() {
       str += String(rx_payload.getChargeMv()) + ",";
       str += String(rx_payload.getChargeMa()) + ",";
       str += String(rx_payload.getLight()) + ",";
-      str += String(rx_payload.getSoil()) + ",";
+      str += String(rx_payload.getCpuTemperature()) + ",";
       str += String(rx_payload.getTemperature());
       memset(msg, 0, sizeof msg);
       str.toCharArray(msg, sizeof msg);
@@ -367,8 +364,5 @@ void mqttBroadcast() {
     }
     break;
   }
-  
+
 }
-
-
-

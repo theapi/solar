@@ -73,11 +73,11 @@ namespace theapi {
     _payload.d = val;
   }
 
-  int16_t GardenPayload::getSoil() {
+  int16_t GardenPayload::getCpuTemperature() {
     return _payload.e;
   }
 
-  void GardenPayload::setSoil(int16_t val) {
+  void GardenPayload::setCpuTemperature(int16_t val) {
     _payload.e = val;
   }
 
