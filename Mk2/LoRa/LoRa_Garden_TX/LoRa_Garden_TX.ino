@@ -256,7 +256,7 @@ uint16_t readVcc() {
   ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
   ADCSRA |= _BV(ADEN);  // enable the ADC
 
-  delay(20); // Wait for Vref to settle
+  delay(10); // Wait for Vref to settle
   ADCSRA |= _BV(ADSC); // Start conversion
   while (bit_is_set(ADCSRA,ADSC)); // measuring
 
@@ -277,7 +277,7 @@ uint16_t readCpuTemperature() {
   // Set the internal reference and mux.
   ADMUX = (_BV(REFS1) | _BV(REFS0) | _BV(MUX3));
   ADCSRA |= _BV(ADEN);  // enable the ADC
-  delay(20); // Wait for Vref to settle
+  delay(10); // Wait for Vref to settle
 
   // Average a bit shiftable amount of readings.
   for (uint8_t i; i < 8; i++) {
