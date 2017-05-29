@@ -110,7 +110,7 @@ var timer = 0;
             width: 180, height: 180,
             redFrom: 80, redTo: 100,
             yellowFrom:70, yellowTo: 80,
-            majorTicks: [-10,'0',10,20,30,40,50], minorTicks: 10
+            majorTicks: [-10,'0',10,20,30,40,50,60,70,80,90,100], minorTicks: 10
           };
           cpu_chart.draw(cpu_data, cpu_options);
         }
