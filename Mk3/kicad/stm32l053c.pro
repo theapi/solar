@@ -1,4 +1,4 @@
-update=Tue 30 May 2017 21:31:39 BST
+update=Wed 31 May 2017 20:22:02 BST
 version=1
 last_client=kicad
 [pcbnew]
@@ -62,3 +62,4 @@ LibName30=valves
 LibName31=stm32
 LibName32=adc
 LibName33=lora
+LibName34=theapi_voltage_regulators
