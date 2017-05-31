@@ -63,8 +63,12 @@ while (1) {
 
             if ($array['device_id'] == 50 && $array['msg_id'] != $msg_id) {
                 unset($array['device_id']);
+
+                // Record a timestamp.
+                array_unshift($array, date("c"));
+
                 // Add data to the Google spreadsheet.
-                $range = 'garden!A1:G';
+                $range = 'garden!A1:F';
                 $requestBody = new Google_Service_Sheets_ValueRange();
                 $requestBody->setValues(array(array_values($array)));
                 $optParams['insertDataOption'] = 'INSERT_ROWS';
