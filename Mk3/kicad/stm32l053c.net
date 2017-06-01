@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source /Users/peterclarke/repos/solar/Mk3/kicad/stm32l053c.sch)
-    (date "Thursday, 01 June 2017 'pmt' 16:00:52")
+    (date "Thursday, 01 June 2017 'pmt' 16:32:00")
     (tool "Eeschema 4.0.6")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -71,6 +71,7 @@
       (tstamp 592DE199))
     (comp (ref U2)
       (value ADS1015)
+      (footprint Housings_SSOP:TSSOP-10_3x3mm_Pitch0.5mm)
       (libsource (lib adc) (part ADS1015))
       (sheetpath (names /) (tstamps /))
       (tstamp 592DD751))
@@ -324,8 +325,6 @@
       (uri "/Library/Application Support/kicad/library/device.lib"))
     (library (logical conn)
       (uri "/Library/Application Support/kicad/library/conn.lib"))
-    (library (logical lora)
-      (uri /Users/peterclarke/repos/solar/Mk3/kicad/lora.lib))
     (library (logical stm32)
       (uri /Users/peterclarke/repos/solar/Mk3/kicad/stm32.lib))
     (library (logical theapi_voltage_regulators)
@@ -333,7 +332,9 @@
     (library (logical stm32l053c-cache)
       (uri /Users/peterclarke/repos/solar/Mk3/kicad/stm32l053c-cache.lib))
     (library (logical adc)
-      (uri /Users/peterclarke/repos/solar/Mk3/kicad/adc.lib)))
+      (uri /Users/peterclarke/repos/solar/Mk3/kicad/adc.lib))
+    (library (logical lora)
+      (uri /Users/peterclarke/repos/solar/Mk3/kicad/lora.lib)))
   (nets
     (net (code 1) (name "Net-(U5-Pad16)")
       (node (ref U5) (pin 16)))
