@@ -39,12 +39,12 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title "thingBot-LoRa"
-Date "2016-11-24"
-Rev "v1.1"
-Comp "thingTronics Innovations Pvt. Ltd."
-Comment1 "Approved By: Lovelesh Patel"
-Comment2 "Designed By: Manohar Bompella"
+Title "LoRa Garden Solar"
+Date ""
+Rev "v1.0.0"
+Comp ""
+Comment1 ""
+Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
