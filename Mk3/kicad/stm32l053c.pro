@@ -1,4 +1,4 @@
-update=Wed 31 May 2017 20:22:02 BST
+update=Friday, 02 June 2017 'pmt' 13:55:41
 version=1
 last_client=kicad
 [pcbnew]
@@ -63,3 +63,13 @@ LibName31=stm32
 LibName32=adc
 LibName33=lora
 LibName34=theapi_voltage_regulators
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=Pcbnew
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
