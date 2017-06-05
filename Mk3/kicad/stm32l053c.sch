@@ -128,7 +128,7 @@ U 1 1 58036840
 P 1725 3125
 F 0 "P1" H 1725 3475 50  0000 C CNN
 F 1 "SWD" V 1825 3125 50  0000 C CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x06_Pitch2.54mm" H 1725 3125 50  0001 C CNN
+F 2 "theapi:Pin_Header_Straight_1x06_Pitch2.54mm" H 1725 3125 50  0001 C CNN
 F 3 "" H 1725 3125 50  0000 C CNN
 	1    1725 3125
 	-1   0    0    -1  
@@ -652,7 +652,7 @@ U 1 1 59319095
 P 2600 1475
 F 0 "BT1" H 2700 1575 50  0000 L CNN
 F 1 "Battery" H 2700 1475 50  0000 L CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x02_Pitch2.54mm" V 2600 1535 50  0001 C CNN
+F 2 "theapi:BatteryBox" V 2600 1535 50  0001 C CNN
 F 3 "" V 2600 1535 50  0001 C CNN
 	1    2600 1475
 	1    0    0    -1  
@@ -920,7 +920,7 @@ U 1 1 5934043A
 P 1725 6425
 F 0 "U4" H 1775 6275 60  0000 C CNN
 F 1 "UFL_SMA" H 1725 6625 60  0000 C CNN
-F 2 "w_conn_rf:coaxial_u.fl-r-smt-1" H 1725 6425 60  0001 C CNN
+F 2 "theapi:coaxial_u.fl-r-smt-1" H 1725 6425 60  0001 C CNN
 F 3 "" H 1725 6425 60  0001 C CNN
 	1    1725 6425
 	1    0    0    -1  
@@ -1022,7 +1022,7 @@ U 1 1 593574AF
 P 1425 5150
 F 0 "J1" H 1425 5250 50  0000 C CNN
 F 1 "LIGHT+" V 1525 5150 50  0000 C CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x01" H 1425 5150 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x01_Pitch2.54mm" H 1425 5150 50  0001 C CNN
 F 3 "" H 1425 5150 50  0001 C CNN
 	1    1425 5150
 	-1   0    0    1   
@@ -1037,7 +1037,7 @@ U 1 1 59358471
 P 1425 5450
 F 0 "J2" H 1425 5550 50  0000 C CNN
 F 1 "LIGHT-" V 1525 5450 50  0000 C CNN
-F 2 "Pin_Headers:Pin_Header_Straight_1x01" H 1425 5450 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x01_Pitch2.54mm" H 1425 5450 50  0001 C CNN
 F 3 "" H 1425 5450 50  0001 C CNN
 	1    1425 5450
 	-1   0    0    1   
