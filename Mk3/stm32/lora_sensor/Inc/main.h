@@ -48,8 +48,13 @@
 
 #define LED_Pin GPIO_PIN_0
 #define LED_GPIO_Port GPIOA
-#define RFM_RST_Pin GPIO_PIN_8
-#define RFM_RST_GPIO_Port GPIOA
+#define LGT_GND_Pin GPIO_PIN_1
+#define LGT_GND_GPIO_Port GPIOA
+#define DIO0_Pin GPIO_PIN_10
+#define DIO0_GPIO_Port GPIOB
+#define DIO0_EXTI_IRQn EXTI4_15_IRQn
+#define RFM_RST_Pin GPIO_PIN_11
+#define RFM_RST_GPIO_Port GPIOB
 #define ADC_RDY_Pin GPIO_PIN_5
 #define ADC_RDY_GPIO_Port GPIOB
 #define ADC_RDY_EXTI_IRQn EXTI4_15_IRQn
