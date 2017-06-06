@@ -1,9 +1,9 @@
-(kicad_pcb (version 4) (host pcbnew 4.0.6-e0-6349~53~ubuntu16.04.1)
+(kicad_pcb (version 4) (host pcbnew 4.0.6)
 
   (general
     (links 77)
     (no_connects 77)
-    (area 135.674999 73.424999 163.075001 95.325001)
+    (area 135.080999 72.841 165.029 98.444477)
     (thickness 1.6)
     (drawings 19)
     (tracks 0)
@@ -680,6 +680,7 @@
     (descr "5-pin SOT23 package")
     (tags "SOT-23-5 hand-soldering")
     (path /592F19AA)
+    (solder_mask_margin 0.07)
     (attr smd)
     (fp_text reference U1 (at 0 0 180) (layer F.SilkS)
       (effects (font (size 1 1) (thickness 0.15)))

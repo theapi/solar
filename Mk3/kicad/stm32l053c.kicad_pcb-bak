@@ -5,7 +5,7 @@
     (no_connects 77)
     (area 135.674999 73.424999 163.075001 95.325001)
     (thickness 1.6)
-    (drawings 18)
+    (drawings 19)
     (tracks 0)
     (zones 0)
     (modules 29)
@@ -1367,6 +1367,9 @@
     )
   )
 
+  (gr_text BAT (at 137.414 93.98) (layer F.SilkS)
+    (effects (font (size 0.8 0.8) (thickness 0.15)))
+  )
   (gr_text SOL (at 152.146 94.107) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
