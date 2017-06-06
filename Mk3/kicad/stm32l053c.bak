@@ -443,7 +443,6 @@ NoConn ~ 7625 2750
 NoConn ~ 9575 2450
 NoConn ~ 7625 2850
 NoConn ~ 7625 3550
-NoConn ~ 7625 3650
 NoConn ~ 7625 3950
 NoConn ~ 9575 2550
 NoConn ~ 9575 2850
@@ -677,7 +676,7 @@ Text GLabel 9575 3550 2    60   Input ~ 0
 RFM_RST
 Text GLabel 4350 6625 2    60   Input ~ 0
 DIO0
-Text GLabel 9575 3450 2    60   Input ~ 0
+Text GLabel 7625 3650 0    60   Input ~ 0
 DIO0
 $Comp
 L C C8
@@ -1034,4 +1033,27 @@ Wire Wire Line
 	1725 4475 1425 4475
 Wire Wire Line
 	1275 4200 1275 4375
+$Comp
+L CONN_01X01 J2
+U 1 1 593799A7
+P 3875 3475
+F 0 "J2" H 3875 3575 50  0000 C CNN
+F 1 "GND" V 3975 3475 50  0000 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x01_Pitch2.54mm" H 3875 3475 50  0001 C CNN
+F 3 "" H 3875 3475 50  0001 C CNN
+	1    3875 3475
+	-1   0    0    1   
+$EndComp
+$Comp
+L Earth #PWR032
+U 1 1 59379ABF
+P 4075 3475
+F 0 "#PWR032" H 4075 3225 50  0001 C CNN
+F 1 "Earth" H 4075 3325 50  0001 C CNN
+F 2 "" H 4075 3475 50  0000 C CNN
+F 3 "" H 4075 3475 50  0000 C CNN
+	1    4075 3475
+	-1   0    0    -1  
+$EndComp
+NoConn ~ 9575 3450
 $EndSCHEMATC
