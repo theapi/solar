@@ -29,7 +29,6 @@ vendor
 *.hex
 
 # Eclipse
-.project
 .buildpath
 .settings
 Release/
