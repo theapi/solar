@@ -444,12 +444,10 @@ NoConn ~ 9575 2450
 NoConn ~ 7625 2850
 NoConn ~ 7625 3550
 NoConn ~ 7625 3950
-NoConn ~ 9575 2550
 NoConn ~ 9575 2850
 NoConn ~ 9575 3250
 NoConn ~ 9575 3350
 NoConn ~ 9575 4550
-NoConn ~ 9575 2650
 NoConn ~ 4350 6425
 NoConn ~ 4350 6525
 NoConn ~ 4350 6825
@@ -656,7 +654,7 @@ U 1 1 59328B99
 P 2300 1275
 F 0 "D2" H 2300 1375 50  0000 C CNN
 F 1 "D_Schottky" H 2300 1175 50  0000 C CNN
-F 2 "Diodes_SMD:D_0805" H 2300 1275 50  0001 C CNN
+F 2 "Diodes_SMD:D_1206" H 2300 1275 50  0001 C CNN
 F 3 "" H 2300 1275 50  0001 C CNN
 	1    2300 1275
 	-1   0    0    1   
@@ -788,8 +786,6 @@ LED
 Text GLabel 4350 2775 2    60   Input ~ 0
 LED
 NoConn ~ 7625 2950
-NoConn ~ 7625 3050
-NoConn ~ 7625 3150
 NoConn ~ 7625 3250
 Text GLabel 3400 6825 0    60   Input ~ 0
 SPI2_NSS
@@ -1056,4 +1052,48 @@ F 3 "" H 4075 3475 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 NoConn ~ 9575 3450
+$Comp
+L CONN_01X01 J?
+U 1 1 59394D68
+P 9775 2550
+F 0 "J?" H 9775 2650 50  0000 C CNN
+F 1 "A0" V 9875 2550 50  0000 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x01_Pitch2.54mm" H 9775 2550 50  0001 C CNN
+F 3 "" H 9775 2550 50  0001 C CNN
+	1    9775 2550
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_01X01 J?
+U 1 1 593953EF
+P 9775 2650
+F 0 "J?" H 9775 2550 50  0000 C CNN
+F 1 "A1" V 9875 2650 50  0000 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x01_Pitch2.54mm" H 9775 2650 50  0001 C CNN
+F 3 "" H 9775 2650 50  0001 C CNN
+	1    9775 2650
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_01X01 J?
+U 1 1 59395910
+P 7425 3150
+F 0 "J?" H 7425 3250 50  0000 C CNN
+F 1 "A2" V 7525 3150 50  0000 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x01_Pitch2.54mm" H 7425 3150 50  0001 C CNN
+F 3 "" H 7425 3150 50  0001 C CNN
+	1    7425 3150
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_01X01 J?
+U 1 1 593959A7
+P 7425 3050
+F 0 "J?" H 7425 2950 50  0000 C CNN
+F 1 "A3" V 7525 3050 50  0000 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x01_Pitch2.54mm" H 7425 3050 50  0001 C CNN
+F 3 "" H 7425 3050 50  0001 C CNN
+	1    7425 3050
+	-1   0    0    1   
+$EndComp
 $EndSCHEMATC
