@@ -101,6 +101,10 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
+  /* Enable Ultra low power mode */
+    HAL_PWREx_EnableUltraLowPower();
+    __HAL_RCC_WAKEUPSTOP_CLK_CONFIG(RCC_STOP_WAKEUPCLOCK_HSI);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -110,6 +114,23 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+
+      HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
+        HAL_Delay(1000);
+
+        HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
+
+        HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
+
+        HAL_SuspendTick();
+
+        /* Enter Stop Mode */
+        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 5, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+        HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+        HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
+        HAL_ResumeTick();
+
+        HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
   }
   /* USER CODE END 3 */
@@ -178,6 +199,23 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+/**
+ * Callback for RTC_IRQHandler()
+ */
+void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc) {
+    // Wake up
+}
+
+/**
+ * Callback for HAL_GPIO_EXTI_IRQHandler() in EXTI4_15_IRQHandler().
+ *
+ * Handles the interrupts which occur on button press.
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+
+}
+
 
 /* USER CODE END 4 */
 

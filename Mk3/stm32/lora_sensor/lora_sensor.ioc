@@ -52,6 +52,7 @@ NVIC.EXTI4_15_IRQn=true\:0\:0\:false\:false\:true
 NVIC.HardFault_IRQn=true\:0\:0\:false\:false\:true
 NVIC.NonMaskableInt_IRQn=true\:0\:0\:false\:false\:true
 NVIC.PendSV_IRQn=true\:0\:0\:false\:false\:true
+NVIC.RTC_IRQn=true\:0\:0\:true\:false\:true
 NVIC.SVC_IRQn=true\:0\:0\:false\:false\:true
 NVIC.SysTick_IRQn=true\:0\:0\:false\:false\:true
 PA0.GPIOParameters=GPIO_Label
