@@ -781,11 +781,11 @@ LGT_GND
 NoConn ~ 7625 2650
 Text GLabel 7625 3350 0    60   Input ~ 0
 USART1_TX
-Text GLabel 7625 2450 0    60   Input ~ 0
+Text GLabel 7625 2950 0    60   Input ~ 0
 LED
 Text GLabel 4350 2775 2    60   Input ~ 0
 LED
-NoConn ~ 7625 2950
+NoConn ~ 7625 2450
 NoConn ~ 7625 3250
 Text GLabel 3400 6825 0    60   Input ~ 0
 SPI2_NSS
