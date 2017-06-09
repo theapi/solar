@@ -770,7 +770,6 @@ F 3 "" H 1900 5500 50  0000 C CNN
 $EndComp
 Text GLabel 7625 2550 0    60   Input ~ 0
 LGT_GND
-NoConn ~ 1925 3375
 NoConn ~ 9575 2750
 Text Label 7400 1600 1    60   ~ 0
 24
@@ -778,7 +777,6 @@ Text Label 7700 1600 1    60   ~ 0
 48
 Text GLabel 1500 5500 0    60   Input ~ 0
 LGT_GND
-NoConn ~ 7625 2650
 Text GLabel 7625 3350 0    60   Input ~ 0
 USART1_TX
 Text GLabel 7625 2950 0    60   Input ~ 0
@@ -1096,4 +1094,8 @@ F 3 "" H 7425 3050 50  0001 C CNN
 	1    7425 3050
 	-1   0    0    1   
 $EndComp
+Text GLabel 7625 2650 0    60   Input ~ 0
+PA2
+Text GLabel 1925 3375 2    60   Input ~ 0
+PA2
 $EndSCHEMATC
