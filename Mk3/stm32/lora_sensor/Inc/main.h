@@ -46,10 +46,10 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define LED_Pin GPIO_PIN_0
-#define LED_GPIO_Port GPIOA
 #define LGT_GND_Pin GPIO_PIN_1
 #define LGT_GND_GPIO_Port GPIOA
+#define LED_Pin GPIO_PIN_5
+#define LED_GPIO_Port GPIOA
 #define RFM_RST_Pin GPIO_PIN_11
 #define RFM_RST_GPIO_Port GPIOB
 #define DIO0_Pin GPIO_PIN_12
