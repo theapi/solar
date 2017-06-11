@@ -105,6 +105,11 @@ int main(void)
     HAL_PWREx_EnableUltraLowPower();
     __HAL_RCC_WAKEUPSTOP_CLK_CONFIG(RCC_STOP_WAKEUPCLOCK_HSI);
 
+  /* Buffer used for transmission on USART1 */
+char tx1_buffer[80];
+
+int count = 0;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -116,6 +121,10 @@ int main(void)
   /* USER CODE BEGIN 3 */
 
       HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
+      sprintf(tx1_buffer, "Count is %d\n", count);
+      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+      count++;
+
         HAL_Delay(1000);
 
         HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
