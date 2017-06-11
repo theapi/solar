@@ -1,0 +1,83 @@
+Configuration	lora_sensor
+STM32CubeMX 	4.21.0
+Date	06/11/2017
+MCU	STM32L053C8Tx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+ADC	IN3	ADC_IN3	PA3
+ADC	IN4	ADC_IN4	PA4
+ADC	IN6	ADC_IN6	PA6
+ADC	IN7	ADC_IN7	PA7
+ADC	IN8	ADC_IN8	PB0
+ADC	IN9	ADC_IN9	PB1
+ADC	Single-ended	ADC_TempSens_Input	VP_ADC_TempSens_Input
+ADC	Vrefint Channel	ADC_Vref_Input	VP_ADC_Vref_Input
+I2C1	I2C	I2C1_SCL	PB6
+I2C1	I2C	I2C1_SDA	PB7
+RTC	Activate RTC Clock Source	RTC_VS_RTC_Activate	VP_RTC_VS_RTC_Activate
+RTC	RTC Enabled	RTC_VS_RTC_Calendar	VP_RTC_VS_RTC_Calendar
+RTC	Internal WakeUp	RTC_VS_RTC_WakeUp_intern	VP_RTC_VS_RTC_WakeUp_intern
+SPI2	Full-Duplex Master	SPI2_MISO	PB14
+SPI2	Full-Duplex Master	SPI2_MOSI	PB15
+SPI2	Full-Duplex Master	SPI2_SCK	PB13
+SPI2	Hardware NSS Output Signal	SPI2_NSS	PB12
+SYS	Serial_Wire	SYS_SWCLK	PA14
+SYS	Serial_Wire	SYS_SWDIO	PA13
+SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
+USART1	Asynchronous	USART1_RX	PA10
+USART1	Asynchronous	USART1_TX	PA9
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+11	PA1	GPIO_Output	LGT_GND
+13	PA3	ADC_IN3	
+14	PA4	ADC_IN4	
+15	PA5	GPIO_Output	LED
+16	PA6	ADC_IN6	
+17	PA7	ADC_IN7	
+18	PB0	ADC_IN8	
+19	PB1	ADC_IN9	
+22	PB11	GPIO_Output	RFM_RST
+25	PB12	SPI2_NSS	
+26	PB13	SPI2_SCK	
+27	PB14	SPI2_MISO	
+28	PB15	SPI2_MOSI	
+30	PA9	USART1_TX	
+31	PA10	USART1_RX	
+33	PA12	GPIO_EXTI12	DIO0
+34	PA13	SYS_SWDIO	
+37	PA14	SYS_SWCLK	
+41	PB5	GPIO_EXTI5	ADC_RDY
+42	PB6	I2C1_SCL	
+43	PB7	I2C1_SDA	
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : lora_sensor
+Project Folder : /home/peter/repos/solar/Mk3/stm32/lora_sensor
+Toolchain / IDE : SW4STM32
+Firmware Package Name and Version : STM32Cube FW_L0 V1.9.0
+
+
+Code Generation Settings : 
+STM32Cube Firmware Library Package : Copy only the necessary library files
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : Yes
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : Yes
+
+
+Toolchains Settings : 
+Compiler Optimizations : Balanced Size/Speed
+
+
+
+
+
+
