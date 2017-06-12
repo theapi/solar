@@ -45,6 +45,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "rfm95.h"
+#include "string.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -111,6 +112,8 @@ char tx1_buffer[80];
 
 int count = 0;
 
+  RFM95_init(&hspi2);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -125,6 +128,10 @@ int count = 0;
       sprintf(tx1_buffer, "Count is %d\n", count);
       HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
       count++;
+
+      uint8_t reg_val = RFM95_readRegister(&hspi2, RFM95_REG_MODEM_STAT);
+      sprintf(tx1_buffer, "Reg val: %d\n", reg_val);
+      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
 
         HAL_Delay(1000);
 
@@ -226,7 +233,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 }
 
-
 /* USER CODE END 4 */
 
 /**
@@ -238,6 +244,9 @@ void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
+    char buffer[80];
+    sprintf(buffer, "Error: %d - %d\n", (int)file, line);
+    HAL_UART_Transmit(&huart1, (uint8_t*)buffer,  strlen(buffer), 5000);
   while(1) 
   {
   }

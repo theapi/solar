@@ -5,7 +5,14 @@
  extern "C" {
 #endif
 
+#include "stm32l0xx_hal.h"
+#include "main.h"
 #include "stdint.h"
+
+
+// A wnr bit, which is 1 for write access and 0 for read access.
+// binary = 10000000
+#define RFM95_WRITE_MASK 0x80
 
 // Register names (LoRa Mode, from table 41 of sx_1276 datasheet)
 #define RFM95_REG_FIFO                                0x00
@@ -120,10 +127,10 @@
 /**
  * Initialise the module.
  */
-void RFM95_init(void);
+void RFM95_init(SPI_HandleTypeDef* hspi);
 
-uint8_t RFM95_writeRegister(uint8_t);
-uint8_t RFM95_readRegister(uint8_t);
+HAL_StatusTypeDef RFM95_writeRegister(SPI_HandleTypeDef* hspi, uint8_t addr, uint8_t val);
+uint8_t RFM95_readRegister(SPI_HandleTypeDef* hspi, uint8_t addr);
 
 #ifdef __cplusplus
 }
