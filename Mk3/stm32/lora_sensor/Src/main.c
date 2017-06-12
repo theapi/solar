@@ -44,6 +44,7 @@
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
+#include "rfm95.h"
 
 /* USER CODE BEGIN Includes */
 
