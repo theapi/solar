@@ -1,6 +1,6 @@
 Configuration	lora_sensor
 STM32CubeMX 	4.21.0
-Date	06/11/2017
+Date	06/13/2017
 MCU	STM32L053C8Tx
 
 
@@ -22,7 +22,6 @@ RTC	Internal WakeUp	RTC_VS_RTC_WakeUp_intern	VP_RTC_VS_RTC_WakeUp_intern
 SPI2	Full-Duplex Master	SPI2_MISO	PB14
 SPI2	Full-Duplex Master	SPI2_MOSI	PB15
 SPI2	Full-Duplex Master	SPI2_SCK	PB13
-SPI2	Hardware NSS Output Signal	SPI2_NSS	PB12
 SYS	Serial_Wire	SYS_SWCLK	PA14
 SYS	Serial_Wire	SYS_SWDIO	PA13
 SYS	SysTick	SYS_VS_Systick	VP_SYS_VS_Systick
@@ -41,7 +40,7 @@ Pin Nb	PINs	FUNCTIONs	LABELs
 18	PB0	ADC_IN8	
 19	PB1	ADC_IN9	
 22	PB11	GPIO_Output	RFM_RST
-25	PB12	SPI2_NSS	
+25	PB12	GPIO_Output	SPI2_CS
 26	PB13	SPI2_SCK	
 27	PB14	SPI2_MISO	
 28	PB15	SPI2_MOSI	

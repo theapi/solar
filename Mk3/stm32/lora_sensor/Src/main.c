@@ -44,10 +44,11 @@
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
-#include "rfm95.h"
-#include "string.h"
 
 /* USER CODE BEGIN Includes */
+
+#include "rfm95.h"
+#include "string.h"
 
 /* USER CODE END Includes */
 
@@ -112,6 +113,8 @@ char tx1_buffer[80];
 
 int count = 0;
 
+  /* SPI chip select high */
+  HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
   RFM95_init(&hspi2);
 
   /* USER CODE END 2 */
@@ -142,7 +145,7 @@ int count = 0;
         HAL_SuspendTick();
 
         /* Enter Stop Mode */
-        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 5, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 1, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
         HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
         HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
         HAL_ResumeTick();
