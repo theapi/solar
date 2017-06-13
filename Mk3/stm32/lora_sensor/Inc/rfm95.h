@@ -9,6 +9,11 @@
 #include "main.h"
 #include "stdint.h"
 
+/* Max number of octets the LORA Rx/Tx FIFO can hold */
+#define RF95_FIFO_SIZE 255
+
+/* This is the maximum number of bytes that can be carried by the LORA. */
+#define RF95_MAX_PAYLOAD_LEN RF95_FIFO_SIZE
 
 // A wnr bit, which is 1 for write access and 0 for read access.
 // binary = 10000000
@@ -122,7 +127,12 @@
 #define RFM95_SYM_TIMEOUT_MSB                       0x03
 
 
-
+typedef struct
+{
+    uint8_t bufLen; /* Number of octets in the recieved buffer */
+    uint8_t buf[RF95_MAX_PAYLOAD_LEN];
+    int8_t snf;     /* Last SNR */
+} RFM95_TypeDef;
 
 /**
  * Initialise the module.
