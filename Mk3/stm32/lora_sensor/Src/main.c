@@ -113,6 +113,8 @@ char tx1_buffer[80];
 
 int count = 0;
 
+uint8_t reg_val = 0;
+
   /* SPI chip select high */
   HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
   RFM95_init(&hspi2);
@@ -132,9 +134,24 @@ int count = 0;
       HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
       count++;
 
-      uint8_t reg_val = RFM95_readRegister(&hspi2, RFM95_REG_MODEM_STAT);
-      sprintf(tx1_buffer, "Reg val: %d\n", reg_val);
+      if (RFM95_writeRegister(&hspi2, RFM95_REG_OP_MODE, RFM95_MODE_SLEEP)  != HAL_OK) {
+        Error_Handler();
+    }
+
+      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
+      sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
       HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+
+
+      if (RFM95_writeRegister(&hspi2, RFM95_REG_OP_MODE, RFM95_MODE_CAD)  != HAL_OK) {
+        Error_Handler();
+    }
+
+      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
+      sprintf(tx1_buffer, "Now Reg val: %02X\n", reg_val);
+      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+
+
 
         HAL_Delay(1000);
 
