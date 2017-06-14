@@ -89,6 +89,11 @@
 #define RFM95_MODE_RXSINGLE                         0x06
 #define RFM95_MODE_CAD                              0x07
 
+// RFM_REG_PA_CONFIG                           0x09
+#define RFM_PA_SELECT                             0x80
+#define RFM_MAX_POWER                             0x70
+#define RFM_OUTPUT_POWER                          0x0f
+
 // RFM95_REG_MODEM_STAT                          0x18
 #define RFM95_RX_CODING_RATE                        0xe0
 #define RFM95_MODEM_STATUS_CLEAR                    0x10

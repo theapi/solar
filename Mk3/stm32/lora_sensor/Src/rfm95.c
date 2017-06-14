@@ -19,6 +19,23 @@ void RFM95_init(SPI_HandleTypeDef *hspi) {
         // Failed to set the register, can't continue.
         Error_Handler();
     }
+
+    /* Set config */
+//  1d,     1e,      26
+//    { 0x72,   0x74,    0x00}, // Bw125Cr45Sf128 (the chip default)
+//    { 0x92,   0x74,    0x00}, // Bw500Cr45Sf128
+//    { 0x48,   0x94,    0x00}, // Bw31_25Cr48Sf512
+//    { 0x78,   0xc4,    0x00}, // Bw125Cr48Sf4096
+
+    // Bw500Cr45Sf128
+    RFM95_writeRegister(hspi, RFM95_REG_MODEM_CONFIG1, 0x92);
+    RFM95_writeRegister(hspi, RFM95_REG_MODEM_CONFIG2, 0x74);
+    RFM95_writeRegister(hspi, RFM95_REG_MODEM_CONFIG3, 0x00);
+
+    /* Set TX power with PA_BOOST */
+    // 0x09F6,                   //11dbm  from HopeRf demo code
+    RFM95_writeRegister(hspi, RFM95_REG_PA_CONFIG, RFM_PA_SELECT | 0xF6);
+
 }
 
 HAL_StatusTypeDef RFM95_writeRegister(SPI_HandleTypeDef *hspi, uint8_t addr, uint8_t val) {
