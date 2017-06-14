@@ -135,11 +135,8 @@ uint8_t reg_val = 0;
       HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
       count++;
 
-//      if (RFM95_writeRegister(&hspi2, RFM95_REG_OP_MODE, RFM95_MODE_SLEEP)  != HAL_OK) {
-//        Error_Handler();
-//    }
-
-      RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
+      /* Testing SPI write */
+      RFM95_setMode(&hspi2, RFM95_MODE_RXCONTINUOUS);
 
 
       reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
@@ -147,11 +144,8 @@ uint8_t reg_val = 0;
       HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
 
 
-//      if (RFM95_writeRegister(&hspi2, RFM95_REG_OP_MODE, RFM95_MODE_CAD)  != HAL_OK) {
-//        Error_Handler();
-//    }
-
-      RFM95_init(&hspi2);
+      /* Testing SPI write */
+      RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
 
       reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
       sprintf(tx1_buffer, "Now Reg val: %02X\n", reg_val);
