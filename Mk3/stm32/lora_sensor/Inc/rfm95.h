@@ -142,6 +142,8 @@ void RFM95_init(SPI_HandleTypeDef* hspi);
 HAL_StatusTypeDef RFM95_writeRegister(SPI_HandleTypeDef* hspi, uint8_t addr, uint8_t val);
 uint8_t RFM95_readRegister(SPI_HandleTypeDef* hspi, uint8_t addr);
 
+HAL_StatusTypeDef RFM95_setMode(SPI_HandleTypeDef* hspi, uint8_t mode);
+
 #ifdef __cplusplus
 }
 #endif
