@@ -265,10 +265,12 @@ void _Error_Handler(char * file, int line)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
     char buffer[80];
-    sprintf(buffer, "Error: %d - %d\n", (int)file, line);
+    sprintf(buffer, "Error: %d\n", line);
     HAL_UART_Transmit(&huart1, (uint8_t*)buffer,  strlen(buffer), 5000);
   while(1) 
   {
+      HAL_GPIO_TogglePin(GPIOA, LED_Pin);
+      HAL_Delay(100);
   }
   /* USER CODE END Error_Handler_Debug */ 
 }
