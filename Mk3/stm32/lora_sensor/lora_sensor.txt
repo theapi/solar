@@ -1,6 +1,6 @@
 Configuration	lora_sensor
 STM32CubeMX 	4.21.0
-Date	06/14/2017
+Date	06/15/2017
 MCU	STM32L053C8Tx
 
 
