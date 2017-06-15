@@ -20,6 +20,19 @@ void RFM95_init(SPI_HandleTypeDef *hspi) {
         Error_Handler();
     }
 
+    /* Set up FIFO
+     * Configure the 256 byte FIFO for either receive or transmit,
+     * but not both at the same time.
+     */
+    RFM95_writeRegister(hspi, RFM95_REG_FIFO_TX_BASE_ADDR, 0);
+    RFM95_writeRegister(hspi, RFM95_REG_FIFO_RX_BASE_ADDR, 0);
+
+    /* Set frequency */
+    // {0x06D9, 0x0700, 0x0800}, //868MHz from HopeRf demo code
+    RFM95_writeRegister(hspi, RFM95_REG_FRF_MSB, 0xD9);
+    RFM95_writeRegister(hspi, RFM95_REG_FRF_MID, 0x00);
+    RFM95_writeRegister(hspi, RFM95_REG_FRF_LSB, 0x00);
+
     /* Set config */
 //  1d,     1e,      26
 //    { 0x72,   0x74,    0x00}, // Bw125Cr45Sf128 (the chip default)
