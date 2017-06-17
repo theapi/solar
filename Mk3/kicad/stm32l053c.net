@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source /home/peter/repos/solar/Mk3/kicad/stm32l053c.sch)
-    (date "Sat 17 Jun 2017 15:29:44 BST")
+    (date "Sat 17 Jun 2017 17:35:29 BST")
     (tool "Eeschema 4.0.6-e0-6349~53~ubuntu16.04.1")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -113,7 +113,7 @@
       (tstamp 5930245B))
     (comp (ref BT1)
       (value Battery)
-      (footprint theapi:BatteryBox)
+      (footprint theapi:BatteryBoxAndPins)
       (libsource (lib device) (part Battery))
       (sheetpath (names /) (tstamps /))
       (tstamp 59319095))

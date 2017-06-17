@@ -605,7 +605,7 @@ U 1 1 59319095
 P 2600 1475
 F 0 "BT1" H 2700 1575 50  0000 L CNN
 F 1 "Battery" H 2700 1475 50  0000 L CNN
-F 2 "theapi:BatteryBox" V 2600 1535 50  0001 C CNN
+F 2 "theapi:BatteryBoxAndPins" V 2600 1535 50  0001 C CNN
 F 3 "" V 2600 1535 50  0001 C CNN
 	1    2600 1475
 	1    0    0    -1  
