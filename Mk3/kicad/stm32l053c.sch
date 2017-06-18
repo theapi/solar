@@ -872,11 +872,11 @@ Wire Wire Line
 Wire Wire Line
 	3750 1875 3750 1925
 Wire Wire Line
-	3050 1925 4450 1925
+	3050 1925 4750 1925
 Wire Wire Line
 	3050 1925 3050 1775
 Wire Wire Line
-	4150 1475 4450 1475
+	4150 1475 4750 1475
 Wire Wire Line
 	4450 1475 4450 1175
 Wire Wire Line
@@ -1210,4 +1210,19 @@ F 3 "" H 3975 3250 50  0001 C CNN
 	1    3975 3250
 	-1   0    0    1   
 $EndComp
+$Comp
+L C C9
+U 1 1 59466076
+P 4750 1625
+F 0 "C9" H 4775 1725 50  0000 L CNN
+F 1 "10uF" H 4775 1525 50  0000 L CNN
+F 2 "Capacitors_SMD:C_0805_HandSoldering" H 4788 1475 50  0001 C CNN
+F 3 "" H 4750 1625 50  0000 C CNN
+	1    4750 1625
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4750 1925 4750 1775
+Connection ~ 4450 1925
+Connection ~ 4450 1475
 $EndSCHEMATC
