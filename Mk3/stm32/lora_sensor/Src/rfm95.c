@@ -94,8 +94,8 @@ uint8_t RFM95_readRegister(SPI_HandleTypeDef *hspi, uint8_t addr) {
 }
 
 HAL_StatusTypeDef RFM95_setMode(SPI_HandleTypeDef *hspi, uint8_t mode) {
-    // Always ensure LoRa mode is set in RFM95_REG_OP_MODE.
-    return RFM95_writeRegister(hspi, RFM95_REG_OP_MODE, mode);
+    /* Ensure LoRa mode is set in RFM95_REG_OP_MODE. */
+    return RFM95_writeRegister(hspi, RFM95_REG_OP_MODE, mode | RFM95_LONG_RANGE_MODE);
 }
 
 HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, uint8_t* data, uint8_t len) {
