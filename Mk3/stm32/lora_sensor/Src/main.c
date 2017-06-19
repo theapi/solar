@@ -111,7 +111,7 @@ int main(void)
   /* Buffer used for transmission on USART1 */
 char tx1_buffer[80];
 
-int count = 0;
+uint8_t count = 0;
 
 uint8_t reg_val = 0;
 
@@ -119,6 +119,17 @@ uint8_t reg_val = 0;
   HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
   HAL_Delay(30);
   RFM95_init(&hspi2);
+
+
+  uint8_t payload[14];
+  payload[0] = 50;
+  payload[1] = 0;
+  payload[2] = 0;
+  payload[3] = 127;
+  payload[4] = 0;
+  payload[5] = 0;
+  payload[6] = 0;
+  payload[7] = 123;
 
   /* USER CODE END 2 */
 
@@ -130,26 +141,33 @@ uint8_t reg_val = 0;
 
   /* USER CODE BEGIN 3 */
 
+      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
+      sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
+      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+
       HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
       sprintf(tx1_buffer, "Count is %d\n", count);
       HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
       count++;
 
-      /* Testing SPI write */
-      RFM95_setMode(&hspi2, RFM95_MODE_RXCONTINUOUS);
+      payload[1] = count;
+      HAL_StatusTypeDef status = RFM95_send(&hspi2, payload, 14);
 
-
-      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
-      sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
-      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
-
-
-      /* Testing SPI write */
-      RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
-
-      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
-      sprintf(tx1_buffer, "Now Reg val: %02X\n", reg_val);
-      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+//      /* Testing SPI write */
+//      RFM95_setMode(&hspi2, RFM95_MODE_RXCONTINUOUS);
+//
+//
+//      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
+//      sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
+//      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+//
+//
+//      /* Testing SPI write */
+//      RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
+//
+//      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
+//      sprintf(tx1_buffer, "Now Reg val: %02X\n", reg_val);
+//      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
 
 
 
@@ -250,8 +268,11 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc) {
  * Handles the interrupts which occur on button press.
  */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-    //@todo handle txDone on DIO0
-
+    if (GPIO_Pin == DIO0_Pin) {
+        //@todo detect if txDone or something else.
+        //RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
+        RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
+    }
 }
 
 /* USER CODE END 4 */
