@@ -152,10 +152,10 @@ void RFM95_init(SPI_HandleTypeDef* hspi);
 
 HAL_StatusTypeDef RFM95_writeRegister(SPI_HandleTypeDef* hspi, uint8_t addr, uint8_t val);
 uint8_t RFM95_readRegister(SPI_HandleTypeDef* hspi, uint8_t addr);
-HAL_StatusTypeDef RFM95_writeRegisterBurst(SPI_HandleTypeDef* hspi, uint8_t addr, const uint8_t *data);
+HAL_StatusTypeDef RFM95_writeRegisterBurst(SPI_HandleTypeDef* hspi, uint8_t addr, uint8_t *data, uint8_t len);
 
 HAL_StatusTypeDef RFM95_setMode(SPI_HandleTypeDef* hspi, uint8_t mode);
-HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, const uint8_t* data, uint8_t len);
+HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, uint8_t* data, uint8_t len);
 
 #ifdef __cplusplus
 }

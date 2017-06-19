@@ -63,8 +63,17 @@ HAL_StatusTypeDef RFM95_writeRegister(SPI_HandleTypeDef *hspi, uint8_t addr, uin
     return status;
 }
 
-HAL_StatusTypeDef RFM95_writeRegisterBurst(SPI_HandleTypeDef* hspi, uint8_t addr, const uint8_t *data) {
+HAL_StatusTypeDef RFM95_writeRegisterBurst(SPI_HandleTypeDef* hspi, uint8_t addr, uint8_t *data, uint8_t len) {
     //@todo burst write.
+    uint8_t cmd[1];
+    /* Enable the write bit to the address. */
+    cmd[0] = addr | RFM95_WRITE_MASK;
+    HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_RESET);
+    HAL_SPI_Transmit (hspi, cmd, 1, 100);
+    /* Send the data without ending the frame; BURST mode. */
+    HAL_SPI_Transmit (hspi, data, len, 100);
+    HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
+
     return HAL_OK;
 }
 
@@ -89,7 +98,7 @@ HAL_StatusTypeDef RFM95_setMode(SPI_HandleTypeDef *hspi, uint8_t mode) {
     return RFM95_writeRegister(hspi, RFM95_REG_OP_MODE, mode);
 }
 
-HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, const uint8_t* data, uint8_t len) {
+HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, uint8_t* data, uint8_t len) {
     RFM95_setMode(hspi, RFM95_MODE_STDBY);
 
     // Position at the beginning of the FIFO
@@ -110,8 +119,7 @@ HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, const uint8_t* data, uint8
     RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderId);
     RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderFlags);
     // The message data
-    RFM95_writeRegisterBurst(hspi, RFM95_REG_FIFO, data);
-
+    RFM95_writeRegisterBurst(hspi, RFM95_REG_FIFO, data, len);
     RFM95_writeRegister(hspi, RFM95_REG_PAYLOAD_LENGTH, len + RFM95_HEADER_LEN);
 
     // Interrupt on TxDone
@@ -121,6 +129,3 @@ HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, const uint8_t* data, uint8
 
     return HAL_OK;
 }
-
-
-
