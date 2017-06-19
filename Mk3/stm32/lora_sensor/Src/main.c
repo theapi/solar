@@ -47,8 +47,10 @@
 
 /* USER CODE BEGIN Includes */
 
-#include "rfm95.h"
 #include "string.h"
+
+#include "rfm95.h"
+#include "payload_garden.h"
 
 /* USER CODE END Includes */
 
@@ -121,15 +123,14 @@ uint8_t reg_val = 0;
   RFM95_init(&hspi2);
 
 
-  uint8_t payload[14];
-  payload[0] = 50;
-  payload[1] = 0;
-  payload[2] = 0;
-  payload[3] = 127;
-  payload[4] = 0;
-  payload[5] = 0;
-  payload[6] = 0;
-  payload[7] = 123;
+  uint8_t payload_buff[14];
+  PAYLOAD_Garden payload_garden;
+  payload_garden.MessageType = 50;
+  payload_garden.MessageId = 0;
+  payload_garden.VCC = 128;
+  payload_garden.ChargeMa = 124;
+
+
 
   /* USER CODE END 2 */
 
@@ -150,8 +151,9 @@ uint8_t reg_val = 0;
       HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
       count++;
 
-      payload[1] = count;
-      HAL_StatusTypeDef status = RFM95_send(&hspi2, payload, 14);
+      payload_garden.MessageId = count;
+      PAYLOAD_Garden_serialize(payload_garden, payload_buff);
+      HAL_StatusTypeDef status = RFM95_send(&hspi2, payload_buff, 14);
 
 //      /* Testing SPI write */
 //      RFM95_setMode(&hspi2, RFM95_MODE_RXCONTINUOUS);
