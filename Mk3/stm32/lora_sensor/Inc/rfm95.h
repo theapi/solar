@@ -19,6 +19,12 @@
 // binary = 10000000
 #define RFM95_WRITE_MASK 0x80
 
+#define RFM95_BROADCAST_ADDRESS 0xff
+
+// The length of the headers we add.
+// The headers are inside the LORA's payload
+#define RFM95_HEADER_LEN 4
+
 // Register names (LoRa Mode, from table 41 of sx_1276 datasheet)
 #define RFM95_REG_FIFO                                0x00
 #define RFM95_REG_OP_MODE                             0x01
@@ -146,6 +152,7 @@ void RFM95_init(SPI_HandleTypeDef* hspi);
 
 HAL_StatusTypeDef RFM95_writeRegister(SPI_HandleTypeDef* hspi, uint8_t addr, uint8_t val);
 uint8_t RFM95_readRegister(SPI_HandleTypeDef* hspi, uint8_t addr);
+HAL_StatusTypeDef RFM95_writeRegisterBurst(SPI_HandleTypeDef* hspi, uint8_t addr, const uint8_t *data);
 
 HAL_StatusTypeDef RFM95_setMode(SPI_HandleTypeDef* hspi, uint8_t mode);
 HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, const uint8_t* data, uint8_t len);

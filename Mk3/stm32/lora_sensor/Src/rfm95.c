@@ -63,6 +63,11 @@ HAL_StatusTypeDef RFM95_writeRegister(SPI_HandleTypeDef *hspi, uint8_t addr, uin
     return status;
 }
 
+HAL_StatusTypeDef RFM95_writeRegisterBurst(SPI_HandleTypeDef* hspi, uint8_t addr, const uint8_t *data) {
+    //@todo burst write.
+    return HAL_OK;
+}
+
 uint8_t RFM95_readRegister(SPI_HandleTypeDef *hspi, uint8_t addr) {
     uint8_t cmd[2] = {0, 0};
     uint8_t data[2] = {0, 0};
@@ -83,4 +88,39 @@ HAL_StatusTypeDef RFM95_setMode(SPI_HandleTypeDef *hspi, uint8_t mode) {
     // Always ensure LoRa mode is set in RFM95_REG_OP_MODE.
     return RFM95_writeRegister(hspi, RFM95_REG_OP_MODE, mode);
 }
+
+HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, const uint8_t* data, uint8_t len) {
+    RFM95_setMode(hspi, RFM95_MODE_STDBY);
+
+    // Position at the beginning of the FIFO
+    RFM95_writeRegister(hspi, RFM95_REG_FIFO_ADDR_PTR, 0);
+
+    // Packet format is preamble + explicit-header + payload + crc
+    // Explicit Header Mode
+    // payload is TO + FROM + ID + FLAGS + message data
+    // Same as Radiohead library.
+
+    // The headers
+    uint8_t txHeaderTo = RFM95_BROADCAST_ADDRESS;
+    uint8_t txHeaderFrom = RFM95_BROADCAST_ADDRESS;
+    uint8_t txHeaderId = 0;
+    uint8_t txHeaderFlags = 0;
+    RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderTo);
+    RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderFrom);
+    RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderId);
+    RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderFlags);
+    // The message data
+    RFM95_writeRegisterBurst(hspi, RFM95_REG_FIFO, data);
+
+    RFM95_writeRegister(hspi, RFM95_REG_PAYLOAD_LENGTH, len + RFM95_HEADER_LEN);
+
+    // Interrupt on TxDone
+    RFM95_writeRegister(hspi, RFM95_REG_DIO_MAPPING1, 0x40);
+    // Start the transmitter
+    RFM95_setMode(hspi, RFM95_MODE_TX);
+
+    return HAL_OK;
+}
+
+
 
