@@ -67,6 +67,9 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
+uint8_t state;
+volatile uint8_t dio0_action = 0;
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -142,52 +145,54 @@ uint8_t reg_val = 0;
 
   /* USER CODE BEGIN 3 */
 
-      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
-      sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
-      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+      /* Do some work */
+      if (state == 0) {
+          reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
+          sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
+          HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
 
-      HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
-      sprintf(tx1_buffer, "Count is %d\n", count);
-      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
-      count++;
+          HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
+          sprintf(tx1_buffer, "Count is %d\n", count);
+          HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+          count++;
 
-      payload_garden.MessageId = count;
-      PAYLOAD_Garden_serialize(payload_garden, payload_buff);
-      HAL_StatusTypeDef status = RFM95_send(&hspi2, payload_buff, 14);
+          payload_garden.MessageId = count;
+          PAYLOAD_Garden_serialize(payload_garden, payload_buff);
 
-//      /* Testing SPI write */
-//      RFM95_setMode(&hspi2, RFM95_MODE_RXCONTINUOUS);
-//
-//
-//      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
-//      sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
-//      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
-//
-//
-//      /* Testing SPI write */
-//      RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
-//
-//      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
-//      sprintf(tx1_buffer, "Now Reg val: %02X\n", reg_val);
-//      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+          RFM95_send(&hspi2, payload_buff, 14);
 
+          state = 1;
+      }
 
+      /* Do nothing while the transmission is in progress */
+      else if (state == 1 && dio0_action == 1) {
+          RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
 
-        HAL_Delay(1000);
+          state = 2;
+      }
+
+      /* Now that all the work is done, sleep until its time to do it all again */
+      else if (state == 2) {
+        //HAL_Delay(1000);
 
         HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
 
+        /* Turn off the pin interrupts */
         HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
 
         HAL_SuspendTick();
 
         /* Enter Stop Mode */
-        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 1, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 2, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
         HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
         HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
         HAL_ResumeTick();
 
+        /* Turn on the pin interrupts */
         HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+
+        state = 0;
+      }
 
   }
   /* USER CODE END 3 */
@@ -273,7 +278,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == DIO0_Pin) {
         //@todo detect if txDone or something else.
         //RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
-        RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
+        //RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
+        dio0_action = 1;
     }
 }
 
