@@ -58,6 +58,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+RFM95_TypeDef rfm95;
 
 /* USER CODE END PV */
 
@@ -120,8 +121,7 @@ uint8_t reg_val = 0;
   /* SPI chip select high */
   HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
   HAL_Delay(30);
-  RFM95_init(&hspi2);
-
+  rfm95 = RFM95_init(&hspi2);
 
   uint8_t payload_buff[14];
   PAYLOAD_Garden payload_garden;
@@ -142,7 +142,7 @@ uint8_t reg_val = 0;
 
   /* USER CODE BEGIN 3 */
 
-      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
+      reg_val = RFM95_readRegister(rfm95.hspi, RFM95_REG_OP_MODE);
       sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
       HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
 
@@ -153,7 +153,7 @@ uint8_t reg_val = 0;
 
       payload_garden.MessageId = count;
       PAYLOAD_Garden_serialize(payload_garden, payload_buff);
-      HAL_StatusTypeDef status = RFM95_send(&hspi2, payload_buff, 14);
+      RFM95_send(&rfm95, payload_buff, 14);
 
 //      /* Testing SPI write */
 //      RFM95_setMode(&hspi2, RFM95_MODE_RXCONTINUOUS);
@@ -174,6 +174,11 @@ uint8_t reg_val = 0;
 
 
         HAL_Delay(1000);
+
+        if (rfm95.mode != RFM95_MODE_SLEEP) {
+            //@todo Handle not finished sending.
+
+        }
 
         HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
 
@@ -273,7 +278,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == DIO0_Pin) {
         //@todo detect if txDone or something else.
         //RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
-        RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
+        RFM95_setMode(&rfm95, RFM95_MODE_SLEEP);
     }
 }
 

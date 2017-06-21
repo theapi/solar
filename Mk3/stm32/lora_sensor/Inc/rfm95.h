@@ -137,25 +137,22 @@
 #define RFM95_PAYLOAD_CRC_ON                        0x04
 #define RFM95_SYM_TIMEOUT_MSB                       0x03
 
-
-typedef struct
-{
-    uint8_t bufLen; /* Number of octets in the recieved buffer */
-    uint8_t buf[RF95_MAX_PAYLOAD_LEN];
-    int8_t snf;     /* Last SNR */
+typedef struct {
+    uint8_t mode;
+    SPI_HandleTypeDef *hspi;
 } RFM95_TypeDef;
 
 /**
  * Initialise the module.
  */
-void RFM95_init(SPI_HandleTypeDef* hspi);
+RFM95_TypeDef RFM95_init(SPI_HandleTypeDef *hspi);
 
 HAL_StatusTypeDef RFM95_writeRegister(SPI_HandleTypeDef* hspi, uint8_t addr, uint8_t val);
 uint8_t RFM95_readRegister(SPI_HandleTypeDef* hspi, uint8_t addr);
 HAL_StatusTypeDef RFM95_writeRegisterBurst(SPI_HandleTypeDef* hspi, uint8_t addr, uint8_t *data, uint8_t len);
 
-HAL_StatusTypeDef RFM95_setMode(SPI_HandleTypeDef* hspi, uint8_t mode);
-HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, uint8_t* data, uint8_t len);
+HAL_StatusTypeDef RFM95_setMode(RFM95_TypeDef *rfm95, uint8_t mode);
+HAL_StatusTypeDef RFM95_send(RFM95_TypeDef *rfm95, uint8_t* data, uint8_t len);
 
 #ifdef __cplusplus
 }

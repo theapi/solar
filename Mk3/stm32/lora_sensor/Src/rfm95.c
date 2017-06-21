@@ -1,6 +1,6 @@
 #include "rfm95.h"
 
-void RFM95_init(SPI_HandleTypeDef *hspi) {
+RFM95_TypeDef RFM95_init(SPI_HandleTypeDef *hspi) {
     if (RFM95_writeRegister(hspi, RFM95_REG_OP_MODE, RFM95_MODE_SLEEP)  != HAL_OK) {
         Error_Handler();
     }
@@ -49,6 +49,11 @@ void RFM95_init(SPI_HandleTypeDef *hspi) {
     // 0x09F6,                   //11dbm  from HopeRf demo code
     RFM95_writeRegister(hspi, RFM95_REG_PA_CONFIG, RFM_PA_SELECT | 0xF6);
 
+    RFM95_TypeDef rfm95;
+    rfm95.mode = RFM95_MODE_SLEEP;
+    rfm95.hspi = hspi;
+
+    return rfm95;
 }
 
 HAL_StatusTypeDef RFM95_writeRegister(SPI_HandleTypeDef *hspi, uint8_t addr, uint8_t val) {
@@ -93,16 +98,17 @@ uint8_t RFM95_readRegister(SPI_HandleTypeDef *hspi, uint8_t addr) {
     return data[1];
 }
 
-HAL_StatusTypeDef RFM95_setMode(SPI_HandleTypeDef *hspi, uint8_t mode) {
+HAL_StatusTypeDef RFM95_setMode(RFM95_TypeDef *rfm95, uint8_t mode) {
     /* Ensure LoRa mode is set in RFM95_REG_OP_MODE. */
-    return RFM95_writeRegister(hspi, RFM95_REG_OP_MODE, mode | RFM95_LONG_RANGE_MODE);
+    rfm95->mode = mode;
+    return RFM95_writeRegister(rfm95->hspi, RFM95_REG_OP_MODE, mode | RFM95_LONG_RANGE_MODE);
 }
 
-HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, uint8_t* data, uint8_t len) {
-    RFM95_setMode(hspi, RFM95_MODE_STDBY);
+HAL_StatusTypeDef RFM95_send(RFM95_TypeDef *rfm95, uint8_t* data, uint8_t len) {
+    RFM95_setMode(rfm95->hspi, RFM95_MODE_STDBY);
 
     // Position at the beginning of the FIFO
-    RFM95_writeRegister(hspi, RFM95_REG_FIFO_ADDR_PTR, 0);
+    RFM95_writeRegister(rfm95->hspi, RFM95_REG_FIFO_ADDR_PTR, 0);
 
     // Packet format is preamble + explicit-header + payload + crc
     // Explicit Header Mode
@@ -114,18 +120,18 @@ HAL_StatusTypeDef RFM95_send(SPI_HandleTypeDef* hspi, uint8_t* data, uint8_t len
     uint8_t txHeaderFrom = RFM95_BROADCAST_ADDRESS;
     uint8_t txHeaderId = 0;
     uint8_t txHeaderFlags = 0;
-    RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderTo);
-    RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderFrom);
-    RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderId);
-    RFM95_writeRegister(hspi, RFM95_REG_FIFO, txHeaderFlags);
+    RFM95_writeRegister(rfm95->hspi, RFM95_REG_FIFO, txHeaderTo);
+    RFM95_writeRegister(rfm95->hspi, RFM95_REG_FIFO, txHeaderFrom);
+    RFM95_writeRegister(rfm95->hspi, RFM95_REG_FIFO, txHeaderId);
+    RFM95_writeRegister(rfm95->hspi, RFM95_REG_FIFO, txHeaderFlags);
     // The message data
-    RFM95_writeRegisterBurst(hspi, RFM95_REG_FIFO, data, len);
-    RFM95_writeRegister(hspi, RFM95_REG_PAYLOAD_LENGTH, len + RFM95_HEADER_LEN);
+    RFM95_writeRegisterBurst(rfm95->hspi, RFM95_REG_FIFO, data, len);
+    RFM95_writeRegister(rfm95->hspi, RFM95_REG_PAYLOAD_LENGTH, len + RFM95_HEADER_LEN);
 
     // Interrupt on TxDone
-    RFM95_writeRegister(hspi, RFM95_REG_DIO_MAPPING1, 0x40);
+    RFM95_writeRegister(rfm95->hspi, RFM95_REG_DIO_MAPPING1, 0x40);
     // Start the transmitter
-    RFM95_setMode(hspi, RFM95_MODE_TX);
+    RFM95_setMode(rfm95, RFM95_MODE_TX);
 
     return HAL_OK;
 }
