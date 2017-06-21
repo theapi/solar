@@ -142,44 +142,27 @@ uint8_t reg_val = 0;
 
   /* USER CODE BEGIN 3 */
 
-      reg_val = RFM95_readRegister(rfm95.hspi, RFM95_REG_OP_MODE);
-      sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
-      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
-
-      HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
-      sprintf(tx1_buffer, "Count is %d\n", count);
-      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
-      count++;
-
-      payload_garden.MessageId = count;
-      PAYLOAD_Garden_serialize(payload_garden, payload_buff);
-      RFM95_send(&rfm95, payload_buff, 14);
-
-//      /* Testing SPI write */
-//      RFM95_setMode(&hspi2, RFM95_MODE_RXCONTINUOUS);
-//
-//
-//      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
-//      sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
-//      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
-//
-//
-//      /* Testing SPI write */
-//      RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
-//
-//      reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
-//      sprintf(tx1_buffer, "Now Reg val: %02X\n", reg_val);
-//      HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+      /* Wait for transmitter to be ready. */
+      if (rfm95.mode == RFM95_MODE_SLEEP) {
 
 
+        reg_val = RFM95_readRegister(rfm95.hspi, RFM95_REG_OP_MODE);
+        sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
+        HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
 
-        HAL_Delay(1000);
+        HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
+        sprintf(tx1_buffer, "Count is %d\n", count);
+        HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
+        count++;
 
-        if (rfm95.mode != RFM95_MODE_SLEEP) {
-            //@todo Handle not finished sending.
+        payload_garden.MessageId = count;
+        PAYLOAD_Garden_serialize(payload_garden, payload_buff);
+        RFM95_send(&rfm95, payload_buff, 14);
 
-        }
+        //HAL_Delay(1000);
 
+
+        // Sleep when finished sending.
         HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
 
         HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
@@ -187,12 +170,13 @@ uint8_t reg_val = 0;
         HAL_SuspendTick();
 
         /* Enter Stop Mode */
-        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 1, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 2, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
         HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
         HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
         HAL_ResumeTick();
 
         HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+    }
 
   }
   /* USER CODE END 3 */
