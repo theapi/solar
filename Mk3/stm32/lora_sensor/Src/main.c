@@ -276,9 +276,6 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc) {
  */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
     if (GPIO_Pin == DIO0_Pin) {
-        //@todo detect if txDone or something else.
-        //RFM95_setMode(&hspi2, RFM95_MODE_STDBY);
-        //RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
         dio0_action = 1;
     }
 }
