@@ -15,6 +15,7 @@
 
 #include "rfm95.h"
 #include "payload_garden.h"
+#include "ads1015.h"
 
 /* USER CODE END Includes */
 

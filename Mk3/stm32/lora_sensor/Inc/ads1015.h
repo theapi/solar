@@ -76,6 +76,13 @@ extern "C" {
 #define ADS1015_REG_CONFIG_CQUE_4CONV   (0x0002)  // Assert ALERT/RDY after four conversions
 #define ADS1015_REG_CONFIG_CQUE_NONE    (0x0003)  // Disable the comparator and put ALERT/RDY in high state (default)
 
+HAL_StatusTypeDef ADS1015_writeRegister(I2C_HandleTypeDef* hi2c, uint8_t addr, uint16_t val);
+uint16_t ADS1015_readRegister(I2C_HandleTypeDef* hi2c, uint8_t addr);
+void ADS1015_setGain(I2C_HandleTypeDef* hi2c, uint16_t gain);
+uint16_t ADS1015_SingleEnded(I2C_HandleTypeDef* hi2c, uint8_t channel);
+int16_t ADS1015_Differential_0_1(I2C_HandleTypeDef* hi2c);
+int16_t ADS1015_Differential_2_3(I2C_HandleTypeDef* hi2c);
+
 
 #ifdef __cplusplus
 }
