@@ -77,6 +77,12 @@
 
 /* USER CODE BEGIN Private defines */
 
+typedef enum {
+    MAIN_STATE_SENSE,
+    MAIN_STATE_TX,
+    MAIN_STATE_SLEEP,
+} MAIN_StateTypeDef;
+
 /* USER CODE END Private defines */
 
 void _Error_Handler(char *, int);

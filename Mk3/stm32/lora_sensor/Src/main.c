@@ -67,8 +67,9 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
-uint8_t state;
+//uint8_t state;
 volatile uint8_t dio0_action = 0;
+MAIN_StateTypeDef state;
 
 /* USER CODE END PFP */
 
@@ -133,6 +134,9 @@ uint8_t reg_val = 0;
   payload_garden.VCC = 128;
   payload_garden.ChargeMa = 124;
 
+  // Start in sensing mode.
+  state = MAIN_STATE_SENSE;
+
 
 
   /* USER CODE END 2 */
@@ -146,7 +150,7 @@ uint8_t reg_val = 0;
   /* USER CODE BEGIN 3 */
 
       /* Do some work */
-      if (state == 0) {
+      if (state == MAIN_STATE_SENSE) {
           reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
           sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
           HAL_UART_Transmit(&huart1, (uint8_t*)tx1_buffer,  strlen(tx1_buffer), 5000);
@@ -161,18 +165,18 @@ uint8_t reg_val = 0;
 
           RFM95_send(&hspi2, payload_buff, 14);
 
-          state = 1;
+          state = MAIN_STATE_TX;
       }
 
       /* Do nothing while the transmission is in progress */
-      else if (state == 1 && dio0_action == 1) {
+      else if (state == MAIN_STATE_TX && dio0_action == 1) {
           RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
 
-          state = 2;
+          state = MAIN_STATE_SLEEP;
       }
 
       /* Now that all the work is done, sleep until its time to do it all again */
-      else if (state == 2) {
+      else if (state == MAIN_STATE_SLEEP) {
         //HAL_Delay(1000);
 
         HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
@@ -191,7 +195,7 @@ uint8_t reg_val = 0;
         /* Turn on the pin interrupts */
         HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
-        state = 0;
+        state = MAIN_STATE_SENSE;
       }
 
   }
