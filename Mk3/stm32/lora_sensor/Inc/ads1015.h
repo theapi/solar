@@ -76,13 +76,20 @@ extern "C" {
 #define ADS1015_REG_CONFIG_CQUE_4CONV   (0x0002)  // Assert ALERT/RDY after four conversions
 #define ADS1015_REG_CONFIG_CQUE_NONE    (0x0003)  // Disable the comparator and put ALERT/RDY in high state (default)
 
+typedef enum {
+    ADS1015_GAIN_TWOTHIRDS = ADS1015_REG_CONFIG_PGA_6_144V,
+    ADS1015_GAIN_ONE = ADS1015_REG_CONFIG_PGA_4_096V,
+    ADS1015_GAIN_TWO = ADS1015_REG_CONFIG_PGA_2_048V,
+    ADS1015_GAIN_FOUR = ADS1015_REG_CONFIG_PGA_1_024V,
+    ADS1015_GAIN_EIGHT = ADS1015_REG_CONFIG_PGA_0_512V,
+    ADS1015_GAIN_SIXTEEN = ADS1015_REG_CONFIG_PGA_0_256V
+} Gain_TypeDef;
+
 HAL_StatusTypeDef ADS1015_writeRegister(I2C_HandleTypeDef* hi2c, uint8_t addr, uint16_t val);
 uint16_t ADS1015_readRegister(I2C_HandleTypeDef* hi2c, uint8_t addr);
-void ADS1015_setGain(I2C_HandleTypeDef* hi2c, uint16_t gain);
-uint16_t ADS1015_SingleEnded(I2C_HandleTypeDef* hi2c, uint8_t channel);
-int16_t ADS1015_Differential_0_1(I2C_HandleTypeDef* hi2c);
-int16_t ADS1015_Differential_2_3(I2C_HandleTypeDef* hi2c);
-
+uint16_t ADS1015_SingleEnded(I2C_HandleTypeDef* hi2c, uint8_t channel, Gain_TypeDef gain);
+int16_t ADS1015_Differential_0_1(I2C_HandleTypeDef* hi2c, Gain_TypeDef gain);
+int16_t ADS1015_Differential_2_3(I2C_HandleTypeDef* hi2c, Gain_TypeDef gain);
 
 #ifdef __cplusplus
 }
