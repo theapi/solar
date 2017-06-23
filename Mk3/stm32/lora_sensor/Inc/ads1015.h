@@ -85,11 +85,11 @@ typedef enum {
     ADS1015_GAIN_SIXTEEN = ADS1015_REG_CONFIG_PGA_0_256V
 } Gain_TypeDef;
 
-HAL_StatusTypeDef ADS1015_writeRegister(I2C_HandleTypeDef* hi2c, uint8_t addr, uint16_t val);
-uint16_t ADS1015_readRegister(I2C_HandleTypeDef* hi2c, uint8_t addr);
-uint16_t ADS1015_SingleEnded(I2C_HandleTypeDef* hi2c, uint8_t channel, Gain_TypeDef gain);
-int16_t ADS1015_Differential_0_1(I2C_HandleTypeDef* hi2c, Gain_TypeDef gain);
-int16_t ADS1015_Differential_2_3(I2C_HandleTypeDef* hi2c, Gain_TypeDef gain);
+HAL_StatusTypeDef ADS1015_writeRegister(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress, uint8_t addr, uint16_t val);
+uint16_t ADS1015_readRegister(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress, uint8_t addr);
+uint16_t ADS1015_SingleEnded(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress, uint8_t channel, Gain_TypeDef gain);
+int16_t ADS1015_Differential_0_1(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress, Gain_TypeDef gain);
+int16_t ADS1015_Differential_2_3(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress, Gain_TypeDef gain);
 
 #ifdef __cplusplus
 }
