@@ -110,10 +110,16 @@ int main(void) {
 
         /* Do some work */
         if (state == MAIN_STATE_SENSE) {
-            reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
-            sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
+
+            uint16_t adc_val = ADS1015_SingleEnded(&hi2c1, ADS1015_ADDRESS, 2, ADS1015_GAIN_TWO);
+            sprintf(tx1_buffer, "adc_val: %02X\n", adc_val);
             HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer,
                     strlen(tx1_buffer), 5000);
+
+//            reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
+//            sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
+//            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer,
+//                    strlen(tx1_buffer), 5000);
 
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
             sprintf(tx1_buffer, "Count is %d\n", count);

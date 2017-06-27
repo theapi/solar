@@ -1,13 +1,28 @@
 #include "ads1015.h"
 
 HAL_StatusTypeDef ADS1015_writeRegister(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress, uint8_t addr, uint16_t val) {
-    //@todo implement ADS1015_writeRegister
+    uint8_t data[3];
+
+    data[0] = addr;
+    data[1] = val >> 8;    // MSB byte of 16bit data
+    data[2] = val;       // LSB byte of 16bit data
+    HAL_I2C_Master_Transmit(hi2c, i2cAddress, data, 3, 100);
+
     return HAL_OK;
 }
 
 uint16_t ADS1015_readRegister(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress, uint8_t addr) {
-    //@todo implement ADS1015_readRegister
-    return 0;
+    uint8_t reg_ptr = addr;
+    uint8_t buffer[2];
+
+    /* first set the register pointer to the register wanted to be read */
+    HAL_I2C_Master_Transmit(hi2c, i2cAddress, &reg_ptr, 1, 100);  // note the & operator which gives us the address of the register_pointer variable
+
+    /* receive the 2 x 8bit data into the receive buffer */
+    HAL_I2C_Master_Receive(hi2c, i2cAddress, buffer, 2, 100);
+
+    /* Return as uint16_t */
+    return (buffer[0] << 8) | buffer[1];
 }
 
 uint16_t ADS1015_SingleEnded(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress, uint8_t channel, Gain_TypeDef gain) {
