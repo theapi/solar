@@ -9,7 +9,7 @@ extern "C" {
 #include "stdint.h"
 
 /* I2C ADDRESS/BITS */
-#define ADS1015_ADDRESS                 (0x48)    // 1001 000 (ADDR = GND)
+#define ADS1015_ADDRESS                 (0x90) // @todo Why does the address have to be shifted left   // 0100 1000 (ADDR = GND)
 
 /* CONVERSION DELAY (in mS) */
 #define ADS1015_CONVERSIONDELAY         (1)

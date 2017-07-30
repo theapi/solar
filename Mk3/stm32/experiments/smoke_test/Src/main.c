@@ -125,6 +125,13 @@ int main(void)
       sprintf(tx1_buffer, "adc_val: %d\n", adc_val);
       HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
 
+      //ADS1015_writeRegister(&hi2c1, ADS1015_ADDRESS, ADS1015_REG_POINTER_CONFIG, ADS1015_REG_CONFIG_MUX_SINGLE_3);
+
+      //HAL_Delay(ADS1015_CONVERSIONDELAY);
+
+//      uint16_t adc_val = ADS1015_readRegister(&hi2c1, ADS1015_ADDRESS, ADS1015_REG_POINTER_CONVERT);
+//sprintf(tx1_buffer, "adc_val: %04X\n", adc_val);
+//      HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
 
       HAL_GPIO_TogglePin(GPIOA, LED_Pin);
       HAL_Delay(1000);

@@ -1,6 +1,8 @@
 #MicroXplorer Configuration settings - do not modify
 File.Version=6
-I2C1.IPParameters=Timing
+I2C1.Analog_Filter=I2C_ANALOGFILTER_ENABLE
+I2C1.IPParameters=Timing,Speed,Analog_Filter
+I2C1.Speed=100
 I2C1.Timing=0x2000090E
 KeepUserPlacement=true
 Mcu.Family=STM32L0
