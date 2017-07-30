@@ -46,6 +46,8 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
+#include "string.h"
+#include "ads1015.h"
 
 /* USER CODE END Includes */
 
@@ -118,6 +120,11 @@ int main(void)
       sprintf(tx1_buffer, "Count is %d\n", count);
       HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
       count++;
+
+      uint16_t adc_val = ADS1015_SingleEnded(&hi2c1, ADS1015_ADDRESS, 3, ADS1015_GAIN_ONE);
+      sprintf(tx1_buffer, "adc_val: %d\n", adc_val);
+      HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
+
 
       HAL_GPIO_TogglePin(GPIOA, LED_Pin);
       HAL_Delay(1000);
