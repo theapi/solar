@@ -101,6 +101,10 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
+  /* Buffer used for transmission on USART1 */
+  char tx1_buffer[80];
+  uint8_t count = 0;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -110,8 +114,13 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+
+      sprintf(tx1_buffer, "Count is %d\n", count);
+      HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
+      count++;
+
       HAL_GPIO_TogglePin(GPIOA, LED_Pin);
-        HAL_Delay(500);
+      HAL_Delay(1000);
 
   }
   /* USER CODE END 3 */
