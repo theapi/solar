@@ -9,7 +9,7 @@ extern "C" {
 #include "stdint.h"
 
 /* I2C ADDRESS/BITS */
-#define ADS1015_ADDRESS                 (0x48)    // 1001 000 (ADDR = GND)
+#define ADS1015_ADDRESS                 (0x48 << 1)    // 1001 000 7 bit address (7 MSB) (ADDR = GND)
 
 /* CONVERSION DELAY (in mS) */
 #define ADS1015_CONVERSIONDELAY         (1)
