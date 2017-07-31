@@ -1,4 +1,3 @@
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32l0xx_hal.h"
@@ -111,14 +110,11 @@ int main(void) {
 
             uint16_t adc_val = ADS1015_SingleEnded(&hi2c1, ADS1015_ADDRESS, 3, ADS1015_GAIN_TWO);
             sprintf(tx1_buffer, "adc_val: %02X\n", adc_val);
-            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer,
-                    strlen(tx1_buffer), 5000);
-
+            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
 
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
             sprintf(tx1_buffer, "Count is %d\n", count);
-            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer,
-                    strlen(tx1_buffer), 5000);
+            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
             count++;
 
             payload_garden.MessageId = count;
@@ -149,7 +145,7 @@ int main(void) {
 
             /* Enter Stop Mode */
             HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 2,
-                    RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+            RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
             HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
             HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
             HAL_ResumeTick();
@@ -179,8 +175,7 @@ void SystemClock_Config(void) {
 
     /**Initializes the CPU, AHB and APB busses clocks 
      */
-    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI
-            | RCC_OSCILLATORTYPE_LSI;
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_LSI;
     RCC_OscInitStruct.HSIState = RCC_HSI_ON;
     RCC_OscInitStruct.HSICalibrationValue = 16;
     RCC_OscInitStruct.LSIState = RCC_LSI_ON;
@@ -191,8 +186,7 @@ void SystemClock_Config(void) {
 
     /**Initializes the CPU, AHB and APB busses clocks 
      */
-    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-            | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
     RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
     RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
     RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -202,8 +196,7 @@ void SystemClock_Config(void) {
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1
-            | RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_RTC;
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1 | RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_RTC;
     PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
     PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
     PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
