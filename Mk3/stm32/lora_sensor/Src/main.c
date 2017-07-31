@@ -82,12 +82,10 @@ int main(void) {
 
     uint8_t count = 0;
 
-    uint8_t reg_val = 0;
-
     /* SPI chip select high */
     HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
     HAL_Delay(30);
-    RFM95_init(&hspi2);
+    //RFM95_init(&hspi2);
 
     uint8_t payload_buff[14];
     PAYLOAD_Garden payload_garden;
@@ -116,10 +114,6 @@ int main(void) {
             HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer,
                     strlen(tx1_buffer), 5000);
 
-//            reg_val = RFM95_readRegister(&hspi2, RFM95_REG_OP_MODE);
-//            sprintf(tx1_buffer, "Reg val: %02X\n", reg_val);
-//            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer,
-//                    strlen(tx1_buffer), 5000);
 
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
             sprintf(tx1_buffer, "Count is %d\n", count);
@@ -130,14 +124,14 @@ int main(void) {
             payload_garden.MessageId = count;
             PAYLOAD_Garden_serialize(payload_garden, payload_buff);
 
-            RFM95_send(&hspi2, payload_buff, 14);
+            //RFM95_send(&hspi2, payload_buff, 14);
 
             state = MAIN_STATE_TX;
         }
 
         /* Do nothing while the transmission is in progress */
         else if (state == MAIN_STATE_TX && dio0_action == 1) {
-            RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
+            //RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
 
             state = MAIN_STATE_SLEEP;
         }
