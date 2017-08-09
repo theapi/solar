@@ -111,7 +111,7 @@ int main(void) {
 
             //uint16_t adc_val = ADS1015_SingleEnded(&hi2c1, ADS1015_ADDRESS, 3, ADS1015_GAIN_TWO);
             uint16_t adc_val = BATTERY_vcc();
-            sprintf(tx1_buffer, "adc_val: %02X\n", adc_val);
+            sprintf(tx1_buffer, "batt_vcc: %d\n", adc_val);
             HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
 
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
@@ -128,32 +128,38 @@ int main(void) {
         }
 
         /* Do nothing while the transmission is in progress */
-        else if (state == MAIN_STATE_TX && dio0_action == 1) {
-            //RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
+        else if (state == MAIN_STATE_TX) {
+            if (dio0_action == 1) {
+                RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
 
+                state = MAIN_STATE_SLEEP;
+            }
+
+            //TMP while RFM is diabled
             state = MAIN_STATE_SLEEP;
         }
 
         /* Now that all the work is done, sleep until its time to do it all again */
         else if (state == MAIN_STATE_SLEEP) {
-            //HAL_Delay(1000);
+            //TMP while RFM is diabled
+            HAL_Delay(1000);
 
-            HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
-
-            /* Turn off the pin interrupts */
-            HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
-
-            HAL_SuspendTick();
-
-            /* Enter Stop Mode */
-            HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 2,
-            RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
-            HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
-            HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
-            HAL_ResumeTick();
-
-            /* Turn on the pin interrupts */
-            HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+//            HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
+//
+//            /* Turn off the pin interrupts */
+//            HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
+//
+//            HAL_SuspendTick();
+//
+//            /* Enter Stop Mode */
+//            HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 2,
+//            RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+//            HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+//            HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
+//            HAL_ResumeTick();
+//
+//            /* Turn on the pin interrupts */
+//            HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
             state = MAIN_STATE_SENSE;
         }
