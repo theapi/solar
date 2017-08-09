@@ -15,6 +15,7 @@
 #include "rfm95.h"
 #include "payload_garden.h"
 #include "ads1015.h"
+#include "battery.h"
 
 /* USER CODE END Includes */
 
@@ -108,7 +109,8 @@ int main(void) {
         /* Do some work */
         if (state == MAIN_STATE_SENSE) {
 
-            uint16_t adc_val = ADS1015_SingleEnded(&hi2c1, ADS1015_ADDRESS, 3, ADS1015_GAIN_TWO);
+            //uint16_t adc_val = ADS1015_SingleEnded(&hi2c1, ADS1015_ADDRESS, 3, ADS1015_GAIN_TWO);
+            uint16_t adc_val = BATTERY_vcc();
             sprintf(tx1_buffer, "adc_val: %02X\n", adc_val);
             HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
 
