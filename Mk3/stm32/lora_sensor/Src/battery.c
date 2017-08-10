@@ -31,6 +31,10 @@ uint16_t BATTERY_ChargeMv() {
     return val * 4;
 }
 
-int16_t BATTERY_ChargeMa() {
-    return ADS1015_Differential_0_1(&hi2c1, ADS1015_ADDRESS, ADS1015_GAIN_TWO);
+uint16_t BATTERY_ChargeMa() {
+    int16_t val = ADS1015_Differential_0_1(&hi2c1, ADS1015_ADDRESS, ADS1015_GAIN_TWO);
+    /*
+     * Invert as its a negative value referenced to ground when charging.
+     */
+    return val *-1;
 }
