@@ -108,24 +108,20 @@ int main(void) {
 
         /* Do some work */
         if (state == MAIN_STATE_SENSE) {
+            HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
 
             payload_garden.MessageId = count;
-
-            HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
-            sprintf(tx1_buffer, "Count is %d\n", count);
-            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
             count++;
 
             payload_garden.VCC = BATTERY_vcc();
-            sprintf(tx1_buffer, "VCC: %d\n", payload_garden.VCC);
-            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
-
             payload_garden.ChargeMv = BATTERY_ChargeMv();
-            sprintf(tx1_buffer, "ChargeMv: %d\n", payload_garden.ChargeMv);
-            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
-
             payload_garden.ChargeMa = BATTERY_ChargeMa();
-            sprintf(tx1_buffer, "ChargeMa: %d\n", payload_garden.ChargeMa);
+
+            sprintf(tx1_buffer, "id:%d, vcc:%d, mv:%d, ma:%d\n",
+                    count,
+                    payload_garden.VCC,
+                    payload_garden.ChargeMv,
+                    payload_garden.ChargeMa);
             HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
 
             PAYLOAD_Garden_serialize(payload_garden, payload_buff);
