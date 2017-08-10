@@ -24,7 +24,12 @@ uint16_t BATTERY_vcc() {
 }
 
 uint16_t BATTERY_ChargeMv() {
-    return ADS1015_SingleEnded(&hi2c1, ADS1015_ADDRESS, 2, ADS1015_GAIN_TWO);
+    uint16_t val = ADS1015_SingleEnded(&hi2c1, ADS1015_ADDRESS, 2, ADS1015_GAIN_ONE);
+    /*
+     * x2 for the 2mv per bit
+     * x2 for the voltage divider
+     */
+    return val * 4;
 }
 
 int16_t BATTERY_ChargeMa() {

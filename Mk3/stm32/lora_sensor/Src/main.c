@@ -109,19 +109,26 @@ int main(void) {
         /* Do some work */
         if (state == MAIN_STATE_SENSE) {
 
-            //uint16_t adc_val = ADS1015_SingleEnded(&hi2c1, ADS1015_ADDRESS, 3, ADS1015_GAIN_TWO);
-            uint16_t adc_val = BATTERY_vcc();
-            sprintf(tx1_buffer, "batt_vcc: %d\n", adc_val);
-            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
+            payload_garden.MessageId = count;
 
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
             sprintf(tx1_buffer, "Count is %d\n", count);
-            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 5000);
+            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
             count++;
 
-            payload_garden.MessageId = count;
-            PAYLOAD_Garden_serialize(payload_garden, payload_buff);
+            payload_garden.VCC = BATTERY_vcc();
+            sprintf(tx1_buffer, "VCC: %d\n", payload_garden.VCC);
+            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
 
+            payload_garden.ChargeMv = BATTERY_ChargeMv();
+            sprintf(tx1_buffer, "ChargeMv: %d\n", payload_garden.ChargeMv);
+            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
+
+            payload_garden.ChargeMa = BATTERY_ChargeMa();
+            sprintf(tx1_buffer, "ChargeMa: %d\n", payload_garden.ChargeMa);
+            HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
+
+            PAYLOAD_Garden_serialize(payload_garden, payload_buff);
             //RFM95_send(&hspi2, payload_buff, 14);
 
             state = MAIN_STATE_TX;
