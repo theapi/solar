@@ -16,6 +16,7 @@
 #include "payload_garden.h"
 #include "ads1015.h"
 #include "battery.h"
+#include "temperature.h"
 
 /* USER CODE END Includes */
 
@@ -78,7 +79,7 @@ int main(void) {
     __HAL_RCC_WAKEUPSTOP_CLK_CONFIG(RCC_STOP_WAKEUPCLOCK_HSI);
 
     /* Buffer used for transmission on USART1 */
-    char tx1_buffer[80];
+    char tx1_buffer[120];
 
     uint8_t count = 0;
 
@@ -91,8 +92,8 @@ int main(void) {
     PAYLOAD_Garden payload_garden;
     payload_garden.MessageType = 50;
     payload_garden.MessageId = 0;
-    payload_garden.VCC = 128;
-    payload_garden.ChargeMa = 124;
+    payload_garden.VCC = 0;
+    payload_garden.ChargeMa = 0;
 
     // Start in sensing mode.
     state = MAIN_STATE_SENSE;
@@ -116,12 +117,16 @@ int main(void) {
             payload_garden.VCC = BATTERY_vcc();
             payload_garden.ChargeMv = BATTERY_ChargeMv();
             payload_garden.ChargeMa = BATTERY_ChargeMa();
+            payload_garden.Temperature = TEMPERATURE_external();
+            payload_garden.CpuTemperature = TEMPERATURE_cpu();
 
-            sprintf(tx1_buffer, "id:%d, vcc:%d, mv:%d, ma:%d\n",
+            sprintf(tx1_buffer, "id:%d, vcc:%d, mv:%d, ma:%d, C:%d, cpuC:%d\n",
                     count,
                     payload_garden.VCC,
                     payload_garden.ChargeMv,
-                    payload_garden.ChargeMa);
+                    payload_garden.ChargeMa,
+                    payload_garden.Temperature,
+                    payload_garden.CpuTemperature);
             HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
 
             PAYLOAD_Garden_serialize(payload_garden, payload_buff);
