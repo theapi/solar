@@ -17,6 +17,7 @@
 #include "ads1015.h"
 #include "battery.h"
 #include "temperature.h"
+#include "light.h"
 
 /* USER CODE END Includes */
 
@@ -81,8 +82,6 @@ int main(void) {
     /* Buffer used for transmission on USART1 */
     char tx1_buffer[120];
 
-    uint8_t count = 0;
-
     /* SPI chip select high */
     HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
     HAL_Delay(30);
@@ -92,8 +91,7 @@ int main(void) {
     PAYLOAD_Garden payload_garden;
     payload_garden.MessageType = 50;
     payload_garden.MessageId = 0;
-    payload_garden.VCC = 0;
-    payload_garden.ChargeMa = 0;
+
 
     // Start in sensing mode.
     state = MAIN_STATE_SENSE;
@@ -111,22 +109,22 @@ int main(void) {
         if (state == MAIN_STATE_SENSE) {
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
 
-            payload_garden.MessageId = count;
-            count++;
-
+            payload_garden.MessageId++;
             payload_garden.VCC = BATTERY_vcc();
             payload_garden.ChargeMv = BATTERY_ChargeMv();
             payload_garden.ChargeMa = BATTERY_ChargeMa();
             payload_garden.Temperature = TEMPERATURE_external();
             payload_garden.CpuTemperature = TEMPERATURE_cpu();
+            payload_garden.Light = LIGHT_lux();
 
-            sprintf(tx1_buffer, "id:%d, vcc:%d, mv:%d, ma:%d, C:%d, cpuC:%d\n",
-                    count,
+            sprintf(tx1_buffer, "id:%d, vcc:%d, mv:%d, ma:%d, C:%d, cpuC:%d, lux:%d\n",
+                    payload_garden.MessageId,
                     payload_garden.VCC,
                     payload_garden.ChargeMv,
                     payload_garden.ChargeMa,
                     payload_garden.Temperature,
-                    payload_garden.CpuTemperature);
+                    payload_garden.CpuTemperature,
+                    payload_garden.Light);
             HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
 
             PAYLOAD_Garden_serialize(payload_garden, payload_buff);
