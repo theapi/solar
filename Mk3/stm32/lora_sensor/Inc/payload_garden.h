@@ -16,10 +16,10 @@ typedef struct {
   uint8_t MessageId;
   uint16_t VCC;
   uint16_t ChargeMv;
-  uint16_t ChargeMa;
+  int16_t ChargeMa;
   uint16_t Light;
-  uint16_t CpuTemperature;
-  uint16_t Temperature;
+  int16_t CpuTemperature;
+  int16_t Temperature;
 } PAYLOAD_Garden;
 
 

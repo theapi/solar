@@ -22,7 +22,7 @@
  /**
   * Current into the battery due to charging.
   */
- uint16_t BATTERY_ChargeMa();
+ int16_t BATTERY_ChargeMa();
 
 
 #ifdef __cplusplus
