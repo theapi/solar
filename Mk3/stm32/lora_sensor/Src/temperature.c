@@ -10,13 +10,15 @@ extern ADC_HandleTypeDef hadc;
  * The temperature outside.
  */
 int16_t TEMPERATURE_external() {
-    //@todo reconfigure to only one adc channel
     HAL_ADC_Start(&hadc);
     HAL_ADC_PollForConversion(&hadc, 100);
     uint32_t val = HAL_ADC_GetValue(&hadc);
-
     HAL_ADC_Stop(&hadc);
-    return val;
+
+    // 4095 = 3260mV (measured on the 3.3V rail)
+    // 1bit = 3260 / 4095 = 0.796
+    // ~40 too high on readings
+    return (val * 0.796F) - 40;
 }
 
 /**
