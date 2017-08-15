@@ -17,8 +17,7 @@ int16_t TEMPERATURE_external() {
 
     // 4095 = 3260mV (measured on the 3.3V rail)
     // 1bit = 3260 / 4095 = 0.796
-    // ~40 too high on readings
-    return (val * 0.796F) - 40;
+    return val * 0.796F;
 }
 
 /**

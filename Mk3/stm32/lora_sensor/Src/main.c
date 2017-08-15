@@ -113,6 +113,8 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
+  HAL_ADCEx_Calibration_Start(&hadc, ADC_SINGLE_ENDED);
+
     /* Enable Ultra low power mode */
     HAL_PWREx_EnableUltraLowPower();
     __HAL_RCC_WAKEUPSTOP_CLK_CONFIG(RCC_STOP_WAKEUPCLOCK_HSI);
