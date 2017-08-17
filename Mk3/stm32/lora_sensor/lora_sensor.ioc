@@ -1,7 +1,10 @@
 #MicroXplorer Configuration settings - do not modify
-ADC.DiscontinuousConvMode=ENABLE
-ADC.IPParameters=DiscontinuousConvMode,SamplingTime
-ADC.SamplingTime=ADC_SAMPLETIME_3CYCLES_5
+ADC.ContinuousConvMode=ENABLE
+ADC.DiscontinuousConvMode=DISABLE
+ADC.EOCSelection=ADC_EOC_SEQ_CONV
+ADC.IPParameters=DiscontinuousConvMode,SamplingTime,ContinuousConvMode,EOCSelection,LowPowerAutoWait
+ADC.LowPowerAutoWait=ENABLE
+ADC.SamplingTime=ADC_SAMPLETIME_7CYCLES_5
 File.Version=6
 I2C1.IPParameters=Timing
 I2C1.Timing=0x2000090E

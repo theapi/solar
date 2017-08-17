@@ -153,9 +153,23 @@ int main(void)
             payload_garden.VCC = BATTERY_vcc();
             payload_garden.ChargeMv = BATTERY_ChargeMv();
             payload_garden.ChargeMa = BATTERY_ChargeMa();
-            payload_garden.Temperature = TEMPERATURE_external();
-            payload_garden.CpuTemperature = TEMPERATURE_cpu();
+            //payload_garden.Temperature = TEMPERATURE_external();
+            //payload_garden.CpuTemperature = TEMPERATURE_cpu();
             payload_garden.Light = LIGHT_lux();
+
+
+                HAL_ADC_Start(&hadc);
+
+    HAL_ADC_PollForConversion(&hadc, 100);
+    uint32_t val = HAL_ADC_GetValue(&hadc);
+    payload_garden.Temperature = val;
+
+    HAL_ADC_PollForConversion(&hadc, 100);
+    val = HAL_ADC_GetValue(&hadc);
+    payload_garden.CpuTemperature = val;
+    HAL_ADC_PollForConversion(&hadc, 100);
+
+    HAL_ADC_Stop(&hadc);
 
             sprintf(tx1_buffer, "id:%d, vcc:%d, mv:%d, ma:%d, C:%d, cpuC:%d, lux:%d\n",
                     payload_garden.MessageId,
