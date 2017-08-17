@@ -23,6 +23,8 @@ int16_t TEMPERATURE_external();
  */
 int16_t TEMPERATURE_cpu();
 
+int32_t ComputeTemperature(uint32_t measure);
+
 #ifdef __cplusplus
 }
 #endif
