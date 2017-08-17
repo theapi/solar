@@ -162,12 +162,11 @@ int main(void)
 
     HAL_ADC_PollForConversion(&hadc, 100);
     uint32_t val = HAL_ADC_GetValue(&hadc);
-    payload_garden.Temperature = val;
+    payload_garden.Temperature = val * 0.796F;
 
     HAL_ADC_PollForConversion(&hadc, 100);
     val = HAL_ADC_GetValue(&hadc);
-    payload_garden.CpuTemperature = val;
-    HAL_ADC_PollForConversion(&hadc, 100);
+    payload_garden.CpuTemperature = val * 0.796F;
 
     HAL_ADC_Stop(&hadc);
 
