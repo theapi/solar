@@ -69,7 +69,9 @@
  */
 #define BH1750_MODE_ONE_TIME_LOW_RES  0x23
 
-
+void BH1750_powerDown(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress);
+void BH1750_powerOn(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress);
+uint16_t BH1750_lux(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress);
 
 #ifdef __cplusplus
 }

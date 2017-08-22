@@ -147,6 +147,9 @@ int main(void)
 
         /* Do some work */
         if (state == MAIN_STATE_SENSE) {
+            /* Power on the light sensor */
+            LIGHT_powerOn();
+
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
 
             payload_garden.MessageId++;
@@ -160,6 +163,9 @@ int main(void)
             HAL_ADC_Stop(&hadc);
 
             payload_garden.Light = LIGHT_lux();
+
+            /* Power off the light sensor */
+            LIGHT_powerDown();
 
             sprintf(tx1_buffer, "id:%d, vcc:%d, mv:%d, ma:%d, C:%d, cpuC:%d, lux:%d\n",
                     payload_garden.MessageId,

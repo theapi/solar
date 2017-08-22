@@ -18,6 +18,16 @@
  */
 uint16_t LIGHT_lux();
 
+/**
+ * Power down the sensor.
+ */
+void LIGHT_powerDown();
+
+/**
+ * Power up the sensor.
+ */
+void LIGHT_powerOn();
+
 
 #ifdef __cplusplus
 }
