@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source /home/peter/repos/solar/Mk3/kicad/stm32l053c.sch)
-    (date "Sat 05 Aug 2017 17:20:06 BST")
+    (date "Thu 24 Aug 2017 19:51:09 BST")
     (tool "Eeschema 4.0.7-e1-6374~58~ubuntu16.04.1")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -125,7 +125,7 @@
       (tstamp 59328B1A))
     (comp (ref D2)
       (value D_Schottky)
-      (footprint Diodes_SMD:D_SOD-323_HandSoldering)
+      (footprint theapi:D_SOD-323_HandSoldering)
       (libsource (lib device) (part D_Schottky))
       (sheetpath (names /) (tstamps /))
       (tstamp 59328B99))
