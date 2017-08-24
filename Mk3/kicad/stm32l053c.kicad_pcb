@@ -2159,7 +2159,7 @@
   (gr_text + (at 139.065 83.82 180) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)))
   )
-  (gr_text "github.com/theapi/solar Mk 3.1" (at 139.7 72) (layer F.SilkS)
+  (gr_text "github.com/theapi/solar Mk 3.2" (at 139.7 72) (layer F.SilkS)
     (effects (font (size 0.8 0.8) (thickness 0.15)) (justify left))
   )
   (gr_text 3V3 (at 142.24 92.075) (layer F.SilkS)
