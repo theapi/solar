@@ -12,7 +12,7 @@ extern "C" {
 #define ADS1015_ADDRESS                 (0x48 << 1)    // 1001 000 7 bit address (7 MSB) (ADDR = GND)
 
 /* CONVERSION DELAY (in mS) */
-#define ADS1015_CONVERSIONDELAY         (1)
+#define ADS1015_CONVERSIONDELAY         (10)
 
 /* POINTER REGISTER */
 #define ADS1015_REG_POINTER_MASK        (0x03)
