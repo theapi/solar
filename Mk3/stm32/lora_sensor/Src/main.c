@@ -127,7 +127,7 @@ int main(void)
     /* SPI chip select high */
     HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
     HAL_Delay(30);
-    RFM95_init(&hspi2);
+    //RFM95_init(&hspi2);
 
     uint8_t payload_buff[14];
     PAYLOAD_Garden payload_garden;
@@ -180,7 +180,7 @@ int main(void)
             HAL_UART_Transmit(&huart1, (uint8_t*) tx1_buffer, strlen(tx1_buffer), 1000);
 
             PAYLOAD_Garden_serialize(payload_garden, payload_buff);
-            RFM95_send(&hspi2, payload_buff, 14);
+            //RFM95_send(&hspi2, payload_buff, 14);
 
             state = MAIN_STATE_TX;
         }
@@ -194,30 +194,30 @@ int main(void)
             }
 
             //TMP while RFM is diabled
-            //state = MAIN_STATE_SLEEP;
+            state = MAIN_STATE_SLEEP;
         }
 
         /* Now that all the work is done, sleep until its time to do it all again */
         else if (state == MAIN_STATE_SLEEP) {
             //TMP while RFM is diabled
-//            HAL_Delay(1000);
+            HAL_Delay(1000);
 
-            HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
-
-            /* Turn off the pin interrupts */
-            HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
-
-            HAL_SuspendTick();
-
-            /* Enter Stop Mode */
-            HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 2,
-            RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
-            HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
-            HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
-            HAL_ResumeTick();
-
-            /* Turn on the pin interrupts */
-            HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+//            HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
+//
+//            /* Turn off the pin interrupts */
+//            HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
+//
+//            HAL_SuspendTick();
+//
+//            /* Enter Stop Mode */
+//            HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 2,
+//            RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+//            HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+//            HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
+//            HAL_ResumeTick();
+//
+//            /* Turn on the pin interrupts */
+//            HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
             state = MAIN_STATE_SENSE;
         }
