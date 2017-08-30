@@ -1,6 +1,13 @@
 #include "rfm95.h"
 
 void RFM95_init(SPI_HandleTypeDef *hspi) {
+
+    /* Reset high */
+    //HAL_GPIO_WritePin(GPIOB, RFM_RST_Pin, GPIO_PIN_SET);
+    /* SPI chip select high */
+    HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
+    HAL_Delay(30);
+
     if (RFM95_writeRegister(hspi, RFM95_REG_OP_MODE, RFM95_MODE_SLEEP)  != HAL_OK) {
         Error_Handler();
     }

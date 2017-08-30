@@ -53,8 +53,6 @@
 #define DIO5_Pin GPIO_PIN_10
 #define DIO5_GPIO_Port GPIOB
 #define DIO5_EXTI_IRQn EXTI4_15_IRQn
-#define RFM_RST_Pin GPIO_PIN_11
-#define RFM_RST_GPIO_Port GPIOB
 #define SPI2_CS_Pin GPIO_PIN_12
 #define SPI2_CS_GPIO_Port GPIOB
 #define DIO3_Pin GPIO_PIN_15

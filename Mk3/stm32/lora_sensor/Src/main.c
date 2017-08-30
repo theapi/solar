@@ -122,11 +122,7 @@ int main(void)
     /* Buffer used for transmission on USART1 */
     char tx1_buffer[120];
 
-    /* Reset high */
-    HAL_GPIO_WritePin(GPIOB, RFM_RST_Pin, GPIO_PIN_SET);
-    /* SPI chip select high */
-    HAL_GPIO_WritePin(GPIOB, SPI2_CS_Pin, GPIO_PIN_SET);
-    HAL_Delay(30);
+
     RFM95_init(&hspi2);
 
     uint8_t payload_buff[14];
