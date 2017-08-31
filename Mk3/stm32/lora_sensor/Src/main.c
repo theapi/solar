@@ -103,6 +103,9 @@ int main(void)
 
   /* USER CODE END SysInit */
 
+  /* Turn off the pin interrupts */
+  HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
+
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC_Init();
@@ -184,21 +187,21 @@ int main(void)
         /* Do nothing while the transmission is in progress */
         else if (state == MAIN_STATE_TX) {
             if (dio0_action == 1) {
-                RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
-
-                state = MAIN_STATE_SLEEP;
+                //RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
+                //state = MAIN_STATE_SLEEP;
             }
 
-            //TMP while RFM is diabled
-            //state = MAIN_STATE_SLEEP;
+            //TMP while interrupts are investigated
+            HAL_Delay(30);
+            state = MAIN_STATE_SLEEP;
         }
 
         /* Now that all the work is done, sleep until its time to do it all again */
         else if (state == MAIN_STATE_SLEEP) {
-            //TMP while RFM is diabled
-//            HAL_Delay(1000);
-
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_RESET);
+
+            //TMP while RFM is diabled
+            //HAL_Delay(1000);
 
             /* Turn off the pin interrupts */
             HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
