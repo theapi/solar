@@ -67,6 +67,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+static void MX_NVIC_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -103,9 +104,6 @@ int main(void)
 
   /* USER CODE END SysInit */
 
-  /* Turn off the pin interrupts */
-  HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC_Init();
@@ -113,6 +111,9 @@ int main(void)
   MX_RTC_Init();
   MX_USART1_UART_Init();
   MX_SPI2_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
 
   /* USER CODE BEGIN 2 */
 
@@ -187,13 +188,13 @@ int main(void)
         /* Do nothing while the transmission is in progress */
         else if (state == MAIN_STATE_TX) {
             if (dio0_action == 1) {
-                //RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
-                //state = MAIN_STATE_SLEEP;
+                RFM95_setMode(&hspi2, RFM95_MODE_SLEEP);
+                state = MAIN_STATE_SLEEP;
             }
 
             //TMP while interrupts are investigated
-            HAL_Delay(30);
-            state = MAIN_STATE_SLEEP;
+            //HAL_Delay(30);
+            //state = MAIN_STATE_SLEEP;
         }
 
         /* Now that all the work is done, sleep until its time to do it all again */
@@ -285,6 +286,18 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+
+/** NVIC Configuration
+*/
+static void MX_NVIC_Init(void)
+{
+  /* RTC_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(RTC_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(RTC_IRQn);
+  /* EXTI4_15_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 }
 
 /* USER CODE BEGIN 4 */

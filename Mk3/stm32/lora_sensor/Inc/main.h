@@ -52,12 +52,10 @@
 #define LED_GPIO_Port GPIOA
 #define DIO5_Pin GPIO_PIN_10
 #define DIO5_GPIO_Port GPIOB
-#define DIO5_EXTI_IRQn EXTI4_15_IRQn
 #define SPI2_CS_Pin GPIO_PIN_12
 #define SPI2_CS_GPIO_Port GPIOB
 #define DIO3_Pin GPIO_PIN_15
 #define DIO3_GPIO_Port GPIOA
-#define DIO3_EXTI_IRQn EXTI4_15_IRQn
 #define DIO4_Pin GPIO_PIN_3
 #define DIO4_GPIO_Port GPIOB
 #define DIO0_Pin GPIO_PIN_4
@@ -65,10 +63,8 @@
 #define DIO0_EXTI_IRQn EXTI4_15_IRQn
 #define DIO1_Pin GPIO_PIN_5
 #define DIO1_GPIO_Port GPIOB
-#define DIO1_EXTI_IRQn EXTI4_15_IRQn
-#define DIO2_Pin GPIO_PIN_8
-#define DIO2_GPIO_Port GPIOB
-#define DIO2_EXTI_IRQn EXTI4_15_IRQn
+#define DI02_Pin GPIO_PIN_8
+#define DI02_GPIO_Port GPIOB
 #define ADC_RDY_Pin GPIO_PIN_9
 #define ADC_RDY_GPIO_Port GPIOB
 #define ADC_RDY_EXTI_IRQn EXTI4_15_IRQn
