@@ -20,10 +20,22 @@ extern ADC_HandleTypeDef hadc;
 int16_t TEMPERATURE_external() {
     HAL_ADC_PollForConversion(&hadc, 100);
     uint32_t val = HAL_ADC_GetValue(&hadc);
+    int16_t deg = -41;
 
-    // 4095 = 3260mV (measured on the 3.3V rail)
-    // 1bit = 3260 / 4095 = 0.796
-    return val * 0.796F;
+    /*
+The TMP36 is specified from −40°C to +125°C, provides a 750 mV output at 25°C.
+The TMP36 has an output scale factor of 10 mV/°C.
+4095 = 3260mV (measured on the 3.3V rail)
+1bit = 3260 / 4095 = 0.796
+     */
+    uint32_t mv = val * 0.796F;
+    if (mv > 750) {
+        deg = (mv - 750) / 10;
+    } else {
+        deg = (750 - mv) / 10;
+    }
+
+    return deg;
 }
 
 /**
