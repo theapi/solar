@@ -29,10 +29,10 @@ The TMP36 has an output scale factor of 10 mV/°C.
 1bit = 3260 / 4095 = 0.796
      */
     uint32_t mv = val * 0.796F;
-    if (mv > 750) {
-        deg = (mv - 750) / 10;
+    if (mv > 500) {
+        deg = (mv - 500) / 10;
     } else {
-        deg = (750 - mv) / 10;
+        deg = (500 - mv) / 10 * -1;
     }
 
     return deg;

@@ -210,7 +210,7 @@ int main(void)
             HAL_SuspendTick();
 
             /* Enter Stop Mode */
-            HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 2,
+            HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 5,
             RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
             HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
             HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
