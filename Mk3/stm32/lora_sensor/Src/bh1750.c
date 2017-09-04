@@ -22,7 +22,12 @@ void BH1750_powerOn(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress) {
 uint16_t BH1750_lux(I2C_HandleTypeDef* hi2c, uint8_t i2cAddress) {
     uint8_t buffer[2];
 
-    /* receive the 2 x 8bit data into the receive buffer */
+    /* Take one high res reading then power down. */
+    BH1750_setRegister(hi2c, i2cAddress, BH1750_MODE_ONE_TIME_HIGH_RES);
+    /* Measurement Time is typically 120ms. */
+    HAL_Delay(160);
+
+    /* Receive the 2 x 8bit data into the receive buffer */
     HAL_I2C_Master_Receive(hi2c, i2cAddress, buffer, 2, 100);
 
     /* Return as uint16_t */

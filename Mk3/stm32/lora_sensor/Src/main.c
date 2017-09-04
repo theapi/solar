@@ -149,8 +149,6 @@ int main(void)
 
         /* Do some work */
         if (state == MAIN_STATE_SENSE) {
-            /* Power on the light sensor */
-            LIGHT_powerOn();
 
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
 
@@ -160,14 +158,13 @@ int main(void)
             payload_garden.ChargeMa = BATTERY_ChargeMa();
 
             HAL_ADC_Start(&hadc);
+
+            /* Get the light reading while the adc gets ready */
+            payload_garden.Light = LIGHT_lux();
+
             payload_garden.Temperature = TEMPERATURE_external();
             payload_garden.CpuTemperature = TEMPERATURE_cpu();
             HAL_ADC_Stop(&hadc);
-
-            payload_garden.Light = LIGHT_lux();
-
-            /* Power off the light sensor */
-            LIGHT_powerDown();
 
             sprintf(tx1_buffer, "id:%d, vcc:%d, mv:%d, ma:%d, C:%d, cpuC:%d, lux:%d\n",
                     payload_garden.MessageId,
