@@ -65,11 +65,11 @@ namespace theapi {
   }
 
   // The forth integer data
-  int16_t GardenPayload::getLight() {
+  uint16_t GardenPayload::getLight() {
     return _payload.d;
   }
 
-  void GardenPayload::setLight(int16_t val) {
+  void GardenPayload::setLight(uint16_t val) {
     _payload.d = val;
   }
 

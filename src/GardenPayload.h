@@ -53,8 +53,8 @@ namespace theapi {
       void setChargeMa(int16_t val);
 
       // The forth integer data
-      int16_t getLight();
-      void setLight(int16_t val);
+      uint16_t getLight();
+      void setLight(uint16_t val);
 
       // The sith integer data
       int16_t getCpuTemperature();

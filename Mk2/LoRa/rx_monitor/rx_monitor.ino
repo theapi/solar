@@ -211,11 +211,15 @@ void loop() {
 
     display.drawString(0, 20, String(rx_payload.getMsgId()));
     display.drawString(35, 20, String(rx_payload.getVcc()));
-    display.drawString(80, 20, String(rx_payload.getChargeMa()));
+    display.drawString(80, 20, String(rx_payload.getTemperature()));
 
-    display.drawString(0, 45, String(signal_payload.getRssi()));
-    display.drawString(35, 45, String(signal_payload.getSnr()));
-    display.drawString(80, 45, String(signal_payload.getFreqError()));
+//    display.drawString(0, 45, String(signal_payload.getRssi()));
+//    display.drawString(35, 45, String(signal_payload.getSnr()));
+//    display.drawString(80, 45, String(signal_payload.getFreqError()));
+
+    display.drawString(0, 45, String(rx_payload.getChargeMv()));
+    display.drawString(40, 45, String(rx_payload.getChargeMa()));
+    display.drawString(80, 45, String(rx_payload.getLight()));
 
     display.display();
   }

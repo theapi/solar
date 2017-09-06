@@ -162,14 +162,12 @@ var timer = 0;
           var light_chart = new google.visualization.Gauge(document.getElementById('chart_light'));
           light_data.setValue(0, 1, data_obj.garden.light);
           var light_options = {
-            min: 0, max: 5000,
+            min: 0, max: 66000,
             width: 200, height: 200,
-            redFrom: 0, redTo: 1000,
-            redColor: "#2e2d4f",
-            yellowFrom:2500, yellowTo: 3500,
-            greenFrom:3500, greenTo: 5000,
+            yellowFrom:10000, yellowTo: 25000,
+            greenFrom:10000, greenTo: 66000,
             greenColor: "#ffee38",
-            majorTicks: [0,1,2,3,4,5], minorTicks: 10
+            majorTicks: [0,1,2,3,4,5,6,7], minorTicks: 10
           };
           light_chart.draw(light_data, light_options);
         }
