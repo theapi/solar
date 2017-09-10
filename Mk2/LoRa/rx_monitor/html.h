@@ -33,7 +33,7 @@ var timer = 0;
           min: 0, max: 180,
           width: 180, height: 180,
           redFrom: 160, redTo: 180,
-          yellowFrom:30, yellowTo: 160,
+          yellowFrom:60, yellowTo: 160,
           majorTicks: [0, 20, 40, 60, 80, 100, 120, 140, 160, 180], minorTicks: 10
         };
         timer_chart.draw(timer_data, timer_options);
@@ -144,7 +144,7 @@ var timer = 0;
           var vcc_options = {
             min: 0, max: 6000,
             width: 200, height: 200,
-            redFrom: 5500, redTo: 6000,
+            redFrom: 5800, redTo: 6000,
             yellowFrom:3000, yellowTo: 3300,
             greenFrom:0, greenTo: 3000,
             greenColor: "#de3800",
