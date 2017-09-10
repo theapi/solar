@@ -149,6 +149,10 @@ int main(void)
 
         /* Do some work */
         if (state == MAIN_STATE_SENSE) {
+            HAL_ADC_Start(&hadc);
+            // junk readings
+            payload_garden.Temperature = TEMPERATURE_external();
+            payload_garden.CpuTemperature = TEMPERATURE_cpu();
 
             HAL_GPIO_WritePin(GPIOA, LED_Pin, GPIO_PIN_SET);
 
@@ -157,7 +161,7 @@ int main(void)
             payload_garden.ChargeMv = BATTERY_ChargeMv();
             payload_garden.ChargeMa = BATTERY_ChargeMa();
 
-            HAL_ADC_Start(&hadc);
+
 
             /* Get the light reading while the adc gets ready */
             payload_garden.Light = LIGHT_lux();
