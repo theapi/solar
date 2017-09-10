@@ -42,8 +42,11 @@ uint8_t payload_state = 0;
 uint8_t current_payload;
 uint8_t serial_byte_count = 0;
 
-unsigned long previousMillis = 0;
-const long interval = 100;
+unsigned long message_last = 0;
+uint8_t last_msg_id = 0;
+
+unsigned long display_last = 0;
+const long display_interval = 1000;
 
 const long ping_interval = 3000;
 unsigned long ping_last = 0;
@@ -80,14 +83,8 @@ void setup() {
   //display.flipScreenVertically();
   display.setFont(ArialMT_Plain_16);
 
-  rx_payload.setMsgId(254);
-  rx_payload.setVcc(1234);
-  rx_payload.setChargeMv(5678);
-
   display.clear();
-  display.drawString(0, 20, String(rx_payload.getMsgId()));
-  display.drawString(0, 45, String(rx_payload.getVcc()));
-  display.drawString(80, 45, String(rx_payload.getChargeMv()));
+  display.drawString(10, 20, "Hello :)");
   display.display();
 
 
@@ -199,26 +196,34 @@ void loop() {
   }
 
   // Update the display
-  if (currentMillis - previousMillis >= interval) {
-    previousMillis = currentMillis;
+  if (currentMillis - display_last >= display_interval) {
+    display_last = currentMillis;
+
+    uint8_t msg_id = rx_payload.getMsgId();
+    if (msg_id != last_msg_id) {
+      last_msg_id = msg_id;
+      message_last = currentMillis;
+    }
+    
     display.clear();
 
-    if (currentMillis < 1000000000) {
-      // Show the edn of the ip address if the miils count isn't too large.
-      display.drawString(100, 0, ip_end);
-    }
-    display.drawString(0, 0, String(currentMillis));
+    // How long since last message.
+    display.drawString(0, 0, String((currentMillis - message_last )/ 1000));
+    
 
-    display.drawString(0, 20, String(rx_payload.getMsgId()));
-    display.drawString(35, 20, String(rx_payload.getVcc()));
-    display.drawString(80, 20, String(rx_payload.getTemperature()));
+    display.drawString(60, 0, String(msg_id));
+    
+    // Show the end of the ip address.
+    display.drawString(100, 0, ip_end);
+    
+    // Second row
+    display.drawString(0, 20, String(rx_payload.getChargeMa()));
+    display.drawString(35, 20, String(rx_payload.getChargeMv()));
+    display.drawString(80, 20, String(rx_payload.getVcc()));
 
-//    display.drawString(0, 45, String(signal_payload.getRssi()));
-//    display.drawString(35, 45, String(signal_payload.getSnr()));
-//    display.drawString(80, 45, String(signal_payload.getFreqError()));
-
-    display.drawString(0, 45, String(rx_payload.getChargeMv()));
-    display.drawString(40, 45, String(rx_payload.getChargeMa()));
+    // Third row
+    display.drawString(0, 45, String(rx_payload.getTemperature()));
+    display.drawString(40, 45, String(rx_payload.getCpuTemperature()));
     display.drawString(80, 45, String(rx_payload.getLight()));
 
     display.display();
