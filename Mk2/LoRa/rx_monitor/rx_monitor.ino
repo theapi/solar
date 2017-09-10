@@ -42,6 +42,10 @@ uint8_t payload_state = 0;
 uint8_t current_payload;
 uint8_t serial_byte_count = 0;
 
+// The degrees are sent as an int that needs to be divided by 100.
+// floats a twice as large as we need for transmission.
+float deg = -42.0;
+
 unsigned long message_last = 0;
 uint8_t last_msg_id = 0;
 
@@ -164,6 +168,9 @@ void loop() {
             serial_byte_count = 0;
             payload_state = 2;
             rx_payload.unserialize(input_string);
+
+            // Convert the temperature to a float.
+            deg = (float) rx_payload.getTemperature() / 10.0;
           }
           break;
       }
@@ -222,8 +229,8 @@ void loop() {
     display.drawString(80, 20, String(rx_payload.getVcc()));
 
     // Third row
-    display.drawString(0, 45, String(rx_payload.getTemperature()));
-    display.drawString(40, 45, String(rx_payload.getCpuTemperature()));
+    display.drawString(0, 45, String(deg));
+    display.drawString(45, 45, String(rx_payload.getCpuTemperature()));
     display.drawString(80, 45, String(rx_payload.getLight()));
 
     display.display();
@@ -251,7 +258,7 @@ void serialPrintPayload() {
       Serial.print(rx_payload.getChargeMa()); Serial.print(", ");
       Serial.print(rx_payload.getLight()); Serial.print(", ");
       Serial.print(rx_payload.getCpuTemperature()); Serial.print(", ");
-      Serial.println(rx_payload.getTemperature());
+      Serial.println(deg);
       Serial.println();
     break;
   }
@@ -310,7 +317,7 @@ void websocketBroadcast() {
       str += "\"charge_ma\":" + String(rx_payload.getChargeMa()) + ",";
       str += "\"light\":" + String(rx_payload.getLight()) + ",";
       str += "\"cpu\":" + String(rx_payload.getCpuTemperature()) + ",";
-      str += "\"temperature\":" + String(rx_payload.getTemperature());
+      str += "\"temperature\":" + String(deg);
       str += "}}";
       webSocket.broadcastTXT(str);
     break;
@@ -364,7 +371,7 @@ void mqttBroadcast() {
       str += String(rx_payload.getChargeMa()) + ",";
       str += String(rx_payload.getLight()) + ",";
       str += String(rx_payload.getCpuTemperature()) + ",";
-      str += String(rx_payload.getTemperature());
+      str += String(deg);
       memset(msg, 0, sizeof msg);
       str.toCharArray(msg, sizeof msg);
       if (mqttConnect()) {

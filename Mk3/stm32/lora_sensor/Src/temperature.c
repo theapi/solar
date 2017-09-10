@@ -13,7 +13,7 @@
 extern ADC_HandleTypeDef hadc;
 
 /**
- * The temperature outside.
+ * The temperature outside, divide by 10 to get degrees.
  *
  * This is horrible as TEMPERATURE_external() must be called first
  */
@@ -30,11 +30,12 @@ The TMP36 has an output scale factor of 10 mV/°C.
      */
     uint32_t mv = val * 0.796F;
     if (mv > 500) {
-        deg = (mv - 500) / 10;
+        deg = (mv - 500);
     } else {
-        deg = (500 - mv) / 10 * -1;
+        deg = (500 - mv)* -1;
     }
 
+    // To get actual degrees, use a float & divide by 10.
     return deg;
 }
 
