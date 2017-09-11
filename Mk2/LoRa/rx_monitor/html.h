@@ -40,7 +40,7 @@ var timer = 0;
       }
 
       function drawChart() {
-
+/*
         // Connection status
         if (typeof data_obj.connection !== 'undefined') {
           var connection_data = google.visualization.arrayToDataTable([
@@ -76,7 +76,7 @@ var timer = 0;
           };
           connection_chart.draw(connection_data, connection_options);
         }
-
+*/
         // Message id
         if (typeof data_obj.garden !== 'undefined') {
           var msg_id_data = google.visualization.arrayToDataTable([

@@ -71,7 +71,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
 
         // send message to client
-        webSocket.sendTXT(num, "{\"status\": \"Connected\"}");
+        //webSocket.sendTXT(num, "{\"status\": \"Connected\"}");
+        websocketBroadcastGarden();
       }
       break;
   }
@@ -293,33 +294,45 @@ void udpBroadcast() {
   Udp.stop();
 }
 
+/**
+ * Send the signal data.
+ */
+void websocketBroadcastSignal() {
+  str = "{\"signal\":{";
+  str += "\"msg_type\":" + String(signal_payload.getMsgType()) + ",";
+  str += "\"msg_id\":" + String(signal_payload.getMsgId()) + ",";
+  str += "\"rssi\":" + String(signal_payload.getRssi()) + ",";
+  str += "\"snr\":" + String(signal_payload.getSnr()) + ",";
+  str += "\"freq_error\":" + String(signal_payload.getFreqError());
+  str += "}}";
+  webSocket.broadcastTXT(str);
+}
+
+/**
+ * Send the garden data as json
+ */
+void websocketBroadcastGarden() {
+  str = "{\"garden\":{";
+  str += "\"msg_type\":" + String(rx_payload.getMsgType()) + ", ";
+  str += "\"msg_id\":" + String(rx_payload.getMsgId()) + ",";
+  str += "\"vcc\":" + String(rx_payload.getVcc()) + ",";
+  str += "\"solar_mv\":" + String(rx_payload.getChargeMv()) + ",";
+  str += "\"charge_ma\":" + String(rx_payload.getChargeMa()) + ",";
+  str += "\"light\":" + String(rx_payload.getLight()) + ",";
+  str += "\"cpu\":" + String(rx_payload.getCpuTemperature()) + ",";
+  str += "\"temperature\":" + String(deg);
+  str += "}}";
+  webSocket.broadcastTXT(str);
+}
+
 void websocketBroadcast() {
   String str;
   switch (current_payload) {
     case theapi::Payload::SIGNAL:
-      // Send the signal data.
-      str = "{\"signal\":{";
-      str += "\"msg_type\":" + String(signal_payload.getMsgType()) + ",";
-      str += "\"msg_id\":" + String(signal_payload.getMsgId()) + ",";
-      str += "\"rssi\":" + String(signal_payload.getRssi()) + ",";
-      str += "\"snr\":" + String(signal_payload.getSnr()) + ",";
-      str += "\"freq_error\":" + String(signal_payload.getFreqError());
-      str += "}}";
-      webSocket.broadcastTXT(str);
+      websocketBroadcastSignal();
     break;
     default:
-      // Send the garden data as json
-      str = "{\"garden\":{";
-      str += "\"msg_type\":" + String(rx_payload.getMsgType()) + ", ";
-      str += "\"msg_id\":" + String(rx_payload.getMsgId()) + ",";
-      str += "\"vcc\":" + String(rx_payload.getVcc()) + ",";
-      str += "\"solar_mv\":" + String(rx_payload.getChargeMv()) + ",";
-      str += "\"charge_ma\":" + String(rx_payload.getChargeMa()) + ",";
-      str += "\"light\":" + String(rx_payload.getLight()) + ",";
-      str += "\"cpu\":" + String(rx_payload.getCpuTemperature()) + ",";
-      str += "\"temperature\":" + String(deg);
-      str += "}}";
-      webSocket.broadcastTXT(str);
+      websocketBroadcastGarden();
     break;
   }
 }
