@@ -9,7 +9,7 @@
 //#include <AES.h>
 #include <RH_RF95.h>
 
-#include "config.h"
+//#include "config.h"
 #include "Payload.h"
 #include "GardenPayload.h"
 #include "AckPayload.h"
@@ -59,7 +59,8 @@ void setup() {
   Serial.begin(115200);
 
   // Show the led panel is working.
-  garden_payload.setMsgId(0b10101010);
+  //garden_payload.setMsgId(0b10101010);
+  garden_payload.setMsgId(0);
   updateLedPanel();
 
   Serial.println("LoRa RX");
@@ -94,7 +95,8 @@ void loop() {
     uint8_t len = sizeof(buf);
     
     if (rf95.recv(buf, &len)) {
-      digitalWrite(LED, HIGH);
+      //digitalWrite(LED, HIGH);
+      
       Serial.println();
       RH_RF95::printBuffer("Received: ", buf, len);
       //Serial.print("headerFrom: "); Serial.println(rf95.headerFrom());
@@ -128,27 +130,27 @@ void loop() {
       Serial.write('\t'); // Payload start byte
       Serial.write(signal_payload_buf, signal_payload.size());
 
-      updateLedPanel();
+      //updateLedPanel();
       
-      // There needs to be a small delay before sending the reply.
-      // YUK
-      delay(100);
-
-      // Send a reply
-      ack_payload.setMsgId(garden_payload.getMsgId());
-      //ack_payload.setValue(1234);
-      uint8_t ack_payload_buf[ack_payload.size()];
-      ack_payload.serialize(ack_payload_buf);
-      rf95.send(ack_payload_buf, ack_payload.size());
-      //uint8_t encrypted_ack_buffer[16];
-      //cipher.encryptBlock(encrypted_ack_buffer, ack_payload_buf);
-      //rf95.setHeaderTo(garden_node_id);
-      //rf95.setHeaderFrom(rx_node_id);
-      //rf95.send(encrypted_ack_buffer, 16);
-      rf95.waitPacketSent();
+//      // There needs to be a small delay before sending the reply.
+//      // YUK
+//      delay(100);
+//
+//      // Send a reply
+//      ack_payload.setMsgId(garden_payload.getMsgId());
+//      //ack_payload.setValue(1234);
+//      uint8_t ack_payload_buf[ack_payload.size()];
+//      ack_payload.serialize(ack_payload_buf);
+//      rf95.send(ack_payload_buf, ack_payload.size());
+//      //uint8_t encrypted_ack_buffer[16];
+//      //cipher.encryptBlock(encrypted_ack_buffer, ack_payload_buf);
+//      //rf95.setHeaderTo(garden_node_id);
+//      //rf95.setHeaderFrom(rx_node_id);
+//      //rf95.send(encrypted_ack_buffer, 16);
+//      rf95.waitPacketSent();
 
       
-      digitalWrite(LED, LOW);
+      //digitalWrite(LED, LOW);
       
     } else {
       Serial.println("Receive failed");
