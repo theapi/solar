@@ -42,7 +42,7 @@ while (1) {
     $from = '';
     $port = 0;
     $num = socket_recvfrom($socket, $buf, 53, MSG_WAITALL, $from, $port);
-    echo "Received $num bytes from $from, port $port" . PHP_EOL;
+    //echo "Received $num bytes from $from, port $port" . PHP_EOL;
     //echo "UDP packet contents: $buf" . PHP_EOL;
 
     if ($buf[0] == "\t") {
@@ -59,13 +59,16 @@ while (1) {
                     $array[$k] = $v;
                 }
             }
-            print_r($array);
+            //print_r($array);
 
             if ($array['device_id'] == 50 && $array['msg_id'] != $msg_id) {
                 unset($array['device_id']);
 
                 // Record a timestamp.
                 array_unshift($array, date("c"));
+
+                // Convert the temperature to the float value.
+                $array[6] = $array[6] / 10;
 
                 // Add data to the Google spreadsheet.
                 $range = 'garden!A1:F';
