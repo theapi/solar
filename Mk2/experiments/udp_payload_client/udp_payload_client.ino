@@ -2,10 +2,11 @@
 #include "config.h"
 
 #include "Payload.h"
+#include "GardenPayload.h"
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
-Payload rx_payload = Payload();
+theapi::GardenPayload rx_payload = theapi::GardenPayload();
 
 WiFiUDP Udp;
 unsigned int localUdpPort = 12345;  // local port to listen on
@@ -50,17 +51,20 @@ void loop() {
     Serial.printf("UDP packet contents: %s\n", incomingPacket);
     // Check for payload signifier;
     if (incomingPacket[0] == '\t') {
-      uint8_t payload_buf[Payload_SIZE];
-      memcpy(payload_buf, incomingPacket+1, Payload_SIZE);
+      uint8_t payload_buf[rx_payload.size()];
+      memcpy(payload_buf, incomingPacket+1, rx_payload.size());
       rx_payload.unserialize(payload_buf);
-      Serial.print(rx_payload.getDeviceId()); Serial.print(", ");
+      Serial.print("GARDEN: ");
+      Serial.print(rx_payload.getMsgType()); Serial.print(", ");
       Serial.print(rx_payload.getMsgId()); Serial.print(", ");
-      Serial.print(rx_payload.getA()); Serial.print(", ");
-      Serial.print(rx_payload.getB()); Serial.print(", ");
-      Serial.print(rx_payload.getC()); Serial.print(", ");
-      Serial.print(rx_payload.getD()); Serial.print(", ");
-      Serial.print(rx_payload.getE()); Serial.print(", ");
-      Serial.println(rx_payload.getF());
+      Serial.print(rx_payload.getVcc()); Serial.print(", ");
+      Serial.print(rx_payload.getChargeMv()); Serial.print(", ");
+      Serial.print(rx_payload.getChargeMa()); Serial.print(", ");
+      Serial.print(rx_payload.getLight()); Serial.print(", ");
+      Serial.print(rx_payload.getCpuTemperature()); Serial.print(", ");
+      // Convert the temperature to a float.
+      float deg = (float) rx_payload.getTemperature() / 10.0;
+      Serial.println(deg);
       Serial.println();
     }
   }
