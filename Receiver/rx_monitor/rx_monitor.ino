@@ -194,7 +194,7 @@ void loop() {
     ping_last = currentMillis;
     udpBroadcast();
     websocketBroadcast();
-    mqttBroadcast();
+    //mqttBroadcast();
     serialPrintPayload();
 
     current_payload = 0;
@@ -238,6 +238,7 @@ void loop() {
 
     // No display when dark.
     int ldr = analogRead(A0);
+    //Serial.print("LDR: "); Serial.println(ldr);
     if (display_status == 1 && ldr < 10) {
       display_status = 0;
     } else if (display_status == 0 && ldr > 20) {
@@ -312,6 +313,7 @@ void udpBroadcast() {
  * Send the signal data.
  */
 void websocketBroadcastSignal() {
+  String str;
   str = "{\"signal\":{";
   str += "\"msg_type\":" + String(signal_payload.getMsgType()) + ",";
   str += "\"msg_id\":" + String(signal_payload.getMsgId()) + ",";
@@ -326,6 +328,7 @@ void websocketBroadcastSignal() {
  * Send the garden data as json
  */
 void websocketBroadcastGarden() {
+  String str;
   str = "{\"garden\":{";
   str += "\"msg_type\":" + String(rx_payload.getMsgType()) + ", ";
   str += "\"msg_id\":" + String(rx_payload.getMsgId()) + ",";
@@ -340,7 +343,6 @@ void websocketBroadcastGarden() {
 }
 
 void websocketBroadcast() {
-  String str;
   switch (current_payload) {
     case theapi::Payload::SIGNAL:
       websocketBroadcastSignal();
