@@ -58,6 +58,8 @@ unsigned long ping_last = 0;
 const char* mqtt_server = MQTT_SERVER;
 uint16_t mqtt_port = MQTT_PORT;
 
+int display_status = 0;
+
 String ip_end;
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
@@ -234,8 +236,20 @@ void loop() {
     display.drawString(45, 45, String(rx_payload.getCpuTemperature()));
     display.drawString(80, 45, String(rx_payload.getLight()));
 
+    // No display when dark.
+    int ldr = analogRead(A0);
+    if (display_status == 1 && ldr < 10) {
+      display_status = 0;
+    } else if (display_status == 0 && ldr > 20) {
+      display_status = 1;
+    }
+
+    if (display_status == 0) {
+      display.clear();
+    }
     display.display();
   }
+
 
 }
 
