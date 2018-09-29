@@ -17,6 +17,7 @@ namespace theapi {
         CMD,
         ACK,
         SIGNAL,
+        WATER_PUMP,
       };
   };
 

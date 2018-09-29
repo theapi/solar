@@ -26,7 +26,7 @@ WiFiUDP Udp;
 IPAddress ipMulti(239, 0, 0, 57);
 unsigned int portMulti = 12345;      // local port to listen on
 
-ESP8266WebServer server = ESP8266WebServer(80);
+ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
 WiFiClient espClient;
@@ -165,7 +165,7 @@ void loop() {
             signal_payload.unserialize(input_string);
           }
           break;
-        default:
+        case theapi::Payload::GARDEN:
           // Use GardenPayload
           if (serial_byte_count == rx_payload.size()) {
             serial_byte_count = 0;
