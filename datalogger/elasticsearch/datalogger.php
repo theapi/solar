@@ -7,7 +7,7 @@
 
 use Elasticsearch\ClientBuilder;
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 
 if (php_sapi_name() != 'cli') {
@@ -63,13 +63,13 @@ while (1) {
               // Prepare the doc.
               $doc['device_id'] = $array['device_id'];
               $doc['msg_id'] = $array['msg_id'];
-              $doc['vcc'] = $array[2];
-              $doc['mv'] = $array[3];
-              $doc['ma'] = $array[4];
-              $doc['light'] = $array[5];
-              $doc['cpu_temperature'] = $array[6];
+              $doc['vcc'] = $array[1];
+              $doc['mv'] = $array[2];
+              $doc['ma'] = $array[3];
+              $doc['light'] = $array[4];
+              $doc['cpu_temperature'] = $array[5];
               // Convert the temperature to the float value.
-              $doc['temperature'] = $array[7] / 10;
+              $doc['temperature'] = $array[6] / 10;
               // Record a timestamp as milliseconds since epoch (epoch_millis).
               $doc['timestamp'] = date("U") * 1000;
               print_r($doc);
