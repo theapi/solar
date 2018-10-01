@@ -75,7 +75,7 @@ while (1) {
               print_r($doc);
 
               $params = [
-                'index' => 'garden_payload',
+                'index' => 'garden_payload', // @todo configurable index name.
                 'type' => '_doc',
                 'body' => $doc,
               ];
