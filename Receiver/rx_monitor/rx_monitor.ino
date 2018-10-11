@@ -17,6 +17,7 @@
 #include "Payload.h"
 #include "GardenPayload.h"
 #include "SignalPayload.h"
+#include "SolarPayload.h"
 #include "html.h"
 
 // A UDP instance to let us send and receive packets over UDP
@@ -35,9 +36,10 @@ PubSubClient mqtt_client(espClient);
 // Initialize the OLED display using Wire library
 SSD1306  display(0x3c, 4, 5);
 
+theapi::SolarPayload solar_payload = theapi::SolarPayload();
 theapi::GardenPayload rx_payload = theapi::GardenPayload();
 theapi::SignalPayload signal_payload = theapi::SignalPayload();
-uint8_t input_string[theapi::GardenPayload::SIZE];
+uint8_t input_string[32];
 uint8_t payload_state = 0;
 uint8_t current_payload;
 uint8_t serial_byte_count = 0;
@@ -165,6 +167,7 @@ void loop() {
             signal_payload.unserialize(input_string);
           }
           break;
+
         case theapi::Payload::GARDEN:
           // Use GardenPayload
           if (serial_byte_count == rx_payload.size()) {
@@ -174,6 +177,15 @@ void loop() {
 
             // Convert the temperature to a float.
             deg = (float) rx_payload.getTemperature() / 10.0;
+          }
+          break;
+
+        case theapi::Payload::SOLAR:
+          // Use SolarPayload
+          if (serial_byte_count == solar_payload.size()) {
+            serial_byte_count = 0;
+            payload_state = 2;
+            solar_payload.unserialize(input_string);
           }
           break;
       }
@@ -214,18 +226,18 @@ void loop() {
       last_msg_id = msg_id;
       message_last = currentMillis;
     }
-    
+
     display.clear();
 
     // How long since last message.
     display.drawString(0, 0, String((currentMillis - message_last )/ 1000));
-    
+
 
     display.drawString(60, 0, String(msg_id));
-    
+
     // Show the end of the ip address.
     display.drawString(100, 0, ip_end);
-    
+
     // Second row
     display.drawString(0, 20, String(rx_payload.getChargeMa()));
     display.drawString(35, 20, String(rx_payload.getChargeMv()));
@@ -265,7 +277,8 @@ void serialPrintPayload() {
       Serial.println(signal_payload.getFreqError());
       Serial.println();
     break;
-    default:
+
+    case theapi::Payload::GARDEN:
       Serial.print("GARDEN: ");
       Serial.print(rx_payload.getMsgType()); Serial.print(", ");
       Serial.print(rx_payload.getMsgId()); Serial.print(", ");
@@ -277,6 +290,18 @@ void serialPrintPayload() {
       Serial.println(deg);
       Serial.println();
     break;
+
+    case theapi::Payload::SOLAR:
+      Serial.print("SOLAR: ");
+      Serial.print(solar_payload.getMsgType()); Serial.print(", ");
+      Serial.print(solar_payload.getDeviceId()); Serial.print(", ");
+      Serial.print(solar_payload.getMsgId()); Serial.print(", ");
+      Serial.print(solar_payload.getVcc()); Serial.print(", ");
+      Serial.print(solar_payload.getChargeMv()); Serial.print(", ");
+      Serial.print(solar_payload.getChargeMa()); Serial.print(", ");
+      Serial.print(solar_payload.getLight()); Serial.print(", ");
+      Serial.print(solar_payload.getCpuTemperature());;
+      Serial.println();
   }
 }
 
@@ -294,11 +319,21 @@ void udpBroadcast() {
         Udp.write(sbuf, len);
       }
       break;
-    default:
+
+    case theapi::Payload::GARDEN:
       {
         size_t len = rx_payload.size();
         uint8_t sbuf[len];
         rx_payload.serialize(sbuf);
+        Udp.write(sbuf, len);
+      }
+      break;
+
+    case theapi::Payload::SOLAR:
+      {
+        size_t len = solar_payload.size();
+        uint8_t sbuf[len];
+        solar_payload.serialize(sbuf);
         Udp.write(sbuf, len);
       }
       break;
