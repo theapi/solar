@@ -104,7 +104,7 @@ function processGardenPayload($binarydata) {
 }
 
 function processSolarPayload($binarydata) {
-    $data = unpack("Cmsg_type/Cdevice_id/Cmsg_id/n*", $binarydata);
+    $data = unpack("Cmsg_type/Cdevice_id/Cmsg_id/Cflagsn*", $binarydata);
     foreach ($array as $k => $v) {
         // There is no option "signed short (always 16 bit, big endian byte order)"
         if (is_int($k)) {
@@ -123,6 +123,7 @@ function processSolarPayload($binarydata) {
       $doc['msg_type'] = $array['msg_type'];
       $doc['device_id'] = $array['device_id'];
       $doc['msg_id'] = $array['msg_id'];
+      $doc['flags'] = $array['flags'];
       $doc['vcc'] = $array[1];
       $doc['mv'] = $array[2];
       $doc['ma'] = $array[3];

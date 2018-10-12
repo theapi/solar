@@ -46,6 +46,14 @@ namespace theapi {
     _payload.MessageId = id;
   }
 
+  uint8_t SolarPayload::getFlags() {
+    return _payload.Flags;
+  }
+
+  void SolarPayload::setFlags(uint8_t byte) {
+    _payload.Flags = byte;
+  }
+
   uint16_t SolarPayload::getVcc() {
     return _payload.VCC;
   }

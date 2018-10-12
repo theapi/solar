@@ -12,8 +12,9 @@ namespace theapi {
     public:
       typedef struct {
         uint8_t MessageType;
-        uint16_t DeviceId;
+        uint8_t DeviceId;
         uint8_t MessageId;
+        uint8_t Flags;
         uint16_t VCC;
         uint16_t ChargeMv;
         int16_t ChargeMa;
@@ -44,6 +45,9 @@ namespace theapi {
       // The id, not neccessarily unique, of the message.
       uint8_t getMsgId();
       void setMsgId(uint8_t msg_id);
+
+      uint8_t getFlags();
+      void setFlags(uint8_t msg_id);
 
       uint16_t getVcc();
       void setVcc(uint16_t val);
