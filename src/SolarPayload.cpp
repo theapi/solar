@@ -9,6 +9,7 @@ namespace theapi {
     setMsgType();
     _payload.DeviceId = 0;
     _payload.MessageId = 0;
+    _payload.Flags = 0;
     _payload.VCC = 0;
     _payload.ChargeMv = 0;
     _payload.ChargeMa = 0;
@@ -105,9 +106,9 @@ namespace theapi {
   // Populates the given buffer with the payload data.
   void SolarPayload::serialize(uint8_t buffer[SolarPayload::SIZE]) {
     buffer[0] = _payload.MessageType;
-    buffer[1] = (_payload.DeviceId >> 8);
-    buffer[2] = _payload.DeviceId;
-    buffer[3] = _payload.MessageId;
+    buffer[1] = _payload.DeviceId;
+    buffer[2] = _payload.MessageId;
+    buffer[3] = _payload.Flags;
     buffer[4] = (_payload.VCC >> 8);
     buffer[5] = _payload.VCC;
     buffer[6] = (_payload.ChargeMv >> 8);
@@ -125,8 +126,9 @@ namespace theapi {
   // Parse the byte data from the buffer.
   void SolarPayload::unserialize(uint8_t buffer[SolarPayload::SIZE]) {
     _payload.MessageType = buffer[0];
-    _payload.DeviceId = (buffer[1] << 8) | buffer[2];
-    _payload.MessageId = buffer[3];
+    _payload.DeviceId = buffer[1];
+    _payload.MessageId = buffer[2];
+    _payload.Flags = buffer[3];
     _payload.VCC = (buffer[4] << 8) | buffer[5];
     _payload.ChargeMv = (buffer[6] << 8) | buffer[7];
     _payload.ChargeMa = (buffer[8] << 8) | buffer[9];

@@ -24,6 +24,9 @@ $params = [
           'device_id' => [
             'type' => 'short',
           ],
+          'flags' => [
+            'type' => 'short',
+          ],
           'light' => [
             'type' => 'integer',
           ],
