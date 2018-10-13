@@ -12,7 +12,7 @@
 //#include "config.h"
 #include "Payload.h"
 #include "GardenPayload.h"
-#include "AckPayload.h"
+//#include "AckPayload.h"
 #include "SignalPayload.h"
 #include "SolarPayload.h"
 
@@ -38,7 +38,7 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 
 theapi::GardenPayload garden_payload = theapi::GardenPayload();
-theapi::AckPayload ack_payload = theapi::AckPayload();
+//theapi::AckPayload ack_payload = theapi::AckPayload();
 theapi::SignalPayload signal_payload = theapi::SignalPayload();
 theapi::SolarPayload solar_payload = theapi::SolarPayload();
 
@@ -135,7 +135,7 @@ void loop() {
           signal_payload.setRssi(rssi);
           signal_payload.setSnr(rf95.lastSNR());
           signal_payload.setFreqError(rf95.frequencyError());
-          
+
           signal_payload.serialize(signal_payload_buf);
           Serial.write('\t'); // Payload start byte
           Serial.write(signal_payload_buf, signal_payload.size());
@@ -147,6 +147,9 @@ void loop() {
           // Send the solar data to the monitor.
           solar_payload.unserialize(buf);
           solar_payload.serialize(solar_payload_buf);
+          solar_payload.setRssi(rssi);
+          solar_payload.setSnr(rf95.lastSNR());
+          solar_payload.setFreqError(rf95.frequencyError());
           Serial.write('\t'); // Payload start byte
           Serial.write(solar_payload_buf, solar_payload.size());
 

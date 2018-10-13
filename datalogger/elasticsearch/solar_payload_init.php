@@ -27,6 +27,9 @@ $params = [
           'flags' => [
             'type' => 'short',
           ],
+          'frq_error' => [
+            'type' => 'short',
+          ],
           'light' => [
             'type' => 'integer',
           ],
@@ -40,6 +43,12 @@ $params = [
             'type' => 'short',
           ],
           'mv' => [
+            'type' => 'short',
+          ],
+          'rssi' => [
+            'type' => 'short',
+          ],
+          'snr' => [
             'type' => 'short',
           ],
           'temperature' => [

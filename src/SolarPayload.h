@@ -21,14 +21,24 @@ namespace theapi {
         uint16_t Light;
         int16_t CpuTemperature;
         int16_t Temperature;
+        // The radio signal stats.
+        int16_t rssi;
+        int16_t snr;
+        int16_t frq_error;
       } payload_t;
 
-      const static uint8_t SIZE = 16;
+      const static uint8_t SIZE = 22;
+      const static uint8_t DATA_SIZE = 16;
 
       SolarPayload();
 
-      // How big the payload is.
+      // How big the whole payload is.
       uint8_t size();
+
+      /**
+       * Size of the data portion of the payload.
+       */
+      uint8_t dataSize();
 
       /**
        * The type of message.
@@ -68,6 +78,27 @@ namespace theapi {
       // The seventh integer data
       int16_t getTemperature();
       void setTemperature(int16_t val);
+
+      /**
+       * The most recent RSSI (Receiver Signal Strength Indicator)
+       */
+      int16_t getRssi();
+      void setRssi(int16_t);
+
+      /**
+       * The Signal-to-noise ratio (SNR) of the last received message,
+       * as measured by the receiver.
+       */
+      int16_t getSnr();
+      void setSnr(int16_t);
+
+      /**
+       * The LoRa receiver estimates the frequency offset between the
+       * receiver centre frequency and that of the received LoRa signal.
+       * This function returns the estimates offset (in Hz) of the last received message.
+       */
+      int16_t getFreqError();
+      void setFreqError(int16_t);
 
       // Creates a byte array for sending via the radio
       void serialize(uint8_t buffer[SolarPayload::SIZE]);

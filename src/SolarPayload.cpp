@@ -16,6 +16,9 @@ namespace theapi {
     _payload.Light = 0;
     _payload.CpuTemperature = 0;
     _payload.Temperature = 0;
+    _payload.rssi = 0;
+    _payload.snr = 0;
+    _payload.frq_error = 0;
   }
 
   uint8_t SolarPayload::size() {
@@ -101,6 +104,18 @@ namespace theapi {
 
   void SolarPayload::setTemperature(int16_t val) {
     _payload.Temperature = val;
+  }
+
+  int16_t SignalPayload::getSnr() {
+    return _payload.snr;
+  }
+
+  void SignalPayload::setSnr(int16_t val) {
+    _payload.snr = val;
+  }
+
+  int16_t SignalPayload::getFreqError() {
+    return _payload.frq_error;
   }
 
   // Populates the given buffer with the payload data.

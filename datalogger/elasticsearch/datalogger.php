@@ -125,7 +125,7 @@ function processGardenPayload($client, $msg_id, $binarydata) {
  */
 function processSolarPayload($client, $current_solar_msg_id, $binarydata) {
     $doc = unpack(
-        "Cmsg_type/Cdevice_id/Cmsg_id/Cflags/nvcc/nmv/nma/nlight/ncpu_temperature/ntemperature",
+        "Cmsg_type/Cdevice_id/Cmsg_id/Cflags/nvcc/nmv/nma/nlight/ncpu_temperature/ntemperature/nrssi/nsnr/nfrq_error",
         $binarydata
     );
     foreach (['ma', 'cpu_temperature', 'temperature'] as $k => $v) {
