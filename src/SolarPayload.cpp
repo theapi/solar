@@ -25,6 +25,10 @@ namespace theapi {
     return SIZE;
   }
 
+  uint8_t SolarPayload::dataSize() {
+    return DATA_SIZE;
+  }
+
   void SolarPayload::setMsgType() {
     _payload.MessageType = theapi::Payload::SOLAR;
   }
