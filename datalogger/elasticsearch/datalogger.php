@@ -1,14 +1,17 @@
 <?php
 /**
- * Listen for the broadcast UDP for the binary GardenPayload and send it to Elasticsearch.
+ * Listen for the broadcast UDP for the binary payloads and send it to Elasticsearch.
  *
  * @see /src/GardenPayload.h
+ * @see /src/SolarPayload.h
  */
 
 use Elasticsearch\ClientBuilder;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
+define('GARDEN', 50);
+define('SOLAR', 55);
 
 if (php_sapi_name() != 'cli') {
     throw new Exception('This application must be run on the command line.');
@@ -32,7 +35,8 @@ $client = ClientBuilder::create()
   ->build();
 
 // Only handle each message once, so start with fake one.
-$msg_id = 500;
+$msg_id = 999;
+$current_solar_msg_id = 999;
 
 while (1) {
     $from = '';
@@ -45,44 +49,111 @@ while (1) {
         // A payload.
         $binarydata = trim($buf);
         if (strlen($binarydata) > 1) {
-            $array = unpack("Cdevice_id/Cmsg_id/n*", $binarydata);
-            foreach ($array as $k => $v) {
-                // There is no option "signed short (always 16 bit, big endian byte order)"
-                if (is_int($k)) {
-                    // Unpacked in the unsigned form,
-                    // and then if the result is >= 2^15, subtract 2^16 from it.
-                    if ($v >= pow(2, 15)) $v -= pow(2, 16);
-                    $array[$k] = $v;
-                }
-            }
+            $data = unpack("Cmessage_type", $binarydata);
+            switch ($data['message_type']) {
+                case GARDEN:
+                    $msg_id = processGardenPayload(
+                        $client,
+                        $msg_id,
+                        $binarydata
+                    );
+                break;
 
-            if ($array['device_id'] == 50 && $array['msg_id'] != $msg_id) {
-              $msg_id = $array['msg_id'];
-              print_r($array);
-
-              // Prepare the doc.
-              $doc['device_id'] = $array['device_id'];
-              $doc['msg_id'] = $array['msg_id'];
-              $doc['vcc'] = $array[1];
-              $doc['mv'] = $array[2];
-              $doc['ma'] = $array[3];
-              $doc['light'] = $array[4];
-              $doc['cpu_temperature'] = $array[5];
-              // Convert the temperature to the float value.
-              $doc['temperature'] = $array[6] / 10;
-              // Record a timestamp as milliseconds since epoch (epoch_millis).
-              $doc['timestamp'] = date("U") * 1000;
-              print_r($doc);
-
-              $params = [
-                'index' => 'garden_payload', // @todo configurable index name.
-                'type' => '_doc',
-                'body' => $doc,
-              ];
-              $response = $client->index($params);
-              print_r($response);
+                case SOLAR:
+                    $current_solar_msg_id = processSolarPayload(
+                        $client,
+                        $current_solar_msg_id,
+                        $binarydata
+                    );
+                break;
             }
         }
     }
 
+}
+
+function processGardenPayload($client, $msg_id, $binarydata) {
+    $array = unpack("Cmsg_type/Cmsg_id/n*", $binarydata);
+    foreach ($array as $k => $v) {
+        // There is no option "signed short (always 16 bit, big endian byte order)"
+        if (is_int($k)) {
+            // Unpacked in the unsigned form,
+            // and then if the result is >= 2^15, subtract 2^16 from it.
+            if ($v >= pow(2, 15)) $v -= pow(2, 16);
+            $array[$k] = $v;
+        }
+    }
+
+    if ($array['msg_type'] == GARDEN && $array['msg_id'] != $msg_id) {
+      $msg_id = $array['msg_id'];
+
+      // Prepare the doc.
+      $doc['msg_type'] = $array['msg_type'];
+      $doc['msg_id'] = $array['msg_id'];
+      $doc['vcc'] = $array[1];
+      $doc['mv'] = $array[2];
+      $doc['ma'] = $array[3];
+      $doc['light'] = $array[4];
+      $doc['cpu_temperature'] = $array[5];
+      // Convert the temperature to the float value.
+      $doc['temperature'] = $array[6] / 10;
+      // Record a timestamp as milliseconds since epoch (epoch_millis).
+      $doc['timestamp'] = date("U") * 1000;
+      print_r($doc);
+
+      $params = [
+        'index' => 'garden_payload', // @todo configurable index name.
+        'type' => '_doc',
+        'body' => $doc,
+      ];
+      $response = $client->index($params);
+    }
+
+    return $msg_id;
+}
+
+/**
+        uint8_t MessageType;
+        uint8_t DeviceId;
+        uint8_t MessageId;
+        uint8_t Flags;
+        uint16_t VCC;
+        uint16_t ChargeMv;
+        int16_t ChargeMa;
+        uint16_t Light;
+        int16_t CpuTemperature;
+        int16_t Temperature;
+ */
+function processSolarPayload($client, $current_solar_msg_id, $binarydata) {
+    $doc = unpack(
+        "Cmsg_type/Cdevice_id/Cmsg_id/Cflags/nvcc/nmv/nma/nlight/ncpu_temperature/ntemperature/nrssi/nsnr/nfrq_error",
+        $binarydata
+    );
+    foreach (['ma', 'cpu_temperature', 'temperature'] as $k => $v) {
+        // There is no option "signed short (always 16 bit, big endian byte order)"
+        // Unpacked in the unsigned form,
+        // and then if the result is >= 2^15, subtract 2^16 from it.
+        if ($v >= pow(2, 15)) $v -= pow(2, 16);
+        $doc[$k] = $v;
+    }
+
+    if ($doc['msg_id'] != $current_solar_msg_id) {
+      $current_solar_msg_id = $doc['msg_id'];
+
+      // Convert the temperature to the float value.
+      $doc['temperature'] = $doc['temperature'] / 10;
+      // Record a timestamp as milliseconds since epoch (epoch_millis).
+      $doc['timestamp'] = date("U") * 1000;
+      print_r($doc);
+
+      $params = [
+        'index' => 'solar_payload', // @todo configurable index name.
+        'type' => '_doc',
+        'body' => $doc,
+      ];
+      $response = $client->index($params);
+      print_r($response);
+    }
+
+    return $current_solar_msg_id;
 }

@@ -9,16 +9,24 @@ namespace theapi {
     setMsgType();
     _payload.DeviceId = 0;
     _payload.MessageId = 0;
+    _payload.Flags = 0;
     _payload.VCC = 0;
     _payload.ChargeMv = 0;
     _payload.ChargeMa = 0;
     _payload.Light = 0;
     _payload.CpuTemperature = 0;
     _payload.Temperature = 0;
+    _payload.rssi = 0;
+    _payload.snr = 0;
+    _payload.frq_error = 0;
   }
 
   uint8_t SolarPayload::size() {
     return SIZE;
+  }
+
+  uint8_t SolarPayload::dataSize() {
+    return DATA_SIZE;
   }
 
   void SolarPayload::setMsgType() {
@@ -44,6 +52,14 @@ namespace theapi {
 
   void SolarPayload::setMsgId(uint8_t id) {
     _payload.MessageId = id;
+  }
+
+  uint8_t SolarPayload::getFlags() {
+    return _payload.Flags;
+  }
+
+  void SolarPayload::setFlags(uint8_t byte) {
+    _payload.Flags = byte;
   }
 
   uint16_t SolarPayload::getVcc() {
@@ -94,12 +110,36 @@ namespace theapi {
     _payload.Temperature = val;
   }
 
+  int16_t SolarPayload::getRssi() {
+    return _payload.snr;
+  }
+
+  void SolarPayload::setRssi(int16_t val) {
+    _payload.rssi = val;
+  }
+
+  int16_t SolarPayload::getSnr() {
+    return _payload.snr;
+  }
+
+  void SolarPayload::setSnr(int16_t val) {
+    _payload.snr = val;
+  }
+
+  int16_t SolarPayload::getFreqError() {
+    return _payload.frq_error;
+  }
+
+  void SolarPayload::setFreqError(int16_t val) {
+    _payload.frq_error = val;
+  }
+
   // Populates the given buffer with the payload data.
   void SolarPayload::serialize(uint8_t buffer[SolarPayload::SIZE]) {
     buffer[0] = _payload.MessageType;
-    buffer[1] = (_payload.DeviceId >> 8);
-    buffer[2] = _payload.DeviceId;
-    buffer[3] = _payload.MessageId;
+    buffer[1] = _payload.DeviceId;
+    buffer[2] = _payload.MessageId;
+    buffer[3] = _payload.Flags;
     buffer[4] = (_payload.VCC >> 8);
     buffer[5] = _payload.VCC;
     buffer[6] = (_payload.ChargeMv >> 8);
@@ -117,8 +157,9 @@ namespace theapi {
   // Parse the byte data from the buffer.
   void SolarPayload::unserialize(uint8_t buffer[SolarPayload::SIZE]) {
     _payload.MessageType = buffer[0];
-    _payload.DeviceId = (buffer[1] << 8) | buffer[2];
-    _payload.MessageId = buffer[3];
+    _payload.DeviceId = buffer[1];
+    _payload.MessageId = buffer[2];
+    _payload.Flags = buffer[3];
     _payload.VCC = (buffer[4] << 8) | buffer[5];
     _payload.ChargeMv = (buffer[6] << 8) | buffer[7];
     _payload.ChargeMa = (buffer[8] << 8) | buffer[9];
