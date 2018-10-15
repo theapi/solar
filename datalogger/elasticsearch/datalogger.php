@@ -1,6 +1,6 @@
 <?php
 /**
- * Listen for the broadcast UDP for the binary pyloads and send it to Elasticsearch.
+ * Listen for the broadcast UDP for the binary payloads and send it to Elasticsearch.
  *
  * @see /src/GardenPayload.h
  * @see /src/SolarPayload.h
@@ -99,6 +99,7 @@ function processGardenPayload($client, $msg_id, $binarydata) {
       $doc['temperature'] = $array[6] / 10;
       // Record a timestamp as milliseconds since epoch (epoch_millis).
       $doc['timestamp'] = date("U") * 1000;
+      print_r($doc);
 
       $params = [
         'index' => 'garden_payload', // @todo configurable index name.
