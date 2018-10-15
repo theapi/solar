@@ -110,16 +110,28 @@ namespace theapi {
     _payload.Temperature = val;
   }
 
-  int16_t SignalPayload::getSnr() {
+  int16_t SolarPayload::getRssi() {
     return _payload.snr;
   }
 
-  void SignalPayload::setSnr(int16_t val) {
+  void SolarPayload::setRssi(int16_t val) {
+    _payload.rssi = val;
+  }
+
+  int16_t SolarPayload::getSnr() {
+    return _payload.snr;
+  }
+
+  void SolarPayload::setSnr(int16_t val) {
     _payload.snr = val;
   }
 
-  int16_t SignalPayload::getFreqError() {
+  int16_t SolarPayload::getFreqError() {
     return _payload.frq_error;
+  }
+
+  void SolarPayload::setFreqError(int16_t val) {
+    _payload.frq_error = val;
   }
 
   // Populates the given buffer with the payload data.
