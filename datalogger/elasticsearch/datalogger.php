@@ -112,18 +112,6 @@ function processGardenPayload($client, $msg_id, $binarydata) {
     return $msg_id;
 }
 
-/**
-        uint8_t MessageType;
-        uint8_t DeviceId;
-        uint8_t MessageId;
-        uint8_t Flags;
-        uint16_t VCC;
-        uint16_t ChargeMv;
-        int16_t ChargeMa;
-        uint16_t Light;
-        int16_t CpuTemperature;
-        int16_t Temperature;
- */
 function processSolarPayload($client, $current_solar_msg_id, $binarydata) {
     $doc = unpack(
         "Cmsg_type/Cdevice_id/Cmsg_id/Cflags/nvcc/nmv/nma/nlight/ncpu_temperature/ntemperature/nrssi/nsnr/nfrq_error",
@@ -153,7 +141,7 @@ function processSolarPayload($client, $current_solar_msg_id, $binarydata) {
         'body' => $doc,
       ];
       $response = $client->index($params);
-      print_r($response);
+      //print_r($response);
     }
 
     return $current_solar_msg_id;
