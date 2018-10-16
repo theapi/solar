@@ -129,10 +129,11 @@ function processSolarPayload($client, $current_solar_msg_id, $binarydata) {
         "Cmsg_type/Cdevice_id/Cmsg_id/Cflags/nvcc/nmv/nma/nlight/ncpu_temperature/ntemperature/nrssi/nsnr/nfrq_error",
         $binarydata
     );
-    foreach (['ma', 'cpu_temperature', 'temperature'] as $k => $v) {
+    foreach (['ma', 'cpu_temperature', 'temperature'] as $k) {
         // There is no option "signed short (always 16 bit, big endian byte order)"
         // Unpacked in the unsigned form,
         // and then if the result is >= 2^15, subtract 2^16 from it.
+        $v = $doc[$k];
         if ($v >= pow(2, 15)) $v -= pow(2, 16);
         $doc[$k] = $v;
     }
