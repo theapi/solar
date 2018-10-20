@@ -7,6 +7,7 @@
  */
 
 use Elasticsearch\ClientBuilder;
+use Symfony\Component\Filesystem\Filesystem;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -28,6 +29,8 @@ $binded = socket_bind($socket, '0.0.0.0', 12345);
 $rval = socket_set_option($socket, getprotobyname("ip"), MCAST_JOIN_GROUP,
     array("group" => "239.0.0.57", "interface" => 0));
 
+// Write the data to the filesytem too.
+$fileSystem = new Filesystem();
 
 // Build the elasticsearch client.
 $client = ClientBuilder::create()
@@ -56,7 +59,8 @@ while (1) {
                         $msg_id = processGardenPayload(
                             $client,
                             $msg_id,
-                            $binarydata
+                            $binarydata,
+                            $fileSystem
                         );
                     break;
 
@@ -64,19 +68,20 @@ while (1) {
                         $current_solar_msg_id = processSolarPayload(
                             $client,
                             $current_solar_msg_id,
-                            $binarydata
+                            $binarydata,
+                            $fileSystem
                         );
                     break;
                 }
             }
         }
-    }    catch (\Exception $e) {
+    } catch (\Exception $e) {
         // Keep calm & carry on.
     }
 
 }
 
-function processGardenPayload($client, $msg_id, $binarydata) {
+function processGardenPayload($client, $msg_id, $binarydata, $fileSystem) {
     $array = unpack("Cmsg_type/Cmsg_id/n*", $binarydata);
     foreach ($array as $k => $v) {
         // There is no option "signed short (always 16 bit, big endian byte order)"
@@ -105,6 +110,9 @@ function processGardenPayload($client, $msg_id, $binarydata) {
       $doc['timestamp'] = date("U") * 1000;
       print_r($doc);
 
+      $file = __DIR__ . '/csv/garden_payload/' . date('Y') . '/' . date('m') . '.csv';
+      $fileSystem->appendToFile($file, join(',', $doc) . PHP_EOL);
+
       $params = [
         'index' => 'garden_payload', // @todo configurable index name.
         'type' => '_doc',
@@ -116,7 +124,7 @@ function processGardenPayload($client, $msg_id, $binarydata) {
     return $msg_id;
 }
 
-function processSolarPayload($client, $current_solar_msg_id, $binarydata) {
+function processSolarPayload($client, $current_solar_msg_id, $binarydata, $fileSystem) {
     $doc = unpack(
         "Cmsg_type/Cdevice_id/Cmsg_id/Cflags/nvcc/nmv/nma/nlight/ncpu_temperature/ntemperature/nrssi/nsnr/nfrq_error",
         $binarydata
