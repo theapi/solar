@@ -147,6 +147,9 @@ function processSolarPayload($client, $current_solar_msg_id, $binarydata, $fileS
       $doc['timestamp'] = date("U") * 1000;
       print_r($doc);
 
+      $file = __DIR__ . '/csv/solar_payload/' . date('Y') . '/' . date('m') . '.csv';
+      $fileSystem->appendToFile($file, join(',', $doc) . PHP_EOL);
+
       $params = [
         'index' => 'solar_payload', // @todo configurable index name.
         'type' => '_doc',
