@@ -39,35 +39,39 @@ $msg_id = 999;
 $current_solar_msg_id = 999;
 
 while (1) {
-    $from = '';
-    $port = 0;
-    $num = socket_recvfrom($socket, $buf, 53, MSG_WAITALL, $from, $port);
-    //echo "Received $num bytes from $from, port $port" . PHP_EOL;
-    //echo "UDP packet contents: $buf" . PHP_EOL;
+    try {
+        $from = '';
+        $port = 0;
+        $num = socket_recvfrom($socket, $buf, 53, MSG_WAITALL, $from, $port);
+        //echo "Received $num bytes from $from, port $port" . PHP_EOL;
+        //echo "UDP packet contents: $buf" . PHP_EOL;
 
-    if ($buf[0] == "\t") {
-        // A payload.
-        $binarydata = trim($buf);
-        if (strlen($binarydata) > 1) {
-            $data = unpack("Cmessage_type", $binarydata);
-            switch ($data['message_type']) {
-                case GARDEN:
-                    $msg_id = processGardenPayload(
-                        $client,
-                        $msg_id,
-                        $binarydata
-                    );
-                break;
+        if ($buf[0] == "\t") {
+            // A payload.
+            $binarydata = trim($buf);
+            if (strlen($binarydata) > 1) {
+                $data = unpack("Cmessage_type", $binarydata);
+                switch ($data['message_type']) {
+                    case GARDEN:
+                        $msg_id = processGardenPayload(
+                            $client,
+                            $msg_id,
+                            $binarydata
+                        );
+                    break;
 
-                case SOLAR:
-                    $current_solar_msg_id = processSolarPayload(
-                        $client,
-                        $current_solar_msg_id,
-                        $binarydata
-                    );
-                break;
+                    case SOLAR:
+                        $current_solar_msg_id = processSolarPayload(
+                            $client,
+                            $current_solar_msg_id,
+                            $binarydata
+                        );
+                    break;
+                }
             }
         }
+    }    catch (\Exception $e) {
+        // Keep calm & carry on.
     }
 
 }
