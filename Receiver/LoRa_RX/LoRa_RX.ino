@@ -112,7 +112,13 @@ void loop() {
 
       Serial.print("RSSI: ");
       int rssi = rf95.lastRssi();
-      Serial.println(rf95.lastRssi(), DEC);
+      Serial.println(rssi, DEC);
+      Serial.print("SNR: ");
+      int lastSNR = rf95.lastSNR();
+      Serial.println(lastSNR, DEC);
+      Serial.print("FREQ ERROR: ");
+      int frequencyError = rf95.frequencyError();
+      Serial.println(frequencyError, DEC);
 
       // Check the first byte for the payload type.
       current_payload = buf[0];
@@ -133,8 +139,8 @@ void loop() {
           // Send radio signal data to the monitor.
           signal_payload.setMsgId(garden_payload.getMsgId());
           signal_payload.setRssi(rssi);
-          signal_payload.setSnr(rf95.lastSNR());
-          signal_payload.setFreqError(rf95.frequencyError());
+          signal_payload.setSnr(lastSNR);
+          signal_payload.setFreqError(frequencyError);
 
           signal_payload.serialize(signal_payload_buf);
           Serial.write('\t'); // Payload start byte
@@ -148,8 +154,8 @@ void loop() {
           solar_payload.unserialize(buf);
           solar_payload.serialize(solar_payload_buf);
           solar_payload.setRssi(rssi);
-          solar_payload.setSnr(rf95.lastSNR());
-          solar_payload.setFreqError(rf95.frequencyError());
+          solar_payload.setSnr(lastSNR);
+          solar_payload.setFreqError(frequencyError);
           Serial.write('\t'); // Payload start byte
           Serial.write(solar_payload_buf, solar_payload.size());
 
