@@ -300,7 +300,14 @@ void serialPrintPayload() {
       Serial.print(solar_payload.getChargeMv()); Serial.print(", ");
       Serial.print(solar_payload.getChargeMa()); Serial.print(", ");
       Serial.print(solar_payload.getLight()); Serial.print(", ");
-      Serial.print(solar_payload.getCpuTemperature());;
+      Serial.print(solar_payload.getTemperature()); Serial.print(", ");
+      Serial.print(solar_payload.getCpuTemperature()); Serial.print(", ");
+      int16_t rssi = solar_payload.getRssi();
+      Serial.print(rssi); Serial.print(", ");
+      int16_t snr = solar_payload.getSnr();
+      Serial.print(snr); Serial.print(", ");
+      int16_t freq = solar_payload.getFreqError();
+      Serial.print(freq); Serial.print(", ");
       Serial.println();
   }
 }

@@ -105,19 +105,19 @@ void loop() {
       //digitalWrite(LED, HIGH);
 
       Serial.println();
-      RH_RF95::printBuffer("Received: ", buf, len);
+     // RH_RF95::printBuffer("Received: ", buf, len);
       //Serial.print("headerFrom: "); Serial.println(rf95.headerFrom());
 //      Serial.print("Got: ");
 //      Serial.println((char*)buf);
 
       Serial.print("RSSI: ");
-      int rssi = rf95.lastRssi();
+      int16_t rssi = rf95.lastRssi();
       Serial.println(rssi, DEC);
       Serial.print("SNR: ");
-      int lastSNR = rf95.lastSNR();
+      int16_t lastSNR = rf95.lastSNR();
       Serial.println(lastSNR, DEC);
       Serial.print("FREQ ERROR: ");
-      int frequencyError = rf95.frequencyError();
+      int16_t frequencyError = rf95.frequencyError();
       Serial.println(frequencyError, DEC);
 
       // Check the first byte for the payload type.
@@ -156,19 +156,25 @@ void loop() {
           solar_payload.setRssi(rssi);
           solar_payload.setSnr(lastSNR);
           solar_payload.setFreqError(frequencyError);
+
+//            Serial.print("SOLAR: ");
+//            Serial.print(solar_payload.getMsgType()); Serial.print(", ");
+//            Serial.print(solar_payload.getDeviceId()); Serial.print(", ");
+//            Serial.print(solar_payload.getMsgId()); Serial.print(", ");
+//            Serial.print(solar_payload.getVcc()); Serial.print(", ");
+//            Serial.print(solar_payload.getChargeMv()); Serial.print(", ");
+//            Serial.print(solar_payload.getChargeMa()); Serial.print(", ");
+//            Serial.print(solar_payload.getLight()); Serial.print(", ");
+//            Serial.print(solar_payload.getTemperature()); Serial.print(", ");
+//            Serial.print(solar_payload.getCpuTemperature()); Serial.print(", ");
+//            Serial.print(solar_payload.getRssi()); Serial.print(", ");
+//            Serial.print(solar_payload.getSnr()); Serial.print(", ");
+//            Serial.print(solar_payload.getFreqError()); Serial.print(", ");
+//            Serial.println();
+
+          solar_payload.serialize(solar_payload_buf);
           Serial.write('\t'); // Payload start byte
           Serial.write(solar_payload_buf, solar_payload.size());
-
-//          Serial.print("SOLAR: ");
-//          Serial.print(solar_payload.getMsgType()); Serial.print(", ");
-//          Serial.print(solar_payload.getDeviceId()); Serial.print(", ");
-//          Serial.print(solar_payload.getMsgId()); Serial.print(", ");
-//          Serial.print(solar_payload.getVcc()); Serial.print(", ");
-//          Serial.print(solar_payload.getChargeMv()); Serial.print(", ");
-//          Serial.print(solar_payload.getChargeMa()); Serial.print(", ");
-//          Serial.print(solar_payload.getLight()); Serial.print(", ");
-//          Serial.print(solar_payload.getCpuTemperature());;
-//          Serial.println();
 
         break;
       }

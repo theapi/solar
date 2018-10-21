@@ -83,14 +83,14 @@ namespace theapi {
        * The most recent RSSI (Receiver Signal Strength Indicator)
        */
       int16_t getRssi();
-      void setRssi(int16_t);
+      void setRssi(int16_t val);
 
       /**
        * The Signal-to-noise ratio (SNR) of the last received message,
        * as measured by the receiver.
        */
       int16_t getSnr();
-      void setSnr(int16_t);
+      void setSnr(int16_t val);
 
       /**
        * The LoRa receiver estimates the frequency offset between the
@@ -98,7 +98,7 @@ namespace theapi {
        * This function returns the estimates offset (in Hz) of the last received message.
        */
       int16_t getFreqError();
-      void setFreqError(int16_t);
+      void setFreqError(int16_t val);
 
       // Creates a byte array for sending via the radio
       void serialize(uint8_t buffer[SolarPayload::SIZE]);

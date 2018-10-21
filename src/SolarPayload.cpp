@@ -111,7 +111,7 @@ namespace theapi {
   }
 
   int16_t SolarPayload::getRssi() {
-    return _payload.snr;
+    return _payload.rssi;
   }
 
   void SolarPayload::setRssi(int16_t val) {
@@ -152,6 +152,12 @@ namespace theapi {
     buffer[13] = _payload.CpuTemperature;
     buffer[14] = (_payload.Temperature >> 8);
     buffer[15] = _payload.Temperature;
+    buffer[16] = (_payload.rssi >> 8);
+    buffer[17] = _payload.rssi;
+    buffer[18] = (_payload.snr >> 8);
+    buffer[19] = _payload.snr;
+    buffer[20] = (_payload.frq_error >> 8);
+    buffer[21] = _payload.frq_error;
   }
 
   // Parse the byte data from the buffer.
@@ -166,7 +172,9 @@ namespace theapi {
     _payload.Light = (buffer[10] << 8) | buffer[11];
     _payload.CpuTemperature = (buffer[12] << 8) | buffer[13];
     _payload.Temperature = (buffer[14] << 8) | buffer[15];
-    _payload.VCC = (buffer[4] << 8) | buffer[5];
+    _payload.rssi = (buffer[16] << 8) | buffer[17];
+    _payload.snr = (buffer[18] << 8) | buffer[19];
+    _payload.frq_error = (buffer[20] << 8) | buffer[21];
   }
 
 }
