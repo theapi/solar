@@ -7,6 +7,7 @@
  */
 
 use Elasticsearch\ClientBuilder;
+use Symfony\Component\Filesystem\Filesystem;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -28,6 +29,8 @@ $binded = socket_bind($socket, '0.0.0.0', 12345);
 $rval = socket_set_option($socket, getprotobyname("ip"), MCAST_JOIN_GROUP,
     array("group" => "239.0.0.57", "interface" => 0));
 
+// Write the data to the filesytem too.
+$fileSystem = new Filesystem();
 
 // Build the elasticsearch client.
 $client = ClientBuilder::create()
@@ -39,40 +42,46 @@ $msg_id = 999;
 $current_solar_msg_id = 999;
 
 while (1) {
-    $from = '';
-    $port = 0;
-    $num = socket_recvfrom($socket, $buf, 53, MSG_WAITALL, $from, $port);
-    //echo "Received $num bytes from $from, port $port" . PHP_EOL;
-    //echo "UDP packet contents: $buf" . PHP_EOL;
+    try {
+        $from = '';
+        $port = 0;
+        $num = socket_recvfrom($socket, $buf, 53, MSG_WAITALL, $from, $port);
+        //echo "Received $num bytes from $from, port $port" . PHP_EOL;
+        //echo "UDP packet contents: $buf" . PHP_EOL;
 
-    if ($buf[0] == "\t") {
-        // A payload.
-        $binarydata = trim($buf);
-        if (strlen($binarydata) > 1) {
-            $data = unpack("Cmessage_type", $binarydata);
-            switch ($data['message_type']) {
-                case GARDEN:
-                    $msg_id = processGardenPayload(
-                        $client,
-                        $msg_id,
-                        $binarydata
-                    );
-                break;
+        if ($buf[0] == "\t") {
+            // A payload.
+            $binarydata = trim($buf);
+            if (strlen($binarydata) > 1) {
+                $data = unpack("Cmessage_type", $binarydata);
+                switch ($data['message_type']) {
+                    case GARDEN:
+                        $msg_id = processGardenPayload(
+                            $client,
+                            $msg_id,
+                            $binarydata,
+                            $fileSystem
+                        );
+                    break;
 
-                case SOLAR:
-                    $current_solar_msg_id = processSolarPayload(
-                        $client,
-                        $current_solar_msg_id,
-                        $binarydata
-                    );
-                break;
+                    case SOLAR:
+                        $current_solar_msg_id = processSolarPayload(
+                            $client,
+                            $current_solar_msg_id,
+                            $binarydata,
+                            $fileSystem
+                        );
+                    break;
+                }
             }
         }
+    } catch (\Exception $e) {
+        // Keep calm & carry on.
     }
 
 }
 
-function processGardenPayload($client, $msg_id, $binarydata) {
+function processGardenPayload($client, $msg_id, $binarydata, $fileSystem) {
     $array = unpack("Cmsg_type/Cmsg_id/n*", $binarydata);
     foreach ($array as $k => $v) {
         // There is no option "signed short (always 16 bit, big endian byte order)"
@@ -101,6 +110,9 @@ function processGardenPayload($client, $msg_id, $binarydata) {
       $doc['timestamp'] = date("U") * 1000;
       print_r($doc);
 
+      $file = __DIR__ . '/csv/garden_payload/' . date('Y') . '/' . date('m') . '.csv';
+      $fileSystem->appendToFile($file, join(',', $doc) . PHP_EOL);
+
       $params = [
         'index' => 'garden_payload', // @todo configurable index name.
         'type' => '_doc',
@@ -112,7 +124,7 @@ function processGardenPayload($client, $msg_id, $binarydata) {
     return $msg_id;
 }
 
-function processSolarPayload($client, $current_solar_msg_id, $binarydata) {
+function processSolarPayload($client, $current_solar_msg_id, $binarydata, $fileSystem) {
     $doc = unpack(
         "Cmsg_type/Cdevice_id/Cmsg_id/Cflags/nvcc/nmv/nma/nlight/ncpu_temperature/ntemperature/nrssi/nsnr/nfrq_error",
         $binarydata
@@ -134,6 +146,9 @@ function processSolarPayload($client, $current_solar_msg_id, $binarydata) {
       // Record a timestamp as milliseconds since epoch (epoch_millis).
       $doc['timestamp'] = date("U") * 1000;
       print_r($doc);
+
+      $file = __DIR__ . '/csv/solar_payload/' . date('Y') . '/' . date('m') . '.csv';
+      $fileSystem->appendToFile($file, join(',', $doc) . PHP_EOL);
 
       $params = [
         'index' => 'solar_payload', // @todo configurable index name.
