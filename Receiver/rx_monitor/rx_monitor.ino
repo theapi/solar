@@ -112,8 +112,8 @@ void setup() {
 
   // handle index
   server.on("/", []() {
-    // send index.html
-    server.send(200, "text/html", index_html);
+    // send PROGMEM index html.
+    server.send_P(200, "text/html", index_html);
   });
 
   server.begin();
