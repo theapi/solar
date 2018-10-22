@@ -302,34 +302,40 @@ void serialPrintPayload() {
 }
 
 void udpBroadcast() {
+  udpBroadcastGarden();
+  udpBroadcastSolar();
+}
+
+void udpBroadcastGarden() {
   Udp.beginPacketMulticast(ipMulti, portMulti, WiFi.localIP());
   Udp.write('\t'); // Payload start byte
 
   // Send the contents of the buffer.
-  switch (current_payload) {
-    case theapi::Payload::GARDEN:
-      {
-        size_t len = rx_payload.size();
-        uint8_t sbuf[len];
-        rx_payload.serialize(sbuf);
-        Udp.write(sbuf, len);
-      }
-      break;
-
-    case theapi::Payload::SOLAR:
-      {
-        size_t len = solar_payload.size();
-        uint8_t sbuf[len];
-        solar_payload.serialize(sbuf);
-        Udp.write(sbuf, len);
-      }
-      break;
-  }
+  size_t len = rx_payload.size();
+  uint8_t sbuf[len];
+  rx_payload.serialize(sbuf);
+  Udp.write(sbuf, len);
 
   Udp.write('\n');
   Udp.endPacket();
   Udp.stop();
 }
+
+void udpBroadcastSolar() {
+  Udp.beginPacketMulticast(ipMulti, portMulti, WiFi.localIP());
+  Udp.write('\t'); // Payload start byte
+
+  // Send the contents of the buffer.
+  size_t len = solar_payload.size();
+  uint8_t sbuf[len];
+  solar_payload.serialize(sbuf);
+  Udp.write(sbuf, len);
+
+  Udp.write('\n');
+  Udp.endPacket();
+  Udp.stop();
+}
+
 
 /**
  * Send the garden data as json
