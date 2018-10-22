@@ -92,27 +92,27 @@ namespace theapi {
     _payload.f = val;
   }
 
-  int16_t SolarPayload::getRssi() {
+  int16_t GardenPayload::getRssi() {
     return _payload.rssi;
   }
 
-  void SolarPayload::setRssi(int16_t val) {
+  void GardenPayload::setRssi(int16_t val) {
     _payload.rssi = val;
   }
 
-  int16_t SolarPayload::getSnr() {
+  int16_t GardenPayload::getSnr() {
     return _payload.snr;
   }
 
-  void SolarPayload::setSnr(int16_t val) {
+  void GardenPayload::setSnr(int16_t val) {
     _payload.snr = val;
   }
 
-  int16_t SolarPayload::getFreqError() {
+  int16_t GardenPayload::getFreqError() {
     return _payload.frq_error;
   }
 
-  void SolarPayload::setFreqError(int16_t val) {
+  void GardenPayload::setFreqError(int16_t val) {
     _payload.frq_error = val;
   }
 

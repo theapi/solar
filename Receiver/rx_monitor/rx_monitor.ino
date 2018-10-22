@@ -258,6 +258,7 @@ void loop() {
 void serialPrintPayload() {
   switch (current_payload) {
     case theapi::Payload::GARDEN:
+      {
       Serial.print("GARDEN: ");
       Serial.print(rx_payload.getMsgType()); Serial.print(", ");
       Serial.print(rx_payload.getMsgId()); Serial.print(", ");
@@ -274,9 +275,11 @@ void serialPrintPayload() {
       int16_t freq = rx_payload.getFreqError();
       Serial.print(freq); Serial.print(", ");
       Serial.println();
+      }
     break;
 
     case theapi::Payload::SOLAR:
+      {
       Serial.print("SOLAR: ");
       Serial.print(solar_payload.getMsgType()); Serial.print(", ");
       Serial.print(solar_payload.getDeviceId()); Serial.print(", ");
@@ -294,6 +297,7 @@ void serialPrintPayload() {
       int16_t freq = solar_payload.getFreqError();
       Serial.print(freq); Serial.print(", ");
       Serial.println();
+     }
   }
 }
 

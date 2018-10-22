@@ -38,7 +38,7 @@ $client = ClientBuilder::create()
   ->build();
 
 // Only handle each message once, so start with fake one.
-$msg_id = 999;
+$current_garden_msg_id = 999;
 $current_solar_msg_id = 999;
 
 while (1) {
@@ -56,9 +56,9 @@ while (1) {
                 $data = unpack("Cmessage_type", $binarydata);
                 switch ($data['message_type']) {
                     case GARDEN:
-                        $msg_id = processGardenPayload(
+                        $current_garden_msg_id = processGardenPayload(
                             $client,
-                            $msg_id,
+                            $current_garden_msg_id,
                             $binarydata,
                             $fileSystem
                         );
@@ -81,47 +81,42 @@ while (1) {
 
 }
 
-function processGardenPayload($client, $msg_id, $binarydata, $fileSystem) {
-    $array = unpack("Cmsg_type/Cmsg_id/n*", $binarydata);
-    foreach ($array as $k => $v) {
-        // There is no option "signed short (always 16 bit, big endian byte order)"
-        if (is_int($k)) {
-            // Unpacked in the unsigned form,
-            // and then if the result is >= 2^15, subtract 2^16 from it.
-            if ($v >= pow(2, 15)) $v -= pow(2, 16);
-            $array[$k] = $v;
-        }
-    }
+function processGardenPayload($client, $current_garden_msg_id, $binarydata, $fileSystem) {
+  $doc = unpack(
+    "Cmsg_type/Cmsg_id/nvcc/nmv/nma/nlight/ncpu_temperature/ntemperature/nrssi/nsnr/nfrq_error",
+    $binarydata
+  );
+  foreach (['ma', 'cpu_temperature', 'temperature', 'rssi', 'snr', 'frq_error'] as $k) {
+    // There is no option "signed short (always 16 bit, big endian byte order)"
+    // Unpacked in the unsigned form,
+    // and then if the result is >= 2^15, subtract 2^16 from it.
+    $v = $doc[$k];
+    if ($v >= pow(2, 15)) $v -= pow(2, 16);
+    $doc[$k] = $v;
+  }
 
-    if ($array['msg_type'] == GARDEN && $array['msg_id'] != $msg_id) {
-      $msg_id = $array['msg_id'];
+  if ($doc['msg_id'] != $current_garden_msg_id) {
+    $current_garden_msg_id = $doc['msg_id'];
 
-      // Prepare the doc.
-      $doc['msg_type'] = $array['msg_type'];
-      $doc['msg_id'] = $array['msg_id'];
-      $doc['vcc'] = $array[1];
-      $doc['mv'] = $array[2];
-      $doc['ma'] = $array[3];
-      $doc['light'] = $array[4];
-      $doc['cpu_temperature'] = $array[5];
-      // Convert the temperature to the float value.
-      $doc['temperature'] = $array[6] / 10;
-      // Record a timestamp as milliseconds since epoch (epoch_millis).
-      $doc['timestamp'] = date("U") * 1000;
-      print_r($doc);
+    // Prepare the doc.
+    // Convert the temperature to the float value.
+    $doc['temperature'] = $doc['temperature'] / 10;
+    // Record a timestamp as milliseconds since epoch (epoch_millis).
+    $doc['timestamp'] = date("U") * 1000;
+    print_r($doc);
 
-      $file = __DIR__ . '/csv/garden_payload/' . date('Y') . '/' . date('m') . '.csv';
-      $fileSystem->appendToFile($file, join(',', $doc) . PHP_EOL);
+    $file = __DIR__ . '/csv/garden_payload/' . date('Y') . '/' . date('m') . '.csv';
+    $fileSystem->appendToFile($file, join(',', $doc) . PHP_EOL);
 
-      $params = [
-        'index' => 'garden_payload', // @todo configurable index name.
-        'type' => '_doc',
-        'body' => $doc,
-      ];
-      $response = $client->index($params);
-    }
+    $params = [
+      'index' => 'garden_payload', // @todo configurable index name.
+      'type' => '_doc',
+      'body' => $doc,
+    ];
+    $response = $client->index($params);
+  }
 
-    return $msg_id;
+  return $current_garden_msg_id;
 }
 
 function processSolarPayload($client, $current_solar_msg_id, $binarydata, $fileSystem) {
