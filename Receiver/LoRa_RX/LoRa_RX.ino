@@ -12,8 +12,6 @@
 //#include "config.h"
 #include "Payload.h"
 #include "GardenPayload.h"
-//#include "AckPayload.h"
-#include "SignalPayload.h"
 #include "SolarPayload.h"
 
 //#define ENCRYPTION_BUFFER_SIZE 16
@@ -38,8 +36,6 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 
 theapi::GardenPayload garden_payload = theapi::GardenPayload();
-//theapi::AckPayload ack_payload = theapi::AckPayload();
-theapi::SignalPayload signal_payload = theapi::SignalPayload();
 theapi::SolarPayload solar_payload = theapi::SolarPayload();
 
 //AES128 cipher;
@@ -97,7 +93,6 @@ void loop() {
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
     uint8_t len = sizeof(buf);
 
-    uint8_t signal_payload_buf[signal_payload.size()];
     uint8_t garden_payload_buf[garden_payload.size()];
     uint8_t solar_payload_buf[solar_payload.size()];
 
@@ -131,20 +126,14 @@ void loop() {
           Serial.print("msg_id: ");
           Serial.println(garden_payload.getMsgId());
 
+          garden_payload.setRssi(rssi);
+          garden_payload.setSnr(lastSNR);
+          garden_payload.setFreqError(frequencyError);
+
           // Send the garden data to the monitor.
           garden_payload.serialize(garden_payload_buf);
           Serial.write('\t'); // Payload start byte
           Serial.write(garden_payload_buf, garden_payload.size());
-
-          // Send radio signal data to the monitor.
-          signal_payload.setMsgId(garden_payload.getMsgId());
-          signal_payload.setRssi(rssi);
-          signal_payload.setSnr(lastSNR);
-          signal_payload.setFreqError(frequencyError);
-
-          signal_payload.serialize(signal_payload_buf);
-          Serial.write('\t'); // Payload start byte
-          Serial.write(signal_payload_buf, signal_payload.size());
 
           updateLedPanel();
         break;
@@ -152,7 +141,7 @@ void loop() {
         case theapi::Payload::SOLAR:
           // Send the solar data to the monitor.
           solar_payload.unserialize(buf);
-          solar_payload.serialize(solar_payload_buf);
+          //solar_payload.serialize(solar_payload_buf);
           solar_payload.setRssi(rssi);
           solar_payload.setSnr(lastSNR);
           solar_payload.setFreqError(frequencyError);

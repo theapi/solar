@@ -16,7 +16,6 @@
 #include "SSD1306.h"
 #include "Payload.h"
 #include "GardenPayload.h"
-#include "SignalPayload.h"
 #include "SolarPayload.h"
 #include "html.h"
 
@@ -38,7 +37,6 @@ SSD1306  display(0x3c, 4, 5);
 
 theapi::SolarPayload solar_payload = theapi::SolarPayload();
 theapi::GardenPayload rx_payload = theapi::GardenPayload();
-theapi::SignalPayload signal_payload = theapi::SignalPayload();
 uint8_t input_string[32];
 uint8_t payload_state = 0;
 uint8_t current_payload;
@@ -159,15 +157,6 @@ void loop() {
       // if the the last byte is received, set a flag
       // so the main loop can do something about it:
       switch (current_payload) {
-        case theapi::Payload::SIGNAL:
-          // Use SignalPayload
-          if (serial_byte_count == signal_payload.size()) {
-            serial_byte_count = 0;
-            payload_state = 2;
-            signal_payload.unserialize(input_string);
-          }
-          break;
-
         case theapi::Payload::GARDEN:
           // Use GardenPayload
           if (serial_byte_count == rx_payload.size()) {
@@ -268,16 +257,6 @@ void loop() {
 
 void serialPrintPayload() {
   switch (current_payload) {
-    case theapi::Payload::SIGNAL:
-      Serial.print("SIGNAL: ");
-      Serial.print(signal_payload.getMsgType()); Serial.print(", ");
-      Serial.print(signal_payload.getMsgId()); Serial.print(", ");
-      Serial.print(signal_payload.getRssi()); Serial.print(", ");
-      Serial.print(signal_payload.getSnr()); Serial.print(", ");
-      Serial.println(signal_payload.getFreqError());
-      Serial.println();
-    break;
-
     case theapi::Payload::GARDEN:
       Serial.print("GARDEN: ");
       Serial.print(rx_payload.getMsgType()); Serial.print(", ");
@@ -288,6 +267,12 @@ void serialPrintPayload() {
       Serial.print(rx_payload.getLight()); Serial.print(", ");
       Serial.print(rx_payload.getCpuTemperature()); Serial.print(", ");
       Serial.println(deg);
+      int16_t rssi = rx_payload.getRssi();
+      Serial.print(rssi); Serial.print(", ");
+      int16_t snr = rx_payload.getSnr();
+      Serial.print(snr); Serial.print(", ");
+      int16_t freq = rx_payload.getFreqError();
+      Serial.print(freq); Serial.print(", ");
       Serial.println();
     break;
 
@@ -318,15 +303,6 @@ void udpBroadcast() {
 
   // Send the contents of the buffer.
   switch (current_payload) {
-    case theapi::Payload::SIGNAL:
-      {
-        size_t len = signal_payload.size();
-        uint8_t sbuf[len];
-        signal_payload.serialize(sbuf);
-        Udp.write(sbuf, len);
-      }
-      break;
-
     case theapi::Payload::GARDEN:
       {
         size_t len = rx_payload.size();
@@ -352,21 +328,6 @@ void udpBroadcast() {
 }
 
 /**
- * Send the signal data.
- */
-void websocketBroadcastSignal() {
-  String str;
-  str = "{\"signal\":{";
-  str += "\"msg_type\":" + String(signal_payload.getMsgType()) + ",";
-  str += "\"msg_id\":" + String(signal_payload.getMsgId()) + ",";
-  str += "\"rssi\":" + String(signal_payload.getRssi()) + ",";
-  str += "\"snr\":" + String(signal_payload.getSnr()) + ",";
-  str += "\"freq_error\":" + String(signal_payload.getFreqError());
-  str += "}}";
-  webSocket.broadcastTXT(str);
-}
-
-/**
  * Send the garden data as json
  */
 void websocketBroadcastGarden() {
@@ -379,20 +340,16 @@ void websocketBroadcastGarden() {
   str += "\"charge_ma\":" + String(rx_payload.getChargeMa()) + ",";
   str += "\"light\":" + String(rx_payload.getLight()) + ",";
   str += "\"cpu\":" + String(rx_payload.getCpuTemperature()) + ",";
-  str += "\"temperature\":" + String(deg);
+  str += "\"temperature\":" + String(deg) + ",";
+  str += "\"rssi\":" + String(rx_payload.getRssi()) + ",";
+  str += "\"snr\":" + String(rx_payload.getSnr()) + ",";
+  str += "\"freq_error\":" + String(rx_payload.getFreqError());
   str += "}}";
   webSocket.broadcastTXT(str);
 }
 
 void websocketBroadcast() {
-  switch (current_payload) {
-    case theapi::Payload::SIGNAL:
-      websocketBroadcastSignal();
-    break;
-    default:
-      websocketBroadcastGarden();
-    break;
-  }
+  websocketBroadcastGarden();
 }
 
 bool mqttConnect() {
@@ -418,21 +375,6 @@ void mqttBroadcast() {
   char msg[50];
 
   switch (current_payload) {
-    case theapi::Payload::SIGNAL:
-    {
-      // Send the signal data.
-      str = String(signal_payload.getMsgType()) + ",";
-      str += String(signal_payload.getMsgId()) + ",";
-      str += String(signal_payload.getRssi()) + ",";
-      str += String(signal_payload.getSnr()) + ",";
-      str += String(signal_payload.getFreqError());
-      memset(msg, 0, sizeof msg);
-      str.toCharArray(msg, sizeof msg);
-      if (mqttConnect()) {
-        mqtt_client.publish("solar/signal", msg);
-      }
-    }
-    break;
     default:
     {
       str = String(rx_payload.getMsgType()) + ",";
@@ -442,7 +384,10 @@ void mqttBroadcast() {
       str += String(rx_payload.getChargeMa()) + ",";
       str += String(rx_payload.getLight()) + ",";
       str += String(rx_payload.getCpuTemperature()) + ",";
-      str += String(deg);
+      str += String(deg) + ",";
+      str += String(rx_payload.getRssi()) + ",";
+      str += String(rx_payload.getSnr()) + ",";
+      str += String(rx_payload.getFreqError());
       memset(msg, 0, sizeof msg);
       str.toCharArray(msg, sizeof msg);
       if (mqttConnect()) {

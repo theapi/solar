@@ -19,9 +19,14 @@ namespace theapi {
           int16_t d;
           int16_t e;
           int16_t f;
+          // The radio signal stats.
+          int16_t rssi;
+          int16_t snr;
+          int16_t frq_error;
       } payload_t;
 
-      const static uint8_t SIZE = 14;
+      const static uint8_t SIZE = 20;
+      const static uint8_t DATA_SIZE = 14;
 
       GardenPayload();
 
@@ -63,6 +68,27 @@ namespace theapi {
       // The seventh integer data
       int16_t getTemperature();
       void setTemperature(int16_t val);
+
+      /**
+       * The most recent RSSI (Receiver Signal Strength Indicator)
+       */
+      int16_t getRssi();
+      void setRssi(int16_t val);
+
+      /**
+       * The Signal-to-noise ratio (SNR) of the last received message,
+       * as measured by the receiver.
+       */
+      int16_t getSnr();
+      void setSnr(int16_t val);
+
+      /**
+       * The LoRa receiver estimates the frequency offset between the
+       * receiver centre frequency and that of the received LoRa signal.
+       * This function returns the estimates offset (in Hz) of the last received message.
+       */
+      int16_t getFreqError();
+      void setFreqError(int16_t val);
 
       // Creates a byte array for sending via the radio
       void serialize(uint8_t payload[GardenPayload::SIZE]);

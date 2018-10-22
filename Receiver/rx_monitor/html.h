@@ -10,7 +10,7 @@ var timer = 0;
 
 
     <script type="text/javascript">
-       var data_json = '{"garden":{"msg_type":0,"msg_id":0,"vcc":0,"solar_mv":0,"charge_ma":0,"light": 0,"cpu":0,"temperature":0}, "signal":{"rssi":0,"snr":0}, "connection":{"status":0}}';
+       var data_json = '{"garden":{"msg_type":0,"msg_id":0,"vcc":0,"solar_mv":0,"charge_ma":0,"light": 0,"cpu":0,"temperature":0, "rssi":0,"snr":0}, "connection":{"status":0}}';
        data_obj = JSON.parse(data_json);
     </script>
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -209,13 +209,13 @@ var timer = 0;
         }
 
         // RSSI
-        if (typeof data_obj.signal !== 'undefined') {
+        if (typeof data_obj.garden !== 'undefined') {
           var rssi_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
             ['RSSI', 0],
           ]);
           var rssi_chart = new google.visualization.Gauge(document.getElementById('chart_rssi'));
-          rssi_data.setValue(0, 1, data_obj.signal.rssi);
+          rssi_data.setValue(0, 1, data_obj.garden.rssi);
           var rssi_options = {
             min: -140, max: 0,
             width: 140, height: 140,
@@ -225,13 +225,13 @@ var timer = 0;
         }
 
         // SNR
-        if (typeof data_obj.signal !== 'undefined') {
+        if (typeof data_obj.garden !== 'undefined') {
           var snr_data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
             ['SNR', 0],
           ]);
           var snr_chart = new google.visualization.Gauge(document.getElementById('chart_snr'));
-          snr_data.setValue(0, 1, data_obj.signal.snr);
+          snr_data.setValue(0, 1, data_obj.garden.snr);
           var snr_options = {
             min: 0, max: 100,
             width: 140, height: 140,
@@ -262,9 +262,6 @@ var timer = 0;
       var json_obj = JSON.parse(e.data);
       console.log(json_obj);
 
-      if (typeof json_obj.signal !== 'undefined') {
-          data_obj.signal = json_obj.signal;
-      }
       if (typeof json_obj.garden !== 'undefined') {
           data_obj.garden = json_obj.garden;
       }

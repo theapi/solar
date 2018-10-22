@@ -14,6 +14,9 @@ namespace theapi {
     _payload.d = 0;
     _payload.e = 0;
     _payload.f = 0;
+    _payload.rssi = 0;
+    _payload.snr = 0;
+    _payload.frq_error = 0;
   }
 
   uint8_t GardenPayload::size() {
@@ -89,6 +92,30 @@ namespace theapi {
     _payload.f = val;
   }
 
+  int16_t SolarPayload::getRssi() {
+    return _payload.rssi;
+  }
+
+  void SolarPayload::setRssi(int16_t val) {
+    _payload.rssi = val;
+  }
+
+  int16_t SolarPayload::getSnr() {
+    return _payload.snr;
+  }
+
+  void SolarPayload::setSnr(int16_t val) {
+    _payload.snr = val;
+  }
+
+  int16_t SolarPayload::getFreqError() {
+    return _payload.frq_error;
+  }
+
+  void SolarPayload::setFreqError(int16_t val) {
+    _payload.frq_error = val;
+  }
+
   // Populates the given array with the payload data
   void GardenPayload::serialize(uint8_t payload[GardenPayload::SIZE]) {
     payload[0] = _payload.msg_type;
@@ -106,6 +133,13 @@ namespace theapi {
     payload[11] = _payload.e;
     payload[12] = (_payload.f >> 8);
     payload[13] = _payload.f;
+
+    payload[14] = (_payload.rssi >> 8);
+    payload[15] = _payload.rssi;
+    payload[16] = (_payload.snr >> 8);
+    payload[17] = _payload.snr;
+    payload[18] = (_payload.frq_error >> 8);
+    payload[19] = _payload.frq_error;
 
     /*
      payload[16] = (_payload.timestamp >> 24);
@@ -131,6 +165,10 @@ namespace theapi {
 
     _payload.e = (payload[10] << 8) | payload[11];
     _payload.f = (payload[12] << 8) | payload[13];
+
+    _payload.rssi = (payload[14] << 8) | payload[15];
+    _payload.snr = (payload[16] << 8) | payload[17];
+    _payload.frq_error = (payload[18] << 8) | payload[19];
 
     // Need to cast to unsigned long for the larger bit shift
     //_payload.timestamp = ((uint32_t)payload[16] << 24) | ((uint32_t)payload[17] << 16) | ((uint32_t)payload[18] << 8) | (uint32_t)payload[19];
