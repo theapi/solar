@@ -12,4 +12,4 @@ let garden = new GardenPayloadHandler(socket);
 let solar = new SolarPayloadHandler(socket);
 
 // Just to show the serializer working :)
-console.log(solar.unserialize(Buffer.from([0x09, 0x37, 0x02, 0x03, 0x04, 0x05, 0x06])));
+//console.log(solar.unserialize(Buffer.from([0x09, 0x37, 0x02, 0x03, 0x04, 0x05, 0x06])));
