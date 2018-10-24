@@ -1,12 +1,23 @@
+
+const PORT = 12345;
+const MULTICAST_ADDR = "239.0.0.57";
+
 const SolarPayloadHandler = require('./SolarPayloadHandler.js');
 const GardenPayloadHandler = require('./GardenPayloadHandler.js');
 const client = require('./elasticsearch/connection.js');
 const dgram = require('dgram');
-const socket = dgram.createSocket('udp4');
-const multi_addr = '239.0.0.57';
+const socket = dgram.createSocket({ type: "udp4", reuseAddr: true });
 
-socket.bind(12345, multi_addr, () => {
-    socket.addMembership(multi_addr);
+socket.bind(PORT);
+
+socket.on("listening", function() {
+  socket.addMembership(MULTICAST_ADDR);
+  const address = socket.address();
+  console.log(
+    `UDP socket listening on ${address.address}:${address.port} pid: ${
+      process.pid
+    }`
+  );
 });
 
 let garden = new GardenPayloadHandler(socket);

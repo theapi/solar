@@ -28,6 +28,7 @@ if (!($socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP))) {
 $binded = socket_bind($socket, '0.0.0.0', 12345);
 $rval = socket_set_option($socket, getprotobyname("ip"), MCAST_JOIN_GROUP,
     array("group" => "239.0.0.57", "interface" => 0));
+socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
 
 // Write the data to the filesytem too.
 $fileSystem = new Filesystem();
