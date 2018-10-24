@@ -1,4 +1,5 @@
-
+const fs = require('fs');
+const fsPromises = fs.promises;
 
 module.exports = class SolarPayloadHandler {
 
@@ -13,6 +14,21 @@ module.exports = class SolarPayloadHandler {
           payload.timestamp = new Date().getTime();
           console.log(payload);
 
+          // Keep a record in a file.
+          let now = new Date();
+          let month = now.getUTCMonth() + 1;
+          let dir = __dirname + '/log/' + now.getUTCFullYear();
+          // {recursive: true} requires > 10.12.0
+          fsPromises.mkdir(dir, {recursive: true})
+          .then(() => {
+            return fsPromises.appendFile(
+              dir + '/' + month + '.json',
+              JSON.stringify(payload) + "\n"
+            );
+          })
+          .catch(console.error);
+
+          // Index into Elasticsearch.
           this.client.index({
             index: 'solar_0', //@todo not hard coded index name
             type: '_doc',
