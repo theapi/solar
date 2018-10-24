@@ -2,7 +2,7 @@
 var client = require('./connection.js');
 
 client.indices.create({
-  "index": 'solar_0.3',
+  "index": 'solar_0', //@todo not hard coded index name
   "body": {
     "mappings": {
       "_doc": {

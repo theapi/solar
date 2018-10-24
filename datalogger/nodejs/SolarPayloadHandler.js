@@ -1,13 +1,28 @@
+
+
 module.exports = class SolarPayloadHandler {
 
-  constructor(socket) {
+  constructor(socket, client) {
     this.msg_id = 999;
+    this.client = client;
 
     socket.on('message', (buf, rinfo) => {
       if (buf.readUInt8(0) === 9 && buf.readUInt8(1) === 55) {
         if (this.msg_id !== buf.readUInt8(3)) {
           let payload = this.unserialize(buf);
+          payload.timestamp = new Date().getTime();
           console.log(payload);
+
+          this.client.index({
+            index: 'solar_0', //@todo not hard coded index name
+            type: '_doc',
+            body: payload
+          })
+          .catch ((err) => {
+            console.error('failed to index: ' + err);
+          })
+          ;
+
         }
       }
     });
@@ -25,7 +40,7 @@ module.exports = class SolarPayloadHandler {
     payload.ma = buf.readInt16BE(9);
     payload.light = buf.readInt16BE(11);
     payload.cpu_temperature = buf.readInt16BE(13);
-    payload.temperature = buf.readInt16BE(15);
+    payload.temperature = buf.readInt16BE(15) / 10;
     payload.rssi = buf.readInt16BE(17);
     payload.snr = buf.readInt16BE(19);
     payload.freg_error = buf.readInt16BE(21);
