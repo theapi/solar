@@ -17,7 +17,7 @@ module.exports = class SolarPayloadHandler {
           // Keep a record in a file.
           let now = new Date();
           let month = now.getUTCMonth() + 1;
-          let dir = __dirname + '/log/' + now.getUTCFullYear();
+          let dir = __dirname + '/log/solar/' + now.getUTCFullYear();
           // {recursive: true} requires > 10.12.0
           fsPromises.mkdir(dir, {recursive: true})
           .then(() => {

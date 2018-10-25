@@ -8,6 +8,32 @@ module.exports = class GardenPayloadHandler {
         if (this.msg_id !== buf.readUInt8(2)) {
           let payload = this.unserialize(buf);
           console.log(payload);
+
+          // Keep a record in a file.
+          let now = new Date();
+          let month = now.getUTCMonth() + 1;
+          let dir = __dirname + '/log/garden/' + now.getUTCFullYear();
+          // {recursive: true} requires > 10.12.0
+          fsPromises.mkdir(dir, {recursive: true})
+          .then(() => {
+            return fsPromises.appendFile(
+              dir + '/' + month + '.json',
+              JSON.stringify(payload) + "\n"
+            );
+          })
+          .catch(console.error);
+
+          // Index into Elasticsearch.
+          this.client.index({
+            index: 'garden_0', //@todo not hard coded index name
+            type: '_doc',
+            body: payload
+          })
+          .catch ((err) => {
+            console.error('failed to index: ' + err);
+          })
+          ;
+
         }
       }
     });
