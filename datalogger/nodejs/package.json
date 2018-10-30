@@ -17,6 +17,7 @@
   "author": "Peter Clarke",
   "license": "GPL-3.0",
   "dependencies": {
+    "config": "^2.0.1",
     "elasticsearch": "^15.1.1"
   }
 }

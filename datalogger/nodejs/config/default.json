@@ -1,0 +1,17 @@
+{
+  "udp": {
+    "port": 12345,
+    "address": "239.0.0.57"
+  },
+  "elasticsearch": {
+    "hosts": [
+      "192.168.0.2:9200"
+    ],
+    "garden": {
+      "index": "garden_0"
+    },
+    "solar": {
+      "index": "solar_0"
+    }
+  }
+}
