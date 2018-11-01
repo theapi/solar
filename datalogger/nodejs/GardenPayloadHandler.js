@@ -1,38 +1,22 @@
+const fs = require('fs');
+const fsPromises = fs.promises;
+
 module.exports = class GardenPayloadHandler {
 
-  constructor(socket) {
+  constructor(socket, loggers) {
     this.msg_id = 999;
+    this.loggers = loggers;
 
     socket.on('message', (buf, rinfo) => {
       if (buf.readUInt8(0) === 9 && buf.readUInt8(1) === 50) {
         if (this.msg_id !== buf.readUInt8(2)) {
           let payload = this.unserialize(buf);
-          console.log(payload);
+          payload.timestamp = new Date().getTime();
 
-          // Keep a record in a file.
-          let now = new Date();
-          let month = now.getUTCMonth() + 1;
-          let dir = __dirname + '/log/garden/' + now.getUTCFullYear();
-          // {recursive: true} requires > 10.12.0
-          fsPromises.mkdir(dir, {recursive: true})
-          .then(() => {
-            return fsPromises.appendFile(
-              dir + '/' + month + '.json',
-              JSON.stringify(payload) + "\n"
-            );
-          })
-          .catch(console.error);
-
-          // Index into Elasticsearch.
-          this.client.index({
-            index: 'garden_0', //@todo not hard coded index name
-            type: '_doc',
-            body: payload
-          })
-          .catch ((err) => {
-            console.error('failed to index: ' + err);
-          })
-          ;
+          // Log to all the loggers.
+          for (let i = 0, len = this.loggers.length; i < len; i++) {
+            this.loggers[i].log(payload);
+          }
 
         }
       }

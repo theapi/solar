@@ -1,8 +1,10 @@
 
 var client = require('./connection.js');
+const config = require('config');
+const elasticsearch = config.get('elasticsearch');
 
 client.indices.create({
-  "index": 'solar_0', //@todo not hard coded index name
+  "index": elasticsearch.solar.index,
   "body": {
     "mappings": {
       "_doc": {

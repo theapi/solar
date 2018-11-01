@@ -1,21 +1,22 @@
 
-const PORT = 12345;
-const MULTICAST_ADDR = "239.0.0.57";
 
 const config = require('config');
-const udp = config.get('udp');
+const dgram = require('dgram');
 
+const FileLogger = require('./FileLogger.js');
+const ElasticsearchLogger = require('./ElasticsearchLogger.js');
 const SolarPayloadHandler = require('./SolarPayloadHandler.js');
 const GardenPayloadHandler = require('./GardenPayloadHandler.js');
-const client = require('./elasticsearch/connection.js');
-const dgram = require('dgram');
-const socket = dgram.createSocket({ type: "udp4", reuseAddr: true });
+const esClient = require('./elasticsearch/connection.js');
 
-socket.bind(udp.port);
-
-socket.on("listening", function() {
-  socket.addMembership(udp.address);
-  const address = socket.address();
+// Connect to the UDP service.
+const udpSocket = dgram.createSocket({ type: "udp4", reuseAddr: true });
+const udp = config.get('udp');
+udpSocket.bind(udp.port);
+udpSocket.on("listening", function() {
+  // Once connected, join the multicast group.
+  udpSocket.addMembership(udp.address);
+  const address = udpSocket.address();
   console.log(
     `UDP socket listening on ${address.address}:${address.port} pid: ${
       process.pid
@@ -23,8 +24,22 @@ socket.on("listening", function() {
   );
 });
 
-//let garden = new GardenPayloadHandler(socket);
-//let solar = new SolarPayloadHandler(socket, client);
+// Start the payload handlers.
+const esConfig = config.get('elasticsearch');
+new GardenPayloadHandler(
+  udpSocket,
+  [ // The loggers for the handler to use.
+    console,
+    new FileLogger('garden'),
+    new ElasticsearchLogger(esClient, esConfig.garden.index)
+  ]
+);
 
-// Just to show the serializer working :)
-//console.log(solar.unserialize(Buffer.from([0x09, 0x37, 0x02, 0x03, 0x04, 0x05, 0x06])));
+new SolarPayloadHandler(
+  udpSocket,
+  [ // The loggers for the handler to use.
+    console,
+    new FileLogger('solar'),
+    new ElasticsearchLogger(esClient, esConfig.solar.index)
+  ]
+);
