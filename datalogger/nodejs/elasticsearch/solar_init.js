@@ -15,6 +15,21 @@ client.indices.create({
           "device_id": {
             "type": "short"
           },
+          "flag_battery": {
+            "type": "boolean"
+          },
+          "flag_switch": {
+            "type": "boolean"
+          },
+          "flag_temperature": {
+            "type": "boolean"
+          },
+          "flag_water": {
+            "type": "boolean"
+          },
+          "flag_switch": {
+            "type": "boolean"
+          },
           "flags": {
             "type": "short"
           },

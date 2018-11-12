@@ -16,6 +16,16 @@ module.exports = class SolarPayloadHandler {
             let payload = this.unserialize(buf);
             payload.timestamp = new Date().getTime();
 
+            // Extract the flags to fields of their own.
+            // bit 0 = pump_switch
+            // bit 1 = water
+            // bit 2 = temperature
+            // bit 3 = battery
+            payload.flag_switch = this.bitRead(payload.flags, 0);
+            payload.flag_water = this.bitRead(payload.flags, 1);
+            payload.flag_temerature = this.bitRead(payload.flags, 2);
+            payload.flag_battery = this.bitRead(payload.flags, 3);
+
             // Log to all the loggers.
             for (let i = 0, len = this.loggers.length; i < len; i++) {
               this.loggers[i].log(payload);
@@ -45,6 +55,11 @@ module.exports = class SolarPayloadHandler {
     payload.freg_error = buf.readInt16BE(20);
 
     return payload;
+  }
+
+
+  bitRead(value, bit) {
+    return ((value >> bit) & 0x01);
   }
 
 }
